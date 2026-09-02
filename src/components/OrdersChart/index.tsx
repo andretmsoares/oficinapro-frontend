@@ -9,30 +9,61 @@ import {
 } from "recharts";
 
 import "./ordersChart.style.css";
+import { useEffect, useState } from "react";
 
-const data = [
-  { day: "01", abertas: 8, finalizadas: 5 },
-  { day: "03", abertas: 12, finalizadas: 8 },
-  { day: "06", abertas: 10, finalizadas: 9 },
-  { day: "09", abertas: 15, finalizadas: 11 },
-  { day: "12", abertas: 9, finalizadas: 13 },
-  { day: "15", abertas: 17, finalizadas: 12 },
-  { day: "18", abertas: 14, finalizadas: 16 },
-  { day: "21", abertas: 11, finalizadas: 10 },
-  { day: "24", abertas: 19, finalizadas: 15 },
-  { day: "27", abertas: 16, finalizadas: 18 },
-  { day: "30", abertas: 21, finalizadas: 17 },
-];
+interface FluxoMensalOS {
+  day: number;
+  abertas: number;
+  finalizadas: number;
+}
 
-export function OrdersChart() {
+interface OrdersChartProps {
+  oficinaId: number;
+}
+
+export function OrdersChart({ oficinaId }: OrdersChartProps) {
+  const [data, setData] = useState<FluxoMensalOS[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  const hoje = new Date();
+  const mes = hoje.getMonth() + 1;
+  const ano = hoje.getFullYear();
+
+  useEffect(() => {
+    async function buscarFluxoMensal() {
+      try {
+        setLoading(true);
+        setError(false);
+
+        const response = await fetch(
+          `/api/ordens-servico/oficina/${oficinaId}/fluxo-mensal?mes=${mes}&ano=${ano}`
+        );
+
+        if (!response.ok) {
+          throw new Error("Erro ao buscar fluxo mensal das OS");
+        }
+
+        const result: FluxoMensalOS[] = await response.json();
+
+        setData(result);
+      } catch (err) {
+        console.error("Erro ao buscar fluxo mensal:", err);
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    buscarFluxoMensal();
+  }, [oficinaId, mes, ano]);
+
   return (
     <div className="chart-card">
       <div className="chart-header">
         <h3>Fluxo de Ordens de Serviço</h3>
 
-        <p>
-          Acompanhamento das OS durante o mês
-        </p>
+        <p>Acompanhamento das OS durante o mês</p>
       </div>
 
       <div className="chart-legend">
@@ -48,33 +79,45 @@ export function OrdersChart() {
       </div>
 
       <div className="chart-container">
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" />
+        {loading ? (
+          <div className="chart-message">
+            Carregando dados...
+          </div>
+        ) : error ? (
+          <div className="chart-message">
+            Não foi possível carregar os dados.
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={data}>
+              <CartesianGrid strokeDasharray="3 3" />
 
-            <XAxis dataKey="day" />
+              <XAxis dataKey="day" />
 
-            <YAxis />
+              <YAxis allowDecimals={false} />
 
-            <Tooltip />
+              <Tooltip />
 
-            <Line
-              type="monotone"
-              dataKey="abertas"
-              stroke="#2563eb"
-              strokeWidth={2}
-              dot={false}
-            />
+              <Line
+                type="monotone"
+                dataKey="abertas"
+                stroke="#2563eb"
+                strokeWidth={2}
+                dot={false}
+                name="OS abertas"
+              />
 
-            <Line
-              type="monotone"
-              dataKey="finalizadas"
-              stroke="#16a34a"
-              strokeWidth={2}
-              dot={false}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+              <Line
+                type="monotone"
+                dataKey="finalizadas"
+                stroke="#16a34a"
+                strokeWidth={2}
+                dot={false}
+                name="OS finalizadas"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        )}
       </div>
     </div>
   );

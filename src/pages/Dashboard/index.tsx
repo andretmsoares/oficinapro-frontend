@@ -153,7 +153,7 @@ export function Dashboard() {
       </section>
 
       <section className="dashboard-grid">
-        <OrdersChart />
+        <OrdersChart oficinaId={1}/>
 
         <RecentOrders />
       </section>
