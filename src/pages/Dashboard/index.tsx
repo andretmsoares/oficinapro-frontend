@@ -10,8 +10,33 @@ import { RecentOrders } from "../../components/RecentOrders";
 import { StatCard } from "../../components/StatCard";
 
 import "./dashboard.style.css";
+import { useEffect, useState } from "react";
 
 export function Dashboard() {
+
+  const [ordensAbertas, setOrdensAbertas] = useState<number>(0);
+
+  useEffect(() => {
+    async function carregarOrdensAbertas() {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch("http://localhost:8080/api/ordens-servico/status/ABERTA", {
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setOrdensAbertas(data.length);
+        }
+      } catch (error) {
+        console.error("Erro ao carregar ordens abertas:", error);
+      }
+    }
+
+    carregarOrdensAbertas();
+  }, []);
+
   return (
     <div className="dashboard">
 
@@ -27,22 +52,22 @@ export function Dashboard() {
 
         <StatCard
           title="Ordens abertas"
-          value="18"
-          description="+12% este mês"
+          value={ordensAbertas.toString()}
+          description="Neste momento"
           icon={ClipboardList}
         />
 
         <StatCard
-          title="Veículos em manutenção"
+          title="Veículos Cadastrados"
           value="7"
           description="Neste momento"
           icon={Car}
         />
 
         <StatCard
-          title="Clientes"
+          title="Clientes Cadastrados"
           value="248"
-          description="+18 este mês"
+          description="Neste momento"
           icon={Users}
         />
 
