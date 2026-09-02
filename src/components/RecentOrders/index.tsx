@@ -1,40 +1,81 @@
+import { useEffect, useState } from "react";
+
 import "./recentOrders.style.css";
 
 interface Order {
-  id: string;
+  id: number;
   vehicle: string;
   client: string;
   status: string;
 }
 
-const orders: Order[] = [
-  {
-    id: "#00153",
-    vehicle: "Honda Civic",
-    client: "João da Silva",
-    status: "Em execução",
-  },
-  {
-    id: "#00152",
-    vehicle: "Toyota Corolla",
-    client: "Maria Oliveira",
-    status: "Aguardando peças",
-  },
-  {
-    id: "#00151",
-    vehicle: "Chevrolet Onix",
-    client: "Carlos Souza",
-    status: "Finalizada",
-  },
-  {
-    id: "#00150",
-    vehicle: "Volkswagen Polo",
-    client: "Ana Santos",
-    status: "Aberta",
-  },
-];
+interface OrdemDeServicoResponse {
+  id: number;
+  veiculoId: number;
+  clienteId: number | null;
+  status: string;
+}
 
 export function RecentOrders() {
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function carregarOrdensRecentes() {
+      try {
+        const token = localStorage.getItem("token");
+
+        const response = await fetch(
+          "http://localhost:8080/api/ordens-servico",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        if (!response.ok) {
+          throw new Error("Erro ao buscar ordens de serviço");
+        }
+
+        const data: OrdemDeServicoResponse[] = await response.json();
+
+        const recentes = data.slice(-4).reverse();
+
+        const ordensFormatadas: Order[] = recentes.map((os) => ({
+          id: os.id,
+          vehicle: `Veículo #${os.veiculoId}`,
+          client:
+            os.clienteId !== null
+              ? `Cliente #${os.clienteId}`
+              : "Cliente não informado",
+          status: formatarStatus(os.status),
+        }));
+
+        setOrders(ordensFormatadas);
+      } catch (error) {
+        console.error("Erro ao carregar ordens recentes:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    carregarOrdensRecentes();
+  }, []);
+
+  function formatarStatus(status: string): string {
+    const statusMap: Record<string, string> = {
+      ABERTA: "Aberta",
+      EM_EXECUCAO: "Em execução",
+      AGUARDANDO_PECAS: "Aguardando peças",
+      FINALIZADA: "Finalizada",
+      ENTREGUE: "Entregue",
+      CANCELADA: "Cancelada",
+    };
+
+    return statusMap[status] ?? status;
+  }
+
   return (
     <div className="recent-orders">
       <div className="section-header">
@@ -46,28 +87,34 @@ export function RecentOrders() {
       </div>
 
       <div className="order-list">
-        {orders.map((order) => (
-          <div
-            className="order-item"
-            key={order.id}
-          >
-            <div>
-              <strong>{order.id}</strong>
+        {loading ? (
+          <p>Carregando ordens...</p>
+        ) : orders.length === 0 ? (
+          <p>Nenhuma ordem de serviço encontrada.</p>
+        ) : (
+          orders.map((order) => (
+            <div
+              className="order-item"
+              key={order.id}
+            >
+              <div>
+                <strong>#{order.id.toString().padStart(5, "0")}</strong>
 
-              <span>
-                {order.vehicle}
+                <span>
+                  {order.vehicle}
+                </span>
+
+                <small>
+                  {order.client}
+                </small>
+              </div>
+
+              <span className="status">
+                {order.status}
               </span>
-
-              <small>
-                {order.client}
-              </small>
             </div>
-
-            <span className="status">
-              {order.status}
-            </span>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );
