@@ -11,6 +11,8 @@ export function Dashboard() {
   const [ordensAbertas, setOrdensAbertas] = useState<number>(0);
   const [veiculosCadastrados, setVeiculosCadastrados] = useState<number>(0);
   const [clientesCadastrados, setClientesCadastrados] = useState<number>(0);
+  const [aReceber, setAReceber] = useState<number>(0);
+  const [pagamentosPendentes, setPagamentosPendentes] = useState<number>(0);
 
   useEffect(() => {
     async function carregarOrdensAbertas() {
@@ -67,9 +69,49 @@ export function Dashboard() {
       }
     }
 
+    async function carregarPagamentosPendentes() {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch("http://localhost:8080/api/pagamentos/pendentes", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setPagamentosPendentes(data.length);
+        }
+      } catch (error) {
+        console.error("Erro ao carregar pagamentos pendentes:", error);
+      }
+    }
+
+    async function carregarAReceber() {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch("http://localhost:8080/api/pagamentos/pendentes", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          const totalAReceber = data.reduce((total: number, pagamento: any) => {
+            return total + pagamento.valor;
+          }, 0);
+          setAReceber(totalAReceber);
+        }
+      } catch (error) {
+        console.error("Erro ao carregar valor a receber:", error);
+      }
+    }
+
+
     carregarOrdensAbertas();
     carregarVeiculosCadastrados();
     carregarClientesCadastrados();
+    carregarPagamentosPendentes();
+    carregarAReceber();
   }, []);
 
   return (
@@ -104,8 +146,8 @@ export function Dashboard() {
 
         <StatCard
           title="A receber"
-          value="R$ 8.420"
-          description="12 pagamentos pendentes"
+          value={`R$ ${aReceber.toFixed(2)}`}
+          description={`${pagamentosPendentes.toString()} pagamentos pendentes`}
           icon={CreditCard}
         />
       </section>
