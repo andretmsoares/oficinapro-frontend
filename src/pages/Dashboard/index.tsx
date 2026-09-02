@@ -1,9 +1,4 @@
-import {
-  Car,
-  ClipboardList,
-  CreditCard,
-  Users,
-} from "lucide-react";
+import { Car, ClipboardList, CreditCard, Users } from "lucide-react";
 
 import { OrdersChart } from "../../components/OrdersChart";
 import { RecentOrders } from "../../components/RecentOrders";
@@ -13,18 +8,21 @@ import "./dashboard.style.css";
 import { useEffect, useState } from "react";
 
 export function Dashboard() {
-
   const [ordensAbertas, setOrdensAbertas] = useState<number>(0);
+  const [veiculosCadastrados, setVeiculosCadastrados] = useState<number>(0);
 
   useEffect(() => {
     async function carregarOrdensAbertas() {
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch("http://localhost:8080/api/ordens-servico/status/ABERTA", {
-          headers: {
-            "Authorization": `Bearer ${token}`
-          }
-        });
+        const response = await fetch(
+          "http://localhost:8080/api/ordens-servico/status/ABERTA",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
         if (response.ok) {
           const data = await response.json();
           setOrdensAbertas(data.length);
@@ -34,22 +32,36 @@ export function Dashboard() {
       }
     }
 
+    async function carregarVeiculosCadastrados() {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch("http://localhost:8080/api/veiculos", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setVeiculosCadastrados(data.length);
+        }
+      } catch (error) {
+        console.error("Erro ao carregar veículos cadastrados:", error);
+      }
+    }
+
     carregarOrdensAbertas();
+    carregarVeiculosCadastrados();
   }, []);
 
   return (
     <div className="dashboard">
-
       <div className="dashboard-header">
         <h1>Dashboard</h1>
 
-        <p>
-          Visão geral da sua oficina.
-        </p>
+        <p>Visão geral da sua oficina.</p>
       </div>
 
       <section className="stats-grid">
-
         <StatCard
           title="Ordens abertas"
           value={ordensAbertas.toString()}
@@ -59,7 +71,7 @@ export function Dashboard() {
 
         <StatCard
           title="Veículos Cadastrados"
-          value="7"
+          value={veiculosCadastrados.toString()}
           description="Neste momento"
           icon={Car}
         />
@@ -77,17 +89,13 @@ export function Dashboard() {
           description="12 pagamentos pendentes"
           icon={CreditCard}
         />
-
       </section>
 
       <section className="dashboard-grid">
-
         <OrdersChart />
 
         <RecentOrders />
-
       </section>
-
     </div>
   );
 }
