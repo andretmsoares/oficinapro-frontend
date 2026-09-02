@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 export function Dashboard() {
   const [ordensAbertas, setOrdensAbertas] = useState<number>(0);
   const [veiculosCadastrados, setVeiculosCadastrados] = useState<number>(0);
+  const [clientesCadastrados, setClientesCadastrados] = useState<number>(0);
 
   useEffect(() => {
     async function carregarOrdensAbertas() {
@@ -49,8 +50,26 @@ export function Dashboard() {
       }
     }
 
+    async function carregarClientesCadastrados() {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch("http://localhost:8080/api/clientes", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setClientesCadastrados(data.length);
+        }
+      } catch (error) {
+        console.error("Erro ao carregar clientes cadastrados:", error);
+      }
+    }
+
     carregarOrdensAbertas();
     carregarVeiculosCadastrados();
+    carregarClientesCadastrados();
   }, []);
 
   return (
@@ -78,7 +97,7 @@ export function Dashboard() {
 
         <StatCard
           title="Clientes Cadastrados"
-          value="248"
+          value={clientesCadastrados.toString()}
           description="Neste momento"
           icon={Users}
         />
