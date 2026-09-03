@@ -29,3 +29,11 @@ select,
 textarea {
   font-family: inherit;
 }
+
+h1 {
+  color: #111827;
+}
+
+p {
+  color: #9ca3af;
+}

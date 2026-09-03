@@ -6,6 +6,7 @@ import { RecentOrders } from "../../components/RecentOrders";
 import { StatCard } from "../../components/StatCard";
 
 import "./dashboard.style.css";
+import { HeaderPage } from "../../components/HeaderPage";
 
 // Dados mockados temporários
 const MOCK_DATA = {
@@ -31,8 +32,7 @@ export function Dashboard() {
   return (
     <div className="dashboard">
       <div className="dashboard-header">
-        <h1>Dashboard</h1>
-        <p>Visão geral da sua oficina.</p>
+        <HeaderPage title="Dashboard" subtitle="Visão geral da oficina" />
       </div>
 
       <section className="stats-grid">
