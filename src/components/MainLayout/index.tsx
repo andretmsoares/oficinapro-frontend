@@ -7,10 +7,12 @@ import "./mainLayout.style.css";
 
 interface MainLayoutProps {
   children: ReactNode;
+  onLogout: () => void;
 }
 
 export function MainLayout({
   children,
+  onLogout,
 }: MainLayoutProps) {
   return (
     <div className="app-layout">

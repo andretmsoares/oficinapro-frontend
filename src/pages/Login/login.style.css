@@ -1,0 +1,70 @@
+.login {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: #f8fafc; 
+  overflow: hidden;
+}
+
+.login::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  
+  background-image: url("../../../public/favicon.png"); 
+  
+  background-repeat: repeat;
+  background-position: center;
+  background-size: 120px; 
+
+  opacity: 0.05; 
+  pointer-events: none;
+  z-index: 0;
+}
+
+.login-container {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0px 10px 25px rgba(0, 0, 0, 0.08);
+  background-color: #ffffff; 
+  border: 1px solid #e2e8f0;
+}
+
+.login .login-container .logo {
+  width: 200px;
+  height: auto;
+}
+
+.login-header {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.login-header h1 {
+  font-size: 24px;
+  font-weight: bold;
+  color: #111827;
+  margin: 10px 0px;
+}
+
+.login-header p {
+  font-size: 16px;
+  color: #6b7280;
+  margin: 0;
+  margin-bottom: 10px;
+}
