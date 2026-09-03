@@ -9,81 +9,43 @@ interface Order {
   status: string;
 }
 
-interface OrdemDeServicoResponse {
-  id: number;
-  veiculoId: number;
-  clienteId: number | null;
-  status: string;
-}
+// Dados mockados de ordens recentes
+const MOCK_RECENT_ORDERS: Order[] = [
+  {
+    id: 104,
+    vehicle: "Honda Civic 2.0 (2020)",
+    client: "Carlos Eduardo",
+    status: "Em execução",
+  },
+  {
+    id: 103,
+    vehicle: "Toyota Corolla 1.8 (2018)",
+    client: "Mariana Souza",
+    status: "Aguardando peças",
+  },
+  {
+    id: 102,
+    vehicle: "Volkswagen Gol 1.0 (2022)",
+    client: "Roberto Alves",
+    status: "Aberta",
+  },
+  {
+    id: 101,
+    vehicle: "Fiat Toro 2.0 (2021)",
+    client: "Fernanda Lima",
+    status: "Finalizada",
+  },
+];
 
 export function RecentOrders() {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function carregarOrdensRecentes() {
-      try {
-        const token = localStorage.getItem("token");
-
-        const response = await fetch(
-          "http://localhost:8080/api/ordens-servico",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
-
-        if (!response.ok) {
-          throw new Error("Erro ao buscar ordens de serviço");
-        }
-
-        const data: OrdemDeServicoResponse[] = await response.json();
-
-        const recentes = data.slice(-4).reverse();
-
-        const ordensFormatadas: Order[] = recentes.map((os) => ({
-          id: os.id,
-          vehicle: `Veículo #${os.veiculoId}`,
-          client:
-            os.clienteId !== null
-              ? `Cliente #${os.clienteId}`
-              : "Cliente não informado",
-          status: formatarStatus(os.status),
-        }));
-
-        setOrders(ordensFormatadas);
-      } catch (error) {
-        console.error("Erro ao carregar ordens recentes:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    carregarOrdensRecentes();
-  }, []);
-
-  function formatarStatus(status: string): string {
-    const statusMap: Record<string, string> = {
-      ABERTA: "Aberta",
-      EM_EXECUCAO: "Em execução",
-      AGUARDANDO_PECAS: "Aguardando peças",
-      FINALIZADA: "Finalizada",
-      ENTREGUE: "Entregue",
-      CANCELADA: "Cancelada",
-    };
-
-    return statusMap[status] ?? status;
-  }
+  const [orders, setOrders] = useState<Order[]>(MOCK_RECENT_ORDERS);
+  const [loading, setLoading] = useState(false);
 
   return (
     <div className="recent-orders">
       <div className="section-header">
         <h3>Ordens recentes</h3>
-
-        <button>
-          Ver todas
-        </button>
+        <button>Ver todas</button>
       </div>
 
       <div className="order-list">
@@ -93,25 +55,14 @@ export function RecentOrders() {
           <p>Nenhuma ordem de serviço encontrada.</p>
         ) : (
           orders.map((order) => (
-            <div
-              className="order-item"
-              key={order.id}
-            >
+            <div className="order-item" key={order.id}>
               <div>
                 <strong>#{order.id.toString().padStart(5, "0")}</strong>
-
-                <span>
-                  {order.vehicle}
-                </span>
-
-                <small>
-                  {order.client}
-                </small>
+                <span>{order.vehicle}</span>
+                <small>{order.client}</small>
               </div>
 
-              <span className="status">
-                {order.status}
-              </span>
+              <span className="status">{order.status}</span>
             </div>
           ))
         )}
