@@ -11,10 +11,15 @@ import {
   Settings,
   LogOut,
 } from "lucide-react";
+import { NavLink } from "react-router-dom";
 
 import "./sidebar.style.css";
 
-export function Sidebar() {
+interface SidebarProps {
+  onLogout?: () => void;
+}
+
+export function Sidebar({ onLogout }: SidebarProps) {
   return (
     <aside className="sidebar">
       <div className="sidebar-logo">
@@ -22,62 +27,62 @@ export function Sidebar() {
       </div>
 
       <nav className="sidebar-nav">
-        <a className="nav-item active" href="#">
+        <NavLink to="/dashboard" className="nav-item">
           <LayoutDashboard size={18} />
           <span>Dashboard</span>
-        </a>
+        </NavLink>
 
-        <a className="nav-item" href="#">
+        <NavLink to="/clientes" className="nav-item">
           <Users size={18} />
           <span>Clientes</span>
-        </a>
+        </NavLink>
 
-        <a className="nav-item" href="#">
+        <NavLink to="/veiculos" className="nav-item">
           <Car size={18} />
           <span>Veículos</span>
-        </a>
+        </NavLink>
 
-        <a className="nav-item" href="#">
+        <NavLink to="/ordens-servico" className="nav-item">
           <ClipboardList size={18} />
           <span>Ordens de Serviço</span>
-        </a>
+        </NavLink>
 
-        <a className="nav-item" href="#">
+        <NavLink to="/mecanicos" className="nav-item">
           <Wrench size={18} />
           <span>Mecânicos</span>
-        </a>
+        </NavLink>
 
-        <a className="nav-item" href="#">
+        <NavLink to="/pecas" className="nav-item">
           <Package size={18} />
           <span>Peças</span>
-        </a>
+        </NavLink>
 
-        <a className="nav-item" href="#">
+        <NavLink to="/distribuidoras" className="nav-item">
           <Truck size={18} />
           <span>Distribuidoras</span>
-        </a>
+        </NavLink>
 
-        <a className="nav-item" href="#">
+        <NavLink to="/pagamentos" className="nav-item">
           <CreditCard size={18} />
           <span>Pagamentos</span>
-        </a>
+        </NavLink>
 
-        <a className="nav-item" href="#">
+        <NavLink to="/relatorios" className="nav-item">
           <BarChart3 size={18} />
           <span>Relatórios</span>
-        </a>
+        </NavLink>
 
-        <a className="nav-item" href="#">
+        <NavLink to="/configuracoes" className="nav-item">
           <Settings size={18} />
           <span>Configurações</span>
-        </a>
+        </NavLink>
       </nav>
 
       <div className="sidebar-bottom">
-        <a className="nav-item" href="#">
+        <button onClick={onLogout} className="nav-item nav-button">
           <LogOut size={18} />
           <span>Sair</span>
-        </a>
+        </button>
       </div>
     </aside>
   );
