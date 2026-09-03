@@ -18,7 +18,7 @@ export function Sidebar() {
   return (
     <aside className="sidebar">
       <div className="sidebar-logo">
-        <h1>OficinaPro</h1>
+        <img className="sidebar-logo-img" src="/logo.png" alt="Oficina Pro" />
       </div>
 
       <nav className="sidebar-nav">
