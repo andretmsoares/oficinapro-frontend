@@ -1,0 +1,89 @@
+.tbody-table td {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+}
+
+.client-name {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.contact-info span,
+.contact-info small {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.contact-info small {
+  color: #64748b;
+}
+
+.badge-os {
+  display: inline-block;
+  padding: 0.25rem 0.65rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #1e293b;
+  background-color: #f1f5f9;
+  border-radius: 9999px;
+}
+
+.actions-cell {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.btn-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-icon.view {
+  color: #059669;
+}
+
+.btn-icon.view:hover {
+  background-color: #ecfdf5;
+  border-color: #a7f3d0;
+}
+
+.btn-icon.edit {
+  color: #2563eb;
+}
+
+.btn-icon.edit:hover {
+  background-color: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.btn-icon.delete {
+  color: #dc2626;
+}
+
+.btn-icon.delete:hover {
+  background-color: #fef2f2;
+  border-color: #fecaca;
+}
+
+.empty-message {
+  text-align: center;
+  color: #64748b;
+  padding: 2rem !important;
+}

@@ -1,0 +1,19 @@
+.thead-table {
+  background-color: #f8fafc;
+}
+
+.thead-table th {
+  padding: 0.85rem 1.25rem;
+  border-bottom: 1px solid #e2e8f0;
+  color: #475569;
+  font-weight: 600;
+}
+
+
+
+.thead-table th:nth-child(1) { width: 12%; } /* Código */
+.thead-table th:nth-child(2) { width: 28%; } /* Nome */
+.thead-table th:nth-child(3) { width: 18%; } /* CPF/CNPJ */
+.thead-table th:nth-child(4) { width: 18%; } /* Telefone */
+.thead-table th:nth-child(5) { width: 14%; } /* Ordens de Serviço */
+.thead-table th:nth-child(6) { width: 10%; } /* Ações */
