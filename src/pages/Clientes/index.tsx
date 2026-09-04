@@ -1,26 +1,12 @@
 import { useState } from "react";
-import {
-  Users,
-  Search,
-  Plus,
-  Pencil,
-  Trash2,
-  Phone,
-  Mail,
-  NotepadText,
-} from "lucide-react";
-import { StatCard } from "../../components/StatCard"; // Reaproveitando seu card de estatística
+import { Users } from "lucide-react";
+import { StatCard } from "../../components/StatCard";
+import { HeaderPageWithButton } from "../../components/HeaderPageWithButton";
+import { SearchBar } from "../../components/SearchBar";
+import { TableCardClient } from "../../components/TableCardClient";
+import { type Cliente } from "../../components/TableCardClient/TBodyTableClient/ClientTableRow";
 import "./clientes.style.css";
-import { HeaderPage } from "../../components/HeaderPage";
-import { HeaderPageWithButton } from "../../components/HeaderPageWithButton/indes";
-
-interface Cliente {
-  id: number;
-  nome: string;
-  cpf: string;
-  telefone: string;
-  osCount: number;
-}
+import { ClientForm } from "../../components/ClientForm";
 
 const MOCK_CLIENTES: Cliente[] = [
   {
@@ -56,15 +42,11 @@ const MOCK_CLIENTES: Cliente[] = [
 export function Clientes() {
   const [clientes, setClientes] = useState<Cliente[]>(MOCK_CLIENTES);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const clientesFiltrados = clientes.filter((cliente) => {
-    const termo = searchTerm.toLowerCase();
-    return (
-      cliente.nome.toLowerCase().includes(termo) ||
-      cliente.cpf.includes(termo) ||
-      cliente.telefone.includes(termo)
-    );
-  });
+  function handleOpenCreateModal() {
+    setIsModalOpen(true);
+  }
 
   function handleViewOrders(clienteId: number) {
     console.log("Visualizar Ordens de Serviço do cliente:", clienteId);
@@ -80,10 +62,9 @@ export function Clientes() {
     }
   }
 
-  function handleOpenCreateModal() {
-    console.log("Abrir modal de novo cliente");
+  function handleCloseModal() {
+    setIsModalOpen(false);
   }
-
   return (
     <div className="clientes-page">
       <HeaderPageWithButton
@@ -100,87 +81,23 @@ export function Clientes() {
         icon={Users}
       />
 
-      {/* Barra de Busca */}
-      <section className="search-bar-container">
-        <div className="search-input-wrapper">
-          <Search size={18} className="search-icon" />
-          <input
-            type="text"
-            placeholder="Buscar cliente por nome, CPF ou telefone..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-      </section>
+      <SearchBar
+        placeholder="Pesquisar clientes (nome, CPF ou telefone)"
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+      />
 
-      <section className="table-card">
-        <div className="table-wrapper">
-          <table className="clientes-table">
-            <thead>
-              <tr>
-                <th>Código</th>
-                <th>Nome</th>
-                <th>CPF</th>
-                <th>Contato</th>
-                <th>Veículos</th>
-                <th className="actions-header">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {clientesFiltrados.map((cliente) => (
-                <tr key={cliente.id}>
-                  <td>#{cliente.id.toString().padStart(4, "0")}</td>
-                  <td>
-                    <strong className="client-name">{cliente.nome}</strong>
-                  </td>
-                  <td>{cliente.cpf}</td>
-                  <td>
-                    <div className="contact-info">
-                      <span>
-                        <Phone size={14} /> {cliente.telefone}
-                      </span>
-                      <small>
-                        <Mail size={12} /> {cliente.email}
-                      </small>
-                    </div>
-                  </td>
-                  <td>
-                    <span className="badge">
-                      {cliente.osCount}{" "}
-                      {cliente.osCount === 1
-                        ? "Ordem de Serviço"
-                        : "Ordens de Serviço"}
-                    </span>
-                  </td>
-                  <td className="actions-cell">
-                    <button
-                      className="btn-icon view"
-                      title="Visualizar Ordens de Serviço"
-                      onClick={() => handleViewOrders(cliente.id)}
-                    >
-                      <NotepadText size={16} />
-                    </button>
-                    <button
-                      className="btn-icon edit"
-                      title="Editar cliente"
-                      onClick={() => handleEdit(cliente.id)}
-                    >
-                      <Pencil size={16} />
-                    </button>
-                    <button
-                      className="btn-icon delete"
-                      title="Excluir cliente"
-                      onClick={() => handleDelete(cliente.id)}
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+      <TableCardClient
+        clientes={clientes}
+        searchTerm={searchTerm}
+        onViewOrders={handleViewOrders}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+      />
+
+      {isModalOpen && (
+        <ClientForm onClose={handleCloseModal} />
+      )}
     </div>
   );
 }
