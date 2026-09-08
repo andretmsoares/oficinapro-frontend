@@ -1,0 +1,46 @@
+.input-create-entity {
+  width: 100%;
+}
+
+.input-create-entity input {
+  width: 100%;
+  min-height: 42px;
+
+  padding: 10px 12px;
+
+  box-sizing: border-box;
+
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+
+  background: #ffffff;
+
+  color: #1f2937;
+  font-size: 14px;
+
+  outline: none;
+
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.input-create-entity input::placeholder {
+  color: #9ca3af;
+}
+
+.input-create-entity input:hover {
+  border-color: #9ca3af;
+}
+
+.input-create-entity input:focus {
+  border-color: #2563eb;
+
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.input-create-entity input:disabled {
+  background: #f3f4f6;
+  cursor: not-allowed;
+}
