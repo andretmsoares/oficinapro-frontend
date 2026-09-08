@@ -6,7 +6,7 @@ import { SearchBar } from "../../components/SearchBar";
 import { EntityTable } from "../../components/EntityTable";
 import type { Column, EntityAction } from "../../components/EntityTable/types";
 import { ClientForm } from "../../components/ClientForm";
-import { type Cliente } from "../../types/cliente";
+import { type Cliente } from "../../types/cliente/cliente";
 import "./clientes.style.css";
 
 const MOCK_CLIENTES: Cliente[] = [

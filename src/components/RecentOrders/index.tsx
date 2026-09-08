@@ -1,13 +1,7 @@
 import { useEffect, useState } from "react";
+import {type Order} from "../../types/order/order";
 
 import "./recentOrders.style.css";
-
-interface Order {
-  id: number;
-  vehicle: string;
-  client: string;
-  status: string;
-}
 
 // Dados mockados de ordens recentes
 const MOCK_RECENT_ORDERS: Order[] = [
