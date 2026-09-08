@@ -4,6 +4,7 @@ import { MainLayout } from "./components/MainLayout";
 import { Dashboard } from "./pages/Dashboard";
 import { Clientes } from "./pages/Clientes";
 import { Login } from "./pages/Login";
+import { Veiculos } from "./pages/Veiculos";
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
@@ -30,7 +31,7 @@ export default function App() {
         <Routes>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/clientes" element={<Clientes />} />
-          <Route path="/veiculos" element={<div>Veículos</div>} />
+          <Route path="/veiculos" element={<Veiculos/>} />
           <Route path="/ordens-servico" element={<div>Ordens de Serviço</div>} />
           <Route path="/mecanicos" element={<div>Mecânicos</div>} />
           <Route path="/pecas" element={<div>Peças</div>} />

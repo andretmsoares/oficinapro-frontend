@@ -6,6 +6,7 @@ export type FieldType =
   | "document"
   | "date"
   | "currency"
+  | "plate"
   | "select"
   | "textarea"
   | "password";
