@@ -3,10 +3,19 @@ import "./entityForm.style.css";
 import { ButtonsForm } from "../Buttons/ButtonsForm";
 import { EntityField } from "./EntityField";
 import { validateForm } from "./validators";
-import { formatPhone, formatDocument, formatCurrencyDisplay } from "./formatters";
+import {
+  formatPhone,
+  formatDocument,
+  formatCurrencyDisplay,
+  formatPlate,
+  normalizePlate,
+} from "./formatters";
 import type { EntityFormProps, FormField } from "./types";
 
-function buildInitialDisplay<T>(fields: FormField<T>[], initialValues?: Partial<T>): Record<string, string> {
+function buildInitialDisplay<T>(
+  fields: FormField<T>[],
+  initialValues?: Partial<T>,
+): Record<string, string> {
   const display: Record<string, string> = {};
   for (const field of fields) {
     const raw = initialValues?.[field.name];
@@ -18,6 +27,8 @@ function buildInitialDisplay<T>(fields: FormField<T>[], initialValues?: Partial<
       display[field.name] = formatDocument(String(raw)).display;
     } else if (field.type === "currency") {
       display[field.name] = formatCurrencyDisplay(Number(raw));
+    } else if (field.type === "plate") {
+      display[field.name] = formatPlate(String(raw));
     } else {
       display[field.name] = String(raw);
     }
@@ -26,13 +37,23 @@ function buildInitialDisplay<T>(fields: FormField<T>[], initialValues?: Partial<
 }
 
 export function EntityForm<T extends Record<string, unknown>>({
-  title, fields, initialValues, onSubmit, onClose,
+  title,
+  fields,
+  initialValues,
+  onSubmit,
+  onClose,
 }: EntityFormProps<T>) {
   const [rawValues, setRawValues] = useState<Partial<T>>(initialValues ?? {});
-  const [displayValues, setDisplayValues] = useState(() => buildInitialDisplay(fields, initialValues));
+  const [displayValues, setDisplayValues] = useState(() =>
+    buildInitialDisplay(fields, initialValues),
+  );
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  function handleFieldChange(name: keyof T & string, raw: unknown, display: string) {
+  function handleFieldChange(
+    name: keyof T & string,
+    raw: unknown,
+    display: string,
+  ) {
     setRawValues((prev) => ({ ...prev, [name]: raw }));
     setDisplayValues((prev) => ({ ...prev, [name]: display }));
   }
@@ -48,7 +69,12 @@ export function EntityForm<T extends Record<string, unknown>>({
     <div className="form">
       <div className="form-content">
         <h2>{title}</h2>
-        <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSubmit();
+          }}
+        >
           {fields.map((field) => (
             <EntityField
               key={field.name}

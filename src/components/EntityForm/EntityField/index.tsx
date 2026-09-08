@@ -1,8 +1,13 @@
 import { CreateEntityInput } from "../../CreateEntityInput";
 import {
-  formatPhone, unformatPhone,
-  formatDocument, unformatDocument,
-  formatCurrencyDisplay, parseCurrencyToCents,
+  formatPhone,
+  unformatPhone,
+  formatDocument,
+  unformatDocument,
+  formatCurrencyDisplay,
+  parseCurrencyToCents,
+  formatPlate,
+  normalizePlate,
 } from "../formatters";
 import type { FormField } from "../types";
 
@@ -13,16 +18,28 @@ interface EntityFieldProps<T> {
   onChangeRaw: (name: keyof T & string, raw: unknown, display: string) => void;
 }
 
-export function EntityField<T>({ field, displayValue, error, onChangeRaw }: EntityFieldProps<T>) {
+export function EntityField<T>({
+  field,
+  displayValue,
+  error,
+  onChangeRaw,
+}: EntityFieldProps<T>) {
   const { name, label, type } = field;
 
   if (type === "select") {
     return (
       <div className="input-create-entity">
-        <select value={displayValue} onChange={(e) => onChangeRaw(name, e.target.value, e.target.value)}>
-          <option value="" disabled>{label}</option>
+        <select
+          value={displayValue}
+          onChange={(e) => onChangeRaw(name, e.target.value, e.target.value)}
+        >
+          <option value="" disabled>
+            {label}
+          </option>
           {field.options.map((opt) => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
           ))}
         </select>
         {error && <span className="field-error">{error}</span>}
@@ -50,7 +67,9 @@ export function EntityField<T>({ field, displayValue, error, onChangeRaw }: Enti
           label={label}
           type="tel"
           value={displayValue}
-          onChange={(val) => onChangeRaw(name, unformatPhone(val), formatPhone(val))}
+          onChange={(val) =>
+            onChangeRaw(name, unformatPhone(val), formatPhone(val))
+          }
         />
         {error && <span className="field-error">{error}</span>}
       </>
@@ -64,7 +83,13 @@ export function EntityField<T>({ field, displayValue, error, onChangeRaw }: Enti
           label={label}
           type="text"
           value={displayValue}
-          onChange={(val) => onChangeRaw(name, unformatDocument(val), formatDocument(val).display)}
+          onChange={(val) =>
+            onChangeRaw(
+              name,
+              unformatDocument(val),
+              formatDocument(val).display,
+            )
+          }
         />
         {error && <span className="field-error">{error}</span>}
       </>
@@ -88,6 +113,22 @@ export function EntityField<T>({ field, displayValue, error, onChangeRaw }: Enti
     );
   }
 
+  if (type === "plate") {
+    return (
+      <>
+        <CreateEntityInput
+          label={label}
+          type="text"
+          value={displayValue}
+          onChange={(val) =>
+            onChangeRaw(name, normalizePlate(val), formatPlate(val))
+          }
+        />
+        {error && <span className="field-error">{error}</span>}
+      </>
+    );
+  }
+
   // text, number, email, date, password — CreateEntityInput cobre direto
   return (
     <>
@@ -95,7 +136,13 @@ export function EntityField<T>({ field, displayValue, error, onChangeRaw }: Enti
         label={label}
         type={type}
         value={displayValue}
-        onChange={(val) => onChangeRaw(name, type === "number" ? (val === "" ? "" : Number(val)) : val, val)}
+        onChange={(val) =>
+          onChangeRaw(
+            name,
+            type === "number" ? (val === "" ? "" : Number(val)) : val,
+            val,
+          )
+        }
       />
       {error && <span className="field-error">{error}</span>}
     </>

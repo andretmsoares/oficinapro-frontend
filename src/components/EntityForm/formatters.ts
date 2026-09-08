@@ -52,3 +52,23 @@ export function parseCurrencyToCents(value: string): number {
 export function formatCurrencyDisplay(cents: number): string {
   return (cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
+
+export function formatPlate(value: string): string {
+  const plate = value
+    .replace(/[^a-zA-Z0-9]/g, "")
+    .toUpperCase()
+    .slice(0, 7);
+
+  if (plate.length <= 3) {
+    return plate;
+  }
+
+  return `${plate.slice(0, 3)}-${plate.slice(3)}`;
+}
+
+export function normalizePlate(value: string): string {
+  return value
+    .replace(/[^a-zA-Z0-9]/g, "")
+    .toUpperCase()
+    .slice(0, 7);
+}
