@@ -149,7 +149,6 @@ export function Clientes() {
       render: (c) => (
         <span className="badge-os">
           {c.osCount}{" "}
-          {c.osCount === 1 ? "Ordem de Serviço" : "Ordens de Serviço"}
         </span>
       ),
     },
