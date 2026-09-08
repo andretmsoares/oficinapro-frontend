@@ -109,7 +109,7 @@ export function Clientes() {
         emptyMessage="Nenhum cliente cadastrado"
       />
 
-      {isModalOpen && <ClientForm onClose={() => setIsModalOpen(false)} />}
+      {isModalOpen && <ClientForm onClose={() => setIsModalOpen(false)} onSave={() => setIsModalOpen(false)} />}  
     </div>
   );
 }

@@ -1,9 +1,9 @@
-import { ButtonClose } from '../Buttons/ButtonClose';
 import './clientForm.style.css';
 import '../../App.css';
 import { InputClientForm } from './InputClientForm';
+import { ButtonsForm } from '../Buttons/ButtonsForm';
 
-export function ClientForm({ onClose }: { onClose: () => void }) {
+export function ClientForm({ onClose, onSave }: { onClose: () => void; onSave: () => void }) {
   return (
     <div className="modal">
       <div className="modal-content">
@@ -25,9 +25,8 @@ export function ClientForm({ onClose }: { onClose: () => void }) {
                 value=""
                 onChange={() => {}}
             />
-            <button type="submit">Salvar</button>
         </form>
-        <ButtonClose onClose={onClose} />
+        <ButtonsForm onClose={onClose} onSave={onSave} />
       </div>
     </div>
   );
