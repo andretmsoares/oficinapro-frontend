@@ -8,6 +8,7 @@ import type { Column, EntityAction } from "../../components/EntityTable/types";
 import { type Cliente } from "../../types/cliente/cliente";
 import { EntityForm } from "../../components/EntityForm";
 import { clientFields, type ClienteFormData } from "./clientFields";
+import { ConfirmDeleteEntity } from "../../components/ConfirmDeleteEntity";
 
 import "./clientes.style.css";
 const MOCK_CLIENTES: Cliente[] = [
@@ -45,19 +46,28 @@ export function Clientes() {
   const [clientes, setClientes] = useState<Cliente[]>(MOCK_CLIENTES);
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingCliente, setEditingCliente] = useState<Cliente | null>(null);
+  const [deletingCliente, setDeletingCliente] = useState<Cliente | null>(null);
 
   function handleViewOrders(clienteId: number) {
     console.log("Visualizar Ordens de Serviço do cliente:", clienteId);
   }
 
   function handleEdit(id: number) {
-    console.log("Editar cliente:", id);
+    const cliente = clientes.find((c) => c.id === id);
+
+    if (!cliente) return;
+
+    setEditingCliente(cliente);
+    setIsModalOpen(true);
   }
 
   function handleDelete(id: number) {
-    if (confirm("Tem certeza que deseja remover este cliente?")) {
-      setClientes((prev) => prev.filter((c) => c.id !== id));
-    }
+    const cliente = clientes.find((c) => c.id === id);
+
+    if (!cliente) return;
+
+    setDeletingCliente(cliente);
   }
 
   function handleAddClient(data: ClienteFormData) {
@@ -66,6 +76,34 @@ export function Clientes() {
       { id: prev.length + 1, ...data, osCount: 0 },
     ]);
     setIsModalOpen(false);
+  }
+
+  function handleUpdateClient(data: ClienteFormData) {
+    if (!editingCliente) return;
+
+    setClientes((prev) =>
+      prev.map((cliente) =>
+        cliente.id === editingCliente.id
+          ? {
+              ...cliente,
+              ...data,
+            }
+          : cliente,
+      ),
+    );
+
+    setEditingCliente(null);
+    setIsModalOpen(false);
+  }
+
+  function handleConfirmDelete() {
+    if (!deletingCliente) return;
+
+    setClientes((prev) =>
+      prev.filter((cliente) => cliente.id !== deletingCliente.id),
+    );
+
+    setDeletingCliente(null);
   }
 
   const columns: Column<Cliente>[] = [
@@ -133,7 +171,10 @@ export function Clientes() {
       <HeaderPageWithButton
         title="Clientes"
         subtitle="Gerencie seus clientes cadastrados"
-        onButtonClick={() => setIsModalOpen(true)}
+        onButtonClick={() => {
+          setEditingCliente(null);
+          setIsModalOpen(true);
+        }}
         buttonText="Novo Cliente"
       />
 
@@ -162,10 +203,30 @@ export function Clientes() {
 
       {isModalOpen && (
         <EntityForm<ClienteFormData>
-          title="Cadastro de Cliente"
+          title={editingCliente ? "Editar Cliente" : "Cadastro de Cliente"}
           fields={clientFields}
-          onSubmit={handleAddClient}
-          onClose={() => setIsModalOpen(false)}
+          initialValues={
+            editingCliente
+              ? {
+                  nome: editingCliente.nome,
+                  cpf: editingCliente.cpf,
+                  telefone: editingCliente.telefone,
+                }
+              : undefined
+          }
+          onSubmit={editingCliente ? handleUpdateClient : handleAddClient}
+          onClose={() => {
+            setEditingCliente(null);
+            setIsModalOpen(false);
+          }}
+        />
+      )}
+
+      {deletingCliente && (
+        <ConfirmDeleteEntity
+          entityName={deletingCliente.nome}
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setDeletingCliente(null)}
         />
       )}
     </div>
