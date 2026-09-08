@@ -1,18 +1,8 @@
-.btn-add {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.65rem 1.1rem;
+.add {
   background-color: #0f172a;
   color: #ffffff;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: background-color 0.2s;
 }
 
-.btn-add:hover {
+.add:hover {
   background-color: #1e293b;
 }
