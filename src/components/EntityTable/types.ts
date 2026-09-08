@@ -6,6 +6,7 @@ export interface Column<T> {
   header: string;
   width?: string;      // ex: "12%" — substitui o nth-child fixo
   className?: string;
+  format?: (value: unknown, item: T) => ReactNode;
   render?: (item: T) => ReactNode; // se ausente, renderiza item[key] como string
 }
 

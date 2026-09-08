@@ -9,6 +9,10 @@ import { type Cliente } from "../../types/cliente/cliente";
 import { EntityForm } from "../../components/EntityForm";
 import { clientFields, type ClienteFormData } from "./clientFields";
 import { ConfirmDeleteEntity } from "../../components/ConfirmDeleteEntity";
+import {
+  formatPhone,
+  formatDocument,
+} from "../../components/EntityForm/formatters";
 
 import "./clientes.style.css";
 const MOCK_CLIENTES: Cliente[] = [
@@ -119,7 +123,12 @@ export function Clientes() {
       width: "28%",
       render: (c) => <strong className="client-name">{c.nome}</strong>,
     },
-    { key: "cpf", header: "CPF/CNPJ", width: "18%" },
+    {
+      key: "cpf",
+      header: "CPF/CNPJ",
+      width: "18%",
+      format: (value) => (value ? formatDocument(String(value)).display : ""),
+    },
     {
       key: "telefone",
       header: "Telefone",
@@ -127,7 +136,8 @@ export function Clientes() {
       render: (c) => (
         <div className="contact-info">
           <span>
-            <Phone size={14} /> {c.telefone}
+            <Phone size={14} />
+            {formatPhone(c.telefone)}
           </span>
         </div>
       ),
