@@ -1,3 +1,36 @@
+.table-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  width: 100%;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  width: 100%;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.95rem;
+  table-layout: fixed;
+}
+
+.thead-table {
+  background-color: #f8fafc;
+}
+
+.thead-table th {
+  padding: 0.85rem 1.25rem;
+  border-bottom: 1px solid #e2e8f0;
+  color: #475569;
+  font-weight: 600;
+}
+
 .tbody-table td {
   padding: 1rem 1.25rem;
   border-bottom: 1px solid #f1f5f9;
@@ -55,32 +88,12 @@
   transition: all 0.2s;
 }
 
-.btn-icon.view {
-  color: #059669;
-}
-
-.btn-icon.view:hover {
-  background-color: #ecfdf5;
-  border-color: #a7f3d0;
-}
-
-.btn-icon.edit {
-  color: #2563eb;
-}
-
-.btn-icon.edit:hover {
-  background-color: #eff6ff;
-  border-color: #bfdbfe;
-}
-
-.btn-icon.delete {
-  color: #dc2626;
-}
-
-.btn-icon.delete:hover {
-  background-color: #fef2f2;
-  border-color: #fecaca;
-}
+.btn-icon.view { color: #059669; }
+.btn-icon.view:hover { background-color: #ecfdf5; border-color: #a7f3d0; }
+.btn-icon.edit { color: #2563eb; }
+.btn-icon.edit:hover { background-color: #eff6ff; border-color: #bfdbfe; }
+.btn-icon.delete { color: #dc2626; }
+.btn-icon.delete:hover { background-color: #fef2f2; border-color: #fecaca; }
 
 .empty-message {
   text-align: center;
