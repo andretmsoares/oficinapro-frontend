@@ -5,10 +5,7 @@ import {
   ClipboardList,
   Wrench,
   Package,
-  Truck,
   CreditCard,
-  BarChart3,
-  Settings,
   LogOut,
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
@@ -57,24 +54,9 @@ export function Sidebar({ onLogout }: SidebarProps) {
           <span>Peças</span>
         </NavLink>
 
-        <NavLink to="/distribuidoras" className="nav-item">
-          <Truck size={18} />
-          <span>Distribuidoras</span>
-        </NavLink>
-
         <NavLink to="/pagamentos" className="nav-item">
           <CreditCard size={18} />
           <span>Pagamentos</span>
-        </NavLink>
-
-        <NavLink to="/relatorios" className="nav-item">
-          <BarChart3 size={18} />
-          <span>Relatórios</span>
-        </NavLink>
-
-        <NavLink to="/configuracoes" className="nav-item">
-          <Settings size={18} />
-          <span>Configurações</span>
         </NavLink>
       </nav>
 

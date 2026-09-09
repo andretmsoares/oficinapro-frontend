@@ -32,10 +32,7 @@ export default function App() {
           <Route path="/ordens-servico" element={<OrdemDeServico />} />
           <Route path="/mecanicos" element={<Mecanicos />} />
           <Route path="/pecas" element={<div>Peças</div>} />
-          <Route path="/distribuidoras" element={<div>Distribuidoras</div>} />
           <Route path="/pagamentos" element={<div>Pagamentos</div>} />
-          <Route path="/relatorios" element={<div>Relatórios</div>} />
-          <Route path="/configuracoes" element={<div>Configurações</div>} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </MainLayout>
