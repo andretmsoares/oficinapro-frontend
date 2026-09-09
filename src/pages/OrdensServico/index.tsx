@@ -300,7 +300,7 @@ export function OrdemDeServico() {
   ];
 
   return (
-    <div className="ordens-servico-page">
+    <div className="page">
       <HeaderPageWithButton
         title="Ordens de Serviço"
         subtitle="Gerencie as ordens de serviço da oficina"
@@ -376,7 +376,8 @@ export function OrdemDeServico() {
 
       {deletingOrdem && (
         <ConfirmDeleteEntity
-          entityName={`OS #${deletingOrdem.id.toString().padStart(4, "0")}`}
+          entity="a ordem de serviço"
+          entityName={`#${deletingOrdem.id.toString().padStart(4, "0")}`}
           onConfirm={handleConfirmDelete}
           onCancel={() => setDeletingOrdem(null)}
         />

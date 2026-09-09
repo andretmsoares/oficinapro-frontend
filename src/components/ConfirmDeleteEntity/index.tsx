@@ -2,22 +2,21 @@ import { Trash2, X } from "lucide-react";
 import "./confirmDeleteEntity.style.css";
 
 interface ConfirmDeleteEntityProps {
+  entity: string;
   entityName: string;
   onConfirm: () => void;
   onCancel: () => void;
 }
 
 export function ConfirmDeleteEntity({
+  entity,
   entityName,
   onConfirm,
   onCancel,
 }: ConfirmDeleteEntityProps) {
   return (
     <div className="delete-modal-overlay" onClick={onCancel}>
-      <div
-        className="delete-modal"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="delete-modal" onClick={(e) => e.stopPropagation()}>
         <button
           className="delete-modal-close"
           onClick={onCancel}
@@ -34,13 +33,11 @@ export function ConfirmDeleteEntity({
           <h2>Excluir cliente?</h2>
 
           <p>
-            Tem certeza que deseja excluir o cliente{" "}
+            Tem certeza que deseja excluir {entity}{" "}
             <strong>{entityName}</strong>?
           </p>
 
-          <span>
-            Essa ação não poderá ser desfeita.
-          </span>
+          <span>Essa ação não poderá ser desfeita.</span>
         </div>
 
         <div className="delete-modal-actions">
