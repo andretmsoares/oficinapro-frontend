@@ -8,7 +8,7 @@ import {
   parseCurrencyToCents,
   formatPlate,
   normalizePlate,
-} from "../formatters";
+} from "../../../services/formatters";
 import type { FormField } from "../types";
 
 interface EntityFieldProps<T> {

@@ -52,11 +52,6 @@
   transition: 0.2s;
 }
 
-.nav-item:hover {
-  background: #f3f4f6;
-  color: #111827;
-}
-
 .nav-item.active {
   background: #eef4ff;
   color: #2563eb;

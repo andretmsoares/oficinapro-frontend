@@ -13,7 +13,7 @@ export interface Column<T> {
 export interface EntityAction<T> {
   label: string;
   icon: LucideIcon;
-  variant?: "view" | "edit" | "delete" | "default";
+  variant?: "view" | "edit" | "delete" | "default" | "print" | "status";
   onClick: (item: T) => void;
   hidden?: (item: T) => boolean;
 }

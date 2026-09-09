@@ -88,12 +88,50 @@
   transition: all 0.2s;
 }
 
-.btn-icon.view { color: #059669; }
-.btn-icon.view:hover { background-color: #ecfdf5; border-color: #a7f3d0; }
-.btn-icon.edit { color: #2563eb; }
-.btn-icon.edit:hover { background-color: #eff6ff; border-color: #bfdbfe; }
-.btn-icon.delete { color: #dc2626; }
-.btn-icon.delete:hover { background-color: #fef2f2; border-color: #fecaca; }
+.btn-icon.view {
+  color: #059669;
+}
+
+.btn-icon.view:hover {
+  background-color: #ecfdf5;
+  border-color: #a7f3d0;
+}
+
+.btn-icon.edit {
+  color: #2563eb;
+}
+
+.btn-icon.edit:hover {
+  background-color: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.btn-icon.status {
+  color: #d97706;
+}
+
+.btn-icon.status:hover {
+  background-color: #fffbeb;
+  border-color: #fde68a;
+}
+
+.btn-icon.print {
+  color: #7c3aed;
+}
+
+.btn-icon.print:hover {
+  background-color: #f5f3ff;
+  border-color: #ddd6fe;
+}
+
+.btn-icon.delete {
+  color: #dc2626;
+}
+
+.btn-icon.delete:hover {
+  background-color: #fef2f2;
+  border-color: #fecaca;
+}
 
 .empty-message {
   text-align: center;
