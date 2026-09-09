@@ -12,10 +12,7 @@ import { StatCard } from "../../components/StatCard";
 import { HeaderPageWithButton } from "../../components/HeaderPageWithButton";
 import { SearchBar } from "../../components/SearchBar";
 import { EntityTable } from "../../components/EntityTable";
-import type {
-  Column,
-  EntityAction,
-} from "../../components/EntityTable/types";
+import type { Column, EntityAction } from "../../components/EntityTable/types";
 
 import { EntityForm } from "../../components/EntityForm";
 import {
@@ -26,7 +23,7 @@ import {
 import { ConfirmDeleteEntity } from "../../components/ConfirmDeleteEntity";
 import { SelectStatusModal } from "../../components/SelectStatusModal";
 
-import { formatCurrencyDisplay } from "../../components/EntityForm/formatters";
+import { formatCurrencyDisplay } from "../../services/formatters";
 
 import type { OrdemDeServico } from "../../types/ordemDeServico/ordemDeServico";
 
@@ -35,6 +32,7 @@ import { MOCK_VEICULOS } from "../../mocks/veiculo";
 import { MOCK_ORDENS_SERVICO } from "../../mocks/ordemDeServico";
 
 import "./ordensServico.style.css";
+import { ViewOrdemServicoModal } from "../../components/ViewOrdemServicoModal";
 
 function formatStatus(status: string): string {
   const labels: Record<string, string> = {
@@ -79,17 +77,22 @@ export function OrdemDeServico() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const [editingOrdem, setEditingOrdem] =
-    useState<OrdemDeServico | null>(null);
+  const [editingOrdem, setEditingOrdem] = useState<OrdemDeServico | null>(null);
 
-  const [deletingOrdem, setDeletingOrdem] =
-    useState<OrdemDeServico | null>(null);
+  const [deletingOrdem, setDeletingOrdem] = useState<OrdemDeServico | null>(
+    null,
+  );
 
   const [selectingStatusOrdem, setSelectingStatusOrdem] =
     useState<OrdemDeServico | null>(null);
 
+  const [viewingOrdem, setViewingOrdem] = useState<OrdemDeServico | null>(null);
   function handleView(id: number) {
-    console.log("Visualizar Ordem de Serviço:", id);
+    const ordem = ordensServico.find((os) => os.id === id);
+
+    if (!ordem) return;
+
+    setViewingOrdem(ordem);
   }
 
   function handleEdit(id: number) {
@@ -141,9 +144,7 @@ export function OrdemDeServico() {
   function handleAddOrdem(data: OrdemDeServicoFormData) {
     setOrdensServico((prev) => {
       const nextId =
-        prev.length > 0
-          ? Math.max(...prev.map((os) => os.id)) + 1
-          : 1;
+        prev.length > 0 ? Math.max(...prev.map((os) => os.id)) + 1 : 1;
 
       const veiculo = MOCK_VEICULOS.find(
         (veiculo) => veiculo.id === data.veiculoId,
@@ -220,9 +221,7 @@ export function OrdemDeServico() {
     if (!deletingOrdem) return;
 
     setOrdensServico((prev) =>
-      prev.filter(
-        (ordem) => ordem.id !== deletingOrdem.id,
-      ),
+      prev.filter((ordem) => ordem.id !== deletingOrdem.id),
     );
 
     setDeletingOrdem(null);
@@ -233,37 +232,28 @@ export function OrdemDeServico() {
       key: "codigo",
       header: "Código",
       width: "8%",
-      render: (os) =>
-        `#${os.id.toString().padStart(4, "0")}`,
+      render: (os) => `#${os.id.toString().padStart(4, "0")}`,
     },
     {
       key: "placaVeiculo",
       header: "Veículo",
       width: "14%",
       render: (os) => (
-        <strong className="os-vehicle">
-          {formatPlate(os.placaVeiculo)}
-        </strong>
+        <strong className="os-vehicle">{formatPlate(os.placaVeiculo)}</strong>
       ),
     },
     {
       key: "nomeCliente",
       header: "Cliente",
       width: "28%",
-      render: (os) => (
-        <strong className="os-client">
-          {os.nomeCliente}
-        </strong>
-      ),
+      render: (os) => <strong className="os-client">{os.nomeCliente}</strong>,
     },
     {
       key: "status",
       header: "Status",
       width: "18%",
       render: (os) => (
-        <span
-          className={`status-badge status-${os.status.toLowerCase()}`}
-        >
+        <span className={`status-badge status-${os.status.toLowerCase()}`}>
           {formatStatus(os.status)}
         </span>
       ),
@@ -272,8 +262,7 @@ export function OrdemDeServico() {
       key: "valorTotal",
       header: "Valor Total",
       width: "15%",
-      format: (value) =>
-        formatCurrencyDisplay(Number(value)),
+      format: (value) => formatCurrencyDisplay(Number(value)),
     },
   ];
 
@@ -341,11 +330,7 @@ export function OrdemDeServico() {
         actions={actions}
         getRowKey={(os) => os.id}
         searchTerm={searchTerm}
-        searchFields={[
-          "placaVeiculo",
-          "nomeCliente",
-          "status",
-        ]}
+        searchFields={["placaVeiculo", "nomeCliente", "status"]}
         emptyMessage="Nenhuma ordem de serviço cadastrada"
       />
 
@@ -369,11 +354,7 @@ export function OrdemDeServico() {
                 }
               : undefined
           }
-          onSubmit={
-            editingOrdem
-              ? handleUpdateOrdem
-              : handleAddOrdem
-          }
+          onSubmit={editingOrdem ? handleUpdateOrdem : handleAddOrdem}
           onClose={() => {
             setEditingOrdem(null);
             setIsModalOpen(false);
@@ -395,11 +376,16 @@ export function OrdemDeServico() {
 
       {deletingOrdem && (
         <ConfirmDeleteEntity
-          entityName={`OS #${deletingOrdem.id
-            .toString()
-            .padStart(4, "0")}`}
+          entityName={`OS #${deletingOrdem.id.toString().padStart(4, "0")}`}
           onConfirm={handleConfirmDelete}
           onCancel={() => setDeletingOrdem(null)}
+        />
+      )}
+
+      {viewingOrdem && (
+        <ViewOrdemServicoModal
+          ordemServico={viewingOrdem}
+          onClose={() => setViewingOrdem(null)}
         />
       )}
     </div>

@@ -1,6 +1,7 @@
 import { HeaderPage } from "../HeaderPage";
 import "./headerPageWithButton.style.css";
 import { ButtonAdd } from "../Buttons/ButtonAdd";
+import { Plus } from "lucide-react";
 
 interface HeaderPageWithButtonProps {
   title: string;
@@ -19,7 +20,7 @@ export function HeaderPageWithButton({
     <div className="page-header-with-button">
         <HeaderPage title={title} subtitle={subtitle} />
 
-        <ButtonAdd onClick={onButtonClick} text={buttonText} />
+        <ButtonAdd onClick={onButtonClick} text={buttonText} icon={Plus} />
     </div>
   );
 }

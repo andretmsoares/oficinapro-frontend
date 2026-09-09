@@ -9,10 +9,7 @@ import { type Cliente } from "../../types/cliente/cliente";
 import { EntityForm } from "../../components/EntityForm";
 import { clientFields, type ClienteFormData } from "./clientFields";
 import { ConfirmDeleteEntity } from "../../components/ConfirmDeleteEntity";
-import {
-  formatPhone,
-  formatDocument,
-} from "../../components/EntityForm/formatters";
+import { formatPhone, formatDocument } from "../../services/formatters";
 
 import "./clientes.style.css";
 import { MOCK_CLIENTES } from "../../mocks/cliente";
@@ -117,11 +114,7 @@ export function Clientes() {
       key: "osCount",
       header: "Ordens de Serviço",
       width: "14%",
-      render: (c) => (
-        <span className="badge-os">
-          {c.osCount}{" "}
-        </span>
-      ),
+      render: (c) => <span className="badge-os">{c.osCount} </span>,
     },
   ];
 

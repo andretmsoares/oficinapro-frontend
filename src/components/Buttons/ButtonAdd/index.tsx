@@ -1,12 +1,17 @@
-import { Plus } from 'lucide-react';
-import './buttonAdd.style.css';
-import '../btn.style.css'
+import "./buttonAdd.style.css";
+import "../btn.style.css";
 
-export function ButtonAdd(props: { onClick: () => void; text: string }) {
+interface ButtonAddProps {
+  onClick: () => void;
+  text: string;
+  icon: React.ElementType;
+}
+
+export function ButtonAdd({ icon: Icon, onClick, text }: ButtonAddProps) {
   return (
-    <button className="btn add" onClick={props.onClick}>
-      <Plus size={18} />
-      <span>{props.text}</span>
+    <button className="btn add" onClick={onClick}>
+      <Icon size={18} />
+      <span>{text}</span>
     </button>
   );
 }

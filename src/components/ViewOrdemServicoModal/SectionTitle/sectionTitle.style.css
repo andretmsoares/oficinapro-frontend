@@ -1,0 +1,25 @@
+.view-os-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 18px;
+}
+
+.view-os-section-title h3,
+.view-os-financial h3 {
+  margin: 0;
+
+  color: #111827;
+
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.view-os-title-with-icon {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  color: #374151;
+}

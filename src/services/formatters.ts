@@ -72,3 +72,24 @@ export function normalizePlate(value: string): string {
     .toUpperCase()
     .slice(0, 7);
 }
+
+export function formatStatus(status: string): string {
+  const labels: Record<string, string> = {
+    ABERTA: "Aberta",
+    EM_ANDAMENTO: "Em andamento",
+    AGUARDANDO_PECAS: "Aguardando peças",
+    FINALIZADA: "Finalizada",
+    CANCELADA: "Cancelada",
+  };
+
+  return labels[status] ?? status;
+}
+
+export function formatDate(date: string | null): string {
+  if (!date) return "Em aberto";
+
+  return new Date(date).toLocaleString("pt-BR", {
+    dateStyle: "short",
+    timeStyle: "short",
+  });
+}

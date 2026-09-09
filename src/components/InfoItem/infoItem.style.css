@@ -1,0 +1,39 @@
+
+.view-os-info-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  width: 34px;
+  height: 34px;
+
+  border-radius: 8px;
+
+  background-color: #f3f4f6;
+  color: #6b7280;
+}
+
+.view-os-info-item span {
+  display: block;
+
+  margin-bottom: 3px;
+
+  color: #6b7280;
+
+  font-size: 12px;
+}
+
+.view-os-info-item strong {
+  display: block;
+
+  overflow: hidden;
+
+  color: #111827;
+
+  font-size: 14px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
