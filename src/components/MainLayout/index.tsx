@@ -7,13 +7,9 @@ import "./mainLayout.style.css";
 
 interface MainLayoutProps {
   children: ReactNode;
-  onLogout: () => void;
 }
 
-export function MainLayout({
-  children,
-  onLogout,
-}: MainLayoutProps) {
+export function MainLayout({ children }: MainLayoutProps) {
   return (
     <div className="app-layout">
       <Sidebar />
@@ -21,9 +17,7 @@ export function MainLayout({
       <div className="main-content">
         <Header />
 
-        <main className="page-content">
-          {children}
-        </main>
+        <main className="page-content">{children}</main>
       </div>
     </div>
   );

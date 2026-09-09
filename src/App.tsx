@@ -17,23 +17,18 @@ export default function App() {
     setIsAuthenticated(true);
   }
 
-  function handleLogout() {
-    localStorage.removeItem("token");
-    setIsAuthenticated(false);
-  }
-
   if (!isAuthenticated) {
     return <Login onLogin={handleLogin} />;
   }
 
   return (
     <BrowserRouter>
-      <MainLayout onLogout={handleLogout}>
+      <MainLayout>
         <Routes>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/clientes" element={<Clientes />} />
-          <Route path="/veiculos" element={<Veiculos/>} />
-          <Route path="/ordens-servico" element={<OrdemDeServico/>} />
+          <Route path="/veiculos" element={<Veiculos />} />
+          <Route path="/ordens-servico" element={<OrdemDeServico />} />
           <Route path="/mecanicos" element={<div>Mecânicos</div>} />
           <Route path="/pecas" element={<div>Peças</div>} />
           <Route path="/distribuidoras" element={<div>Distribuidoras</div>} />

@@ -1,13 +1,12 @@
-import { useEffect, useState } from "react";
-import {type OrdemDeServico} from "../../types/ordemDeServico/ordemDeServico";
+import { useState } from "react";
+import { type OrdemDeServico } from "../../types/ordemDeServico/ordemDeServico";
 
 import "./recentOrders.style.css";
 import { MOCK_ORDENS_SERVICO } from "../../mocks/ordemDeServico";
 
-
 export function RecentOrders() {
-  const [orders, setOrders] = useState<OrdemDeServico[]>(MOCK_ORDENS_SERVICO);
-  const [loading, setLoading] = useState(false);
+  const [orders] = useState<OrdemDeServico[]>(MOCK_ORDENS_SERVICO);
+  const [loading] = useState(false);
 
   return (
     <div className="recent-orders">
