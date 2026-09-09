@@ -150,13 +150,13 @@ export function OrdemDeServico() {
     {
       key: "codigo",
       header: "Código",
-      width: "12%",
+      width: "10%",
       render: (os) => `#${os.id.toString().padStart(4, "0")}`,
     },
     {
       key: "placaVeiculo",
       header: "Veículo",
-      width: "18%",
+      width: "16%",
       render: (os) => (
         <strong className="os-vehicle">{formatPlate(os.placaVeiculo)}</strong>
       ),
