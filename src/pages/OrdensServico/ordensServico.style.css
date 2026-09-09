@@ -1,0 +1,53 @@
+.ordens-servico-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.os-vehicle {
+  font-weight: 600;
+}
+
+.os-client {
+  font-weight: 500;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0.35rem 0.7rem;
+
+  border-radius: 999px;
+
+  font-size: 0.8rem;
+  font-weight: 600;
+
+  white-space: nowrap;
+}
+
+.status-aberta {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.status-em_andamento {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+}
+
+.status-aguardando_pecas {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.status-finalizada {
+  background-color: #e0e7ff;
+  color: #4338ca;
+}
+
+.status-cancelada {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
