@@ -38,6 +38,12 @@ p {
   color: #9ca3af;
 }
 
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
 .form {
   position: fixed;
   inset: 0;
@@ -87,11 +93,11 @@ p {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(0, 0, 0, 0.5); 
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 9999; 
+  z-index: 9999;
 }
 
 .modal-content {
@@ -104,5 +110,5 @@ p {
 }
 
 .modal-content h2 {
-    margin-top: 0;
+  margin-top: 0;
 }

@@ -8,7 +8,6 @@ import {
   formatDocument,
   formatCurrencyDisplay,
   formatPlate,
-  normalizePlate,
 } from "../../services/formatters";
 import type { EntityFormProps, FormField } from "./types";
 

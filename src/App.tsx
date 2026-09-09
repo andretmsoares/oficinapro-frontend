@@ -6,6 +6,7 @@ import { Clientes } from "./pages/Clientes";
 import { Login } from "./pages/Login";
 import { Veiculos } from "./pages/Veiculos";
 import { OrdemDeServico } from "./pages/OrdensServico";
+import { Mecanicos } from "./pages/Mecanicos";
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
@@ -17,24 +18,19 @@ export default function App() {
     setIsAuthenticated(true);
   }
 
-  function handleLogout() {
-    localStorage.removeItem("token");
-    setIsAuthenticated(false);
-  }
-
   if (!isAuthenticated) {
     return <Login onLogin={handleLogin} />;
   }
 
   return (
     <BrowserRouter>
-      <MainLayout onLogout={handleLogout}>
+      <MainLayout>
         <Routes>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/clientes" element={<Clientes />} />
-          <Route path="/veiculos" element={<Veiculos/>} />
-          <Route path="/ordens-servico" element={<OrdemDeServico/>} />
-          <Route path="/mecanicos" element={<div>Mecânicos</div>} />
+          <Route path="/veiculos" element={<Veiculos />} />
+          <Route path="/ordens-servico" element={<OrdemDeServico />} />
+          <Route path="/mecanicos" element={<Mecanicos />} />
           <Route path="/pecas" element={<div>Peças</div>} />
           <Route path="/distribuidoras" element={<div>Distribuidoras</div>} />
           <Route path="/pagamentos" element={<div>Pagamentos</div>} />

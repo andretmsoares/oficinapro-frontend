@@ -158,7 +158,7 @@ export function Veiculos() {
   ];
 
   return (
-    <div className="vehicles-page">
+    <div className="page">
       <HeaderPageWithButton
         title="Veículos"
         subtitle="Gerencie os veículos cadastrados"
@@ -220,6 +220,7 @@ export function Veiculos() {
 
       {deletingVeiculo && (
         <ConfirmDeleteEntity
+          entity="o veículo"
           entityName={`${deletingVeiculo.marca} ${deletingVeiculo.modelo} - ${deletingVeiculo.placa}`}
           onConfirm={handleConfirmDelete}
           onCancel={() => setDeletingVeiculo(null)}

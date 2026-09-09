@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   CartesianGrid,
   Line,
@@ -17,11 +17,6 @@ interface FluxoMensalOS {
   finalizadas: number;
 }
 
-interface OrdersChartProps {
-  oficinaId: number;
-}
-
-// Dados mockados do fluxo mensal
 const MOCK_FLUXO_MENSUAL: FluxoMensalOS[] = [
   { day: 1, abertas: 3, finalizadas: 2 },
   { day: 3, abertas: 5, finalizadas: 4 },
@@ -36,10 +31,10 @@ const MOCK_FLUXO_MENSUAL: FluxoMensalOS[] = [
   { day: 30, abertas: 4, finalizadas: 6 },
 ];
 
-export function OrdersChart({ oficinaId }: OrdersChartProps) {
-  const [data, setData] = useState<FluxoMensalOS[]>(MOCK_FLUXO_MENSUAL);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
+export function OrdersChart() {
+  const [data] = useState<FluxoMensalOS[]>(MOCK_FLUXO_MENSUAL);
+  const [loading] = useState(false);
+  const [error] = useState(false);
 
   return (
     <div className="chart-card">

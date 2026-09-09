@@ -140,7 +140,7 @@ export function Clientes() {
   ];
 
   return (
-    <div className="clientes-page">
+    <div className="page">
       <HeaderPageWithButton
         title="Clientes"
         subtitle="Gerencie seus clientes cadastrados"
@@ -197,6 +197,7 @@ export function Clientes() {
 
       {deletingCliente && (
         <ConfirmDeleteEntity
+          entity="o cliente"
           entityName={deletingCliente.nome}
           onConfirm={handleConfirmDelete}
           onCancel={() => setDeletingCliente(null)}
