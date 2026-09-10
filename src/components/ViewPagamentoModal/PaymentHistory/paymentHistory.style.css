@@ -1,0 +1,50 @@
+.payment-history {
+  padding: 24px;
+}
+
+.payment-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 14px;
+}
+
+.payment-section-header h3 {
+  margin: 0;
+
+  color: #111827;
+  font-size: 15px;
+}
+
+.payment-section-header span {
+  display: block;
+
+  margin-top: 3px;
+
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.payment-add-button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  padding: 9px 13px;
+
+  border: none;
+  border-radius: 7px;
+
+  background: #111827;
+  color: #ffffff;
+
+  font-size: 13px;
+  font-weight: 500;
+
+  cursor: pointer;
+}
+
+.payment-add-button:hover {
+  background: #1f2937;
+}

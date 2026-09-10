@@ -1,0 +1,19 @@
+.view-os-payment {
+  padding: 24px;
+}
+
+.view-os-payment-content {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 18px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background-color: #fff;
+}
+
+@media (max-width: 700px) {
+  .view-os-payment-values {
+    grid-template-columns: 1fr;
+  }
+}

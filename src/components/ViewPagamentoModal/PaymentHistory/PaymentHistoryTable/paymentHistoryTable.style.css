@@ -1,0 +1,46 @@
+.payment-table-wrapper {
+  overflow-x: auto;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.payment-table {
+  width: 100%;
+
+  border-collapse: collapse;
+
+  font-size: 13px;
+}
+
+.payment-table th {
+  padding: 11px 14px;
+
+  background: #f9fafb;
+
+  color: #6b7280;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  text-align: left;
+
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.payment-table td {
+  padding: 12px 14px;
+
+  color: #374151;
+
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.payment-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.payment-table-value {
+  color: #111827 !important;
+  font-weight: 600;
+}

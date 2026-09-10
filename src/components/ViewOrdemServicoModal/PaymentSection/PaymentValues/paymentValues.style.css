@@ -1,0 +1,22 @@
+.view-os-payment-status span,
+.view-os-payment-values span {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.view-os-payment-values {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.view-os-payment-values > div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.view-os-payment-values strong {
+  color: #111827;
+  font-size: 15px;
+}

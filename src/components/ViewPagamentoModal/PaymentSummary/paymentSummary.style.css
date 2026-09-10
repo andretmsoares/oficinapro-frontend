@@ -1,0 +1,38 @@
+.payment-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+
+  padding: 20px 24px;
+}
+
+.payment-summary-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 16px;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+
+  background: #f9fafb;
+}
+
+.payment-summary-card svg {
+  flex-shrink: 0;
+}
+
+.payment-summary-card span {
+  display: block;
+
+  margin-bottom: 4px;
+
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.payment-summary-card strong {
+  color: #111827;
+  font-size: 16px;
+}

@@ -26,6 +26,7 @@ import { SelectStatusModal } from "../../components/SelectStatusModal";
 import { formatCurrencyDisplay } from "../../services/formatters";
 
 import type { OrdemDeServico } from "../../types/ordemDeServico/ordemDeServico";
+import type { Pagamento } from "../../types/pagamento/pagamento";
 
 import { MOCK_CLIENTES } from "../../mocks/cliente";
 import { MOCK_VEICULOS } from "../../mocks/veiculo";
@@ -33,6 +34,11 @@ import { MOCK_ORDENS_SERVICO } from "../../mocks/ordemDeServico";
 
 import "./ordensServico.style.css";
 import { ViewOrdemServicoModal } from "../../components/ViewOrdemServicoModal";
+
+interface OrdensServicoProps {
+  pagamentos: Pagamento[];
+  onCreatePagamento: (osId: number, valorTotal: number) => void;
+}
 
 function formatStatus(status: string): string {
   const labels: Record<string, string> = {
@@ -69,7 +75,10 @@ const statusOptions = [
   },
 ];
 
-export function OrdemDeServico() {
+export function OrdemDeServico({
+  pagamentos,
+  onCreatePagamento,
+}: OrdensServicoProps) {
   const [ordensServico, setOrdensServico] =
     useState<OrdemDeServico[]>(MOCK_ORDENS_SERVICO);
 
@@ -87,6 +96,7 @@ export function OrdemDeServico() {
     useState<OrdemDeServico | null>(null);
 
   const [viewingOrdem, setViewingOrdem] = useState<OrdemDeServico | null>(null);
+
   function handleView(id: number) {
     const ordem = ordensServico.find((os) => os.id === id);
 
@@ -142,44 +152,37 @@ export function OrdemDeServico() {
   }
 
   function handleAddOrdem(data: OrdemDeServicoFormData) {
-    setOrdensServico((prev) => {
-      const nextId =
-        prev.length > 0 ? Math.max(...prev.map((os) => os.id)) + 1 : 1;
+    const novoId =
+      ordensServico.length > 0
+        ? Math.max(...ordensServico.map((ordem) => ordem.id)) + 1
+        : 1;
 
-      const veiculo = MOCK_VEICULOS.find(
-        (veiculo) => veiculo.id === data.veiculoId,
-      );
+    const veiculo = MOCK_VEICULOS.find(
+      (veiculo) => veiculo.id === data.veiculoId,
+    );
 
-      const cliente = MOCK_CLIENTES.find(
-        (cliente) => cliente.id === data.clienteId,
-      );
+    const cliente = MOCK_CLIENTES.find(
+      (cliente) => cliente.id === data.clienteId,
+    );
 
-      return [
-        ...prev,
-        {
-          id: nextId,
+    const novaOrdem: OrdemDeServico = {
+      id: novoId,
+      ...data,
+      placaVeiculo: veiculo?.placa ?? "",
+      nomeCliente: cliente?.nome ?? "",
+      dataAbertura: new Date().toISOString(),
+      dataFechamento: null,
+      status: "ABERTA",
+      obs: data.obs,
+      valorTotal: 0,
+      valorComDesconto: 0,
+    };
 
-          oficinaId: data.oficinaId,
-          unidadeId: data.unidadeId,
-          veiculoId: data.veiculoId,
-          clienteId: data.clienteId,
-          mecanicoId: data.mecanicoId,
+    setOrdensServico((prev) => [...prev, novaOrdem]);
 
-          placaVeiculo: veiculo?.placa ?? "",
-          nomeCliente: cliente?.nome ?? "",
-
-          dataAbertura: new Date().toISOString(),
-          dataFechamento: null,
-
-          status: "ABERTA",
-
-          obs: data.obs,
-
-          valorTotal: 0,
-          valorComDesconto: 0,
-        },
-      ];
-    });
+    // Cria automaticamente o pagamento
+    // vinculado à nova OS.
+    onCreatePagamento(novaOrdem.id, novaOrdem.valorComDesconto);
 
     setIsModalOpen(false);
   }
@@ -299,6 +302,10 @@ export function OrdemDeServico() {
     },
   ];
 
+  const pagamentoDaOrdem = viewingOrdem
+    ? pagamentos.find((pagamento) => pagamento.osId === viewingOrdem.id)
+    : undefined;
+
   return (
     <div className="page">
       <HeaderPageWithButton
@@ -387,7 +394,11 @@ export function OrdemDeServico() {
       {viewingOrdem && (
         <ViewOrdemServicoModal
           ordemServico={viewingOrdem}
+          pagamento={pagamentoDaOrdem}
           onClose={() => setViewingOrdem(null)}
+          onRegistrarPagamento={() => {
+            console.log("Registrar pagamento para OS:", viewingOrdem.id);
+          }}
         />
       )}
     </div>
