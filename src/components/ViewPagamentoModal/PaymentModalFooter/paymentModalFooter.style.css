@@ -1,0 +1,42 @@
+.payment-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 18px 24px;
+
+  border-top: 1px solid #e5e7eb;
+}
+
+.payment-modal-footer span {
+  display: block;
+
+  margin-bottom: 3px;
+
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.payment-modal-footer strong {
+  color: #111827;
+  font-size: 18px;
+}
+
+.payment-close-button {
+  padding: 9px 18px;
+
+  border: 1px solid #d1d5db;
+  border-radius: 7px;
+
+  background: #ffffff;
+  color: #374151;
+
+  font-size: 13px;
+  font-weight: 500;
+
+  cursor: pointer;
+}
+
+.payment-close-button:hover {
+  background: #f9fafb;
+}

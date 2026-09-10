@@ -1,0 +1,20 @@
+.payment-observation {
+  margin: 0 24px 24px;
+  padding: 14px 16px;
+
+  border-radius: 8px;
+
+  background: #f9fafb;
+}
+
+.payment-observation strong {
+  color: #374151;
+  font-size: 13px;
+}
+
+.payment-observation p {
+  margin: 5px 0 0;
+
+  color: #6b7280;
+  font-size: 13px;
+}
