@@ -141,6 +141,10 @@
   color: #7c3aed;
 }
 
+.btn-icon.upOs {
+  color: #0c1aa0;
+}
+
 .btn-icon.print:hover {
   background-color: #f5f3ff;
   border-color: #ddd6fe;

@@ -105,9 +105,11 @@ export function EntityField<T>({
           value={displayValue}
           onChange={(val) => {
             const cents = parseCurrencyToCents(val);
+
             onChangeRaw(name, cents, formatCurrencyDisplay(cents));
           }}
         />
+
         {error && <span className="field-error">{error}</span>}
       </>
     );
