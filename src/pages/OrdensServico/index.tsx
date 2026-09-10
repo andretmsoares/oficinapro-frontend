@@ -26,18 +26,36 @@ import { SelectStatusModal } from "../../components/SelectStatusModal";
 import { formatCurrencyDisplay } from "../../services/formatters";
 
 import type { OrdemDeServico } from "../../types/ordemDeServico/ordemDeServico";
-import type { Pagamento } from "../../types/pagamento/pagamento";
+import type {
+  MeioDePagamento,
+  Pagamento,
+} from "../../types/pagamento/pagamento";
 
-import { MOCK_CLIENTES } from "../../mocks/cliente";
-import { MOCK_VEICULOS } from "../../mocks/veiculo";
-import { MOCK_ORDENS_SERVICO } from "../../mocks/ordemDeServico";
+import { MOCK_PECAS } from "../../mocks/pecas";
+import { MOCK_MAO_DE_OBRA } from "../../mocks/maoDeObra";
+import type { PecaOrdemServico } from "../../types/pecas/pecas";
+import type { MaoDeObraOrdemServico } from "../../types/maoDeObra/maoDeObra";
+import {
+  calcularValorTotal,
+  calcularValorComDesconto,
+} from "../../services/ordemServicoCalculos";
+import type { RegistroPagamentoFormData } from "../../components/PaymentRegistrationModal/registroPagamentoFields";
 
 import "./ordensServico.style.css";
 import { ViewOrdemServicoModal } from "../../components/ViewOrdemServicoModal";
+import { MOCK_ORDENS_SERVICO } from "../../mocks/ordemDeServico";
+import { MOCK_VEICULOS } from "../../mocks/veiculo";
+import { MOCK_CLIENTES } from "../../mocks/cliente";
 
 interface OrdensServicoProps {
   pagamentos: Pagamento[];
   onCreatePagamento: (osId: number, valorTotal: number) => void;
+  onUpdatePagamentoValorTotal: (osId: number, novoValorTotal: number) => void;
+  onAddRegistroPagamento: (
+    pagamentoId: number,
+    valor: number,
+    formaPagamento: MeioDePagamento,
+  ) => void;
 }
 
 function formatStatus(status: string): string {
@@ -78,9 +96,14 @@ const statusOptions = [
 export function OrdemDeServico({
   pagamentos,
   onCreatePagamento,
+  onUpdatePagamentoValorTotal,
+  onAddRegistroPagamento,
 }: OrdensServicoProps) {
   const [ordensServico, setOrdensServico] =
     useState<OrdemDeServico[]>(MOCK_ORDENS_SERVICO);
+  const [pecas, setPecas] = useState<PecaOrdemServico[]>(MOCK_PECAS);
+  const [maoDeObra, setMaoDeObra] =
+    useState<MaoDeObraOrdemServico[]>(MOCK_MAO_DE_OBRA);
 
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -151,6 +174,71 @@ export function OrdemDeServico({
     setSelectingStatusOrdem(null);
   }
 
+  function recalcularFinanceiroDaOs(
+    osId: number,
+    pecasAtualizadas: PecaOrdemServico[],
+    maoDeObraAtualizada: MaoDeObraOrdemServico[],
+    descontoOverride?: number,
+  ) {
+    setOrdensServico((prev) =>
+      prev.map((ordem) => {
+        if (ordem.id !== osId) return ordem;
+
+        const pecasDaOs = pecasAtualizadas.filter((p) => p.osId === osId);
+        const maoDeObraDaOs = maoDeObraAtualizada.filter(
+          (m) => m.osId === osId,
+        );
+        const desconto = descontoOverride ?? ordem.desconto;
+
+        const valorTotal = calcularValorTotal(pecasDaOs, maoDeObraDaOs);
+        const valorComDesconto = calcularValorComDesconto(valorTotal, desconto);
+        const ordemAtualizada = {
+          ...ordem,
+          desconto,
+          valorTotal,
+          valorComDesconto,
+        };
+
+        setViewingOrdem((atual) =>
+          atual && atual.id === osId ? ordemAtualizada : atual,
+        );
+        onUpdatePagamentoValorTotal(osId, valorComDesconto);
+
+        return ordemAtualizada;
+      }),
+    );
+  }
+
+  function handleAddPeca(peca: Omit<PecaOrdemServico, "id">) {
+    const novoId =
+      pecas.length > 0 ? Math.max(...pecas.map((p) => p.id)) + 1 : 1;
+    const pecasAtualizadas = [...pecas, { id: novoId, ...peca }];
+    setPecas(pecasAtualizadas);
+    recalcularFinanceiroDaOs(peca.osId, pecasAtualizadas, maoDeObra);
+  }
+
+  function handleAddMaoDeObra(item: Omit<MaoDeObraOrdemServico, "id">) {
+    const novoId =
+      maoDeObra.length > 0 ? Math.max(...maoDeObra.map((m) => m.id)) + 1 : 1;
+    const maoDeObraAtualizada = [...maoDeObra, { id: novoId, ...item }];
+    setMaoDeObra(maoDeObraAtualizada);
+    recalcularFinanceiroDaOs(item.osId, pecas, maoDeObraAtualizada);
+  }
+
+  function handleUpdateDesconto(novoDesconto: number) {
+    if (!viewingOrdem) return;
+    recalcularFinanceiroDaOs(viewingOrdem.id, pecas, maoDeObra, novoDesconto);
+  }
+
+  function handleRegistrarPagamento(data: RegistroPagamentoFormData) {
+    if (!pagamentoDaOrdem) return;
+    onAddRegistroPagamento(
+      pagamentoDaOrdem.id,
+      data.valorPago,
+      data.meioPagamento,
+    );
+  }
+
   function handleAddOrdem(data: OrdemDeServicoFormData) {
     const novoId =
       ordensServico.length > 0
@@ -176,6 +264,7 @@ export function OrdemDeServico({
       obs: data.obs,
       valorTotal: 0,
       valorComDesconto: 0,
+      desconto: 0,
     };
 
     setOrdensServico((prev) => [...prev, novaOrdem]);
@@ -265,7 +354,7 @@ export function OrdemDeServico({
       key: "valorTotal",
       header: "Valor Total",
       width: "15%",
-      format: (value) => formatCurrencyDisplay(Number(value)),
+      render: (os) => formatCurrencyDisplay(os.valorTotal),
     },
   ];
 
@@ -395,10 +484,13 @@ export function OrdemDeServico({
         <ViewOrdemServicoModal
           ordemServico={viewingOrdem}
           pagamento={pagamentoDaOrdem}
+          todasAsPecas={pecas}
+          todaAMaoDeObra={maoDeObra}
           onClose={() => setViewingOrdem(null)}
-          onRegistrarPagamento={() => {
-            console.log("Registrar pagamento para OS:", viewingOrdem.id);
-          }}
+          onAddPeca={handleAddPeca}
+          onAddMaoDeObra={handleAddMaoDeObra}
+          onUpdateDesconto={handleUpdateDesconto}
+          onRegistrarPagamento={handleRegistrarPagamento}
         />
       )}
     </div>
