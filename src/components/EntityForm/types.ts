@@ -32,9 +32,7 @@ export interface RegularField<T> extends BaseField<T> {
   type: Exclude<FieldType, "select">;
 }
 
-export function defineFields<T>(
-  fields: FormField<T>[],
-): FormField<T>[] {
+export function defineFields<T>(fields: FormField<T>[]): FormField<T>[] {
   return fields;
 }
 
