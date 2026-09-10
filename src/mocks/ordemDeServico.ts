@@ -16,6 +16,7 @@ export const MOCK_ORDENS_SERVICO: OrdemDeServico[] = [
     obs: "Revisão geral do veículo.",
     valorTotal: 850,
     valorComDesconto: 800,
+    desconto: 50,
   },
   {
     id: 2,
@@ -32,6 +33,7 @@ export const MOCK_ORDENS_SERVICO: OrdemDeServico[] = [
     obs: "Troca de óleo e filtros.",
     valorTotal: 450,
     valorComDesconto: 450,
+    desconto: 0,
   },
   {
     id: 3,
@@ -48,6 +50,7 @@ export const MOCK_ORDENS_SERVICO: OrdemDeServico[] = [
     obs: "Substituição das pastilhas de freio.",
     valorTotal: 1200,
     valorComDesconto: 1100,
+    desconto: 100,
   },
   {
     id: 4,
@@ -64,5 +67,6 @@ export const MOCK_ORDENS_SERVICO: OrdemDeServico[] = [
     obs: "Aguardando chegada das peças.",
     valorTotal: 2100,
     valorComDesconto: 2000,
+    desconto: 100,
   },
 ];

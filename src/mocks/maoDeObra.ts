@@ -1,14 +1,6 @@
 import type { MaoDeObraOrdemServico } from "../types/maoDeObra/maoDeObra";
 
 export const MOCK_MAO_DE_OBRA: MaoDeObraOrdemServico[] = [
-  {
-    id: 1,
-    descricao: "Troca de óleo e filtros",
-    valor: 150,
-  },
-  {
-    id: 2,
-    descricao: "Revisão do sistema de freios",
-    valor: 220,
-  },
+  { id: 1, osId: 1, descricao: "Troca de óleo e filtros", valor: 150 },
+  { id: 2, osId: 3, descricao: "Revisão do sistema de freios", valor: 220 },
 ];
