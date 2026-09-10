@@ -12,6 +12,6 @@ export const mecanicoFields = defineFields<MecanicoFormData>([
   { name: "nome", label: "Nome", type: "text", required: true },
   { name: "documento", label: "CPF/CNPJ", type: "document", required: true },
   { name: "telefone", label: "Telefone", type: "phone", required: true },
-  { name: "salario", label: "Salário", type: "number" },
+  { name: "salario", label: "Salário", type: "currency" },
   { name: "obs", label: "Observações", type: "textarea" },
 ]);

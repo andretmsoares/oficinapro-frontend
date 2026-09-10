@@ -7,6 +7,7 @@ import { Login } from "./pages/Login";
 import { Veiculos } from "./pages/Veiculos";
 import { OrdemDeServico } from "./pages/OrdensServico";
 import { Mecanicos } from "./pages/Mecanicos";
+import { Pecas } from "./pages/Pecas";
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
@@ -31,7 +32,7 @@ export default function App() {
           <Route path="/veiculos" element={<Veiculos />} />
           <Route path="/ordens-servico" element={<OrdemDeServico />} />
           <Route path="/mecanicos" element={<Mecanicos />} />
-          <Route path="/pecas" element={<div>Peças</div>} />
+          <Route path="/pecas" element={<Pecas />} />
           <Route path="/distribuidoras" element={<div>Distribuidoras</div>} />
           <Route path="/pagamentos" element={<div>Pagamentos</div>} />
           <Route path="/relatorios" element={<div>Relatórios</div>} />

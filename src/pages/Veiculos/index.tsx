@@ -220,6 +220,7 @@ export function Veiculos() {
 
       {deletingVeiculo && (
         <ConfirmDeleteEntity
+          text="Veículo"
           entity="o veículo"
           entityName={`${deletingVeiculo.marca} ${deletingVeiculo.modelo} - ${deletingVeiculo.placa}`}
           onConfirm={handleConfirmDelete}

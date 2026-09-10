@@ -13,7 +13,7 @@ import {
   formatDocument,
   formatPhone,
 } from "../../services/formatters";
-import { Pencil, Phone, Trash2, Users } from "lucide-react";
+import { Pencil, Phone, Trash2, Wrench } from "lucide-react";
 import { EntityForm } from "../../components/EntityForm";
 import { ConfirmDeleteEntity } from "../../components/ConfirmDeleteEntity";
 
@@ -153,7 +153,7 @@ export function Mecanicos() {
         title="Mecânicos Cadastrados"
         value={mecanicos.length.toString()}
         description="Total na base de dados"
-        icon={Users}
+        icon={Wrench}
       />
 
       <SearchBar
@@ -197,6 +197,7 @@ export function Mecanicos() {
 
       {deletingMecanico && (
         <ConfirmDeleteEntity
+          text="Mecânico"
           entity="o mecânico"
           entityName={deletingMecanico.nome}
           onConfirm={handleConfirmDelete}
