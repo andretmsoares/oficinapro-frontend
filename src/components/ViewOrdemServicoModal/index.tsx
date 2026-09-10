@@ -69,7 +69,9 @@ export function ViewOrdemServicoModal({
                 header: "Valor Total",
                 render: (peca) => (
                   <strong className="view-os-table-value">
-                    {formatCurrencyDisplay(peca.valorTotal)}
+                    {formatCurrencyDisplay(
+                      peca.valorUnitario * peca.quantidade,
+                    )}
                   </strong>
                 ),
               },
@@ -115,17 +117,20 @@ export function ViewOrdemServicoModal({
 
           <div className="view-os-totals">
             <div className="view-os-total-item">
-              <ViewValor text="Valor Total" valor={ordemServico.valorTotal}/>
+              <ViewValor text="Valor Total" valor={ordemServico.valorTotal} />
             </div>
 
             <div className="view-os-total-item view-os-total-final">
-              <ViewValor text="Valor com Desconto" valor={ordemServico.valorComDesconto}/>
+              <ViewValor
+                text="Valor com Desconto"
+                valor={ordemServico.valorComDesconto}
+              />
             </div>
           </div>
         </section>
 
         <footer className="view-os-footer">
-          <ButtonClose onClose={onClose}/>
+          <ButtonClose onClose={onClose} />
         </footer>
       </div>
     </div>

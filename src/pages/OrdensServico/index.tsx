@@ -376,6 +376,7 @@ export function OrdemDeServico() {
 
       {deletingOrdem && (
         <ConfirmDeleteEntity
+          text="Ordem de serviço"
           entity="a ordem de serviço"
           entityName={`#${deletingOrdem.id.toString().padStart(4, "0")}`}
           onConfirm={handleConfirmDelete}

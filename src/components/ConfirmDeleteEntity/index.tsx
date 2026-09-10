@@ -1,7 +1,8 @@
-import { Trash2, X } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import "./confirmDeleteEntity.style.css";
 
 interface ConfirmDeleteEntityProps {
+  text: string;
   entity: string;
   entityName: string;
   onConfirm: () => void;
@@ -9,6 +10,7 @@ interface ConfirmDeleteEntityProps {
 }
 
 export function ConfirmDeleteEntity({
+  text,
   entity,
   entityName,
   onConfirm,
@@ -17,20 +19,12 @@ export function ConfirmDeleteEntity({
   return (
     <div className="delete-modal-overlay" onClick={onCancel}>
       <div className="delete-modal" onClick={(e) => e.stopPropagation()}>
-        <button
-          className="delete-modal-close"
-          onClick={onCancel}
-          aria-label="Fechar"
-        >
-          <X size={20} />
-        </button>
-
         <div className="delete-modal-icon">
           <Trash2 size={24} />
         </div>
 
         <div className="delete-modal-content">
-          <h2>Excluir cliente?</h2>
+          <h2>Excluir {text}</h2>
 
           <p>
             Tem certeza que deseja excluir {entity}{" "}
