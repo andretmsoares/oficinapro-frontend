@@ -20,6 +20,7 @@ interface BaseField<T> {
   name: keyof T & string;
   label: string;
   required?: boolean;
+  readOnly?: boolean;
   validate?: (rawValue: unknown, formData: Partial<T>) => string | undefined;
 }
 
