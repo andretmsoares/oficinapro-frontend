@@ -90,7 +90,7 @@ export function Mecanicos() {
       key: "nome",
       header: "Nome",
       width: "28%",
-      render: (c) => <strong className="client-name">{c.nome}</strong>,
+      render: (c) => <strong>{c.nome}</strong>,
     },
     {
       key: "documento",
