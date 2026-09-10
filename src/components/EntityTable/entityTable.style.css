@@ -20,8 +20,30 @@
   table-layout: fixed;
 }
 
+.contact-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+}
+
+.contact-info span,
+.contact-info small {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
 .thead-table {
   background-color: #f8fafc;
+}
+
+.thead-table th,
+.tbody-table td {
+  text-align: center;
+  vertical-align: middle;
 }
 
 .thead-table th {
@@ -117,6 +139,10 @@
 
 .btn-icon.print {
   color: #7c3aed;
+}
+
+.btn-icon.upOs {
+  color: #0c1aa0;
 }
 
 .btn-icon.print:hover {

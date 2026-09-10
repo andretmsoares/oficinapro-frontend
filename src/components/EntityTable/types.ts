@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 export interface Column<T> {
   key: keyof T | (string & {}); // autocomplete pros campos reais, mas aceita chaves derivadas (ex: "codigo")
   header: string;
-  width?: string;      // ex: "12%" — substitui o nth-child fixo
+  width?: string; // ex: "12%" — substitui o nth-child fixo
   className?: string;
   format?: (value: unknown, item: T) => ReactNode;
   render?: (item: T) => ReactNode; // se ausente, renderiza item[key] como string
@@ -13,7 +13,8 @@ export interface Column<T> {
 export interface EntityAction<T> {
   label: string;
   icon: LucideIcon;
-  variant?: "view" | "edit" | "delete" | "default" | "print" | "status";
+  variant?:
+    "view" | "edit" | "delete" | "default" | "print" | "status" | "upOs";
   onClick: (item: T) => void;
   hidden?: (item: T) => boolean;
 }

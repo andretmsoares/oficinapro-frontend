@@ -1,7 +1,6 @@
 export interface PecaOrdemServico {
   id: number;
-  descricao: string;
+  nome: string;
   quantidade: number;
   valorUnitario: number;
-  valorTotal: number;
 }

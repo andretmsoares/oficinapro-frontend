@@ -197,6 +197,7 @@ export function Clientes() {
 
       {deletingCliente && (
         <ConfirmDeleteEntity
+          text="Cliente"
           entity="o cliente"
           entityName={deletingCliente.nome}
           onConfirm={handleConfirmDelete}

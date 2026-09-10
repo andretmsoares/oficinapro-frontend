@@ -1,4 +1,4 @@
-import type { MaoDeObraOrdemServico } from "../types/maoDeObraOrdemServico/MaoDeObraOrdemServico";
+import type { MaoDeObraOrdemServico } from "../types/maoDeObraOrdemServico/maoDeObraOrdemServico";
 
 export const MOCK_MAO_DE_OBRA: MaoDeObraOrdemServico[] = [
   {
