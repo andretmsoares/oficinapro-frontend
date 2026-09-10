@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { CircleDollarSign, Clock, Eye, Printer, Wallet } from "lucide-react";
 
 import { StatCard } from "../../components/StatCard";
@@ -7,22 +7,14 @@ import { EntityTable } from "../../components/EntityTable";
 import type { Column, EntityAction } from "../../components/EntityTable/types";
 
 import { ViewPagamentoModal } from "../../components/ViewPagamentoModal";
-import { EntityForm } from "../../components/EntityForm";
+import { PaymentRegistrationModal } from "../../components/PaymentRegistrationModal";
+import type { RegistroPagamentoFormData } from "../../components/PaymentRegistrationModal/registroPagamentoFields";
 
 import type {
   Pagamento,
-  StatusPagamento,
+  RegistroPagamento,
+  MeioDePagamento,
 } from "../../types/pagamento/pagamento";
-import type { RegistroPagamento } from "../../types/pagamento/pagamento";
-
-import { MOCK_PAGAMENTOS } from "../../mocks/pagamento";
-
-import { MOCK_REGISTROS_PAGAMENTO } from "../../mocks/registroPagamento";
-
-import {
-  registroPagamentoFields,
-  type RegistroPagamentoFormData,
-} from "./pagamentoFields";
 
 import { formatCurrencyDisplay } from "../../services/formatters";
 
@@ -30,81 +22,51 @@ import "./pagamentos.style.css";
 import { MOCK_ORDENS_SERVICO } from "../../mocks/ordemDeServico";
 import { HeaderPage } from "../../components/HeaderPage";
 
-export function Pagamentos() {
-  const [pagamentos, setPagamentos] = useState<Pagamento[]>(MOCK_PAGAMENTOS);
+interface PagamentosProps {
+  pagamentos: Pagamento[];
+  registros: RegistroPagamento[];
+  onAddRegistroPagamento: (
+    pagamentoId: number,
+    valor: number,
+    formaPagamento: MeioDePagamento,
+  ) => void;
+}
 
-  const [registros, setRegistros] = useState<RegistroPagamento[]>(
-    MOCK_REGISTROS_PAGAMENTO,
-  );
-
+export function Pagamentos({
+  pagamentos,
+  registros,
+  onAddRegistroPagamento,
+}: PagamentosProps) {
   const [searchTerm, setSearchTerm] = useState("");
-
-  const [viewingPagamento, setViewingPagamento] = useState<Pagamento | null>(
+  const [viewingPagamentoId, setViewingPagamentoId] = useState<number | null>(
     null,
   );
-
   const [isRegistroModalOpen, setIsRegistroModalOpen] = useState(false);
 
-  const totalRecebido = pagamentos.reduce(
-    (total, pagamento) => total + pagamento.valorPago,
-    0,
+  const viewingPagamento = useMemo(
+    () => pagamentos.find((p) => p.id === viewingPagamentoId) ?? null,
+    [pagamentos, viewingPagamentoId],
   );
 
+  const totalRecebido = pagamentos.reduce((total, p) => total + p.valorPago, 0);
+
   const totalAReceber = pagamentos.reduce(
-    (total, pagamento) =>
-      total + Math.max(pagamento.valorTotal - pagamento.valorPago, 0),
+    (total, p) => total + Math.max(p.valorTotal - p.valorPago, 0),
     0,
   );
 
   const pagamentosPendentes = pagamentos.filter(
-    (pagamento) => pagamento.valorPago === 0,
+    (p) => p.valorPago === 0,
   ).length;
-
-  function handleViewPagamento(id: number) {
-    const pagamento = pagamentos.find((item) => item.id === id);
-
-    if (!pagamento) return;
-
-    setViewingPagamento(pagamento);
-  }
 
   function handleAddRegistro(data: RegistroPagamentoFormData) {
     if (!viewingPagamento) return;
-
-    const novoRegistro: RegistroPagamento = {
-      id: registros.length + 1,
-      pagamentoId: viewingPagamento.id,
-      valor: data.valorPago,
-      formaPagamento: data.meioPagamento,
-      dataPagamento: new Date().toISOString(),
-    };
-
-    setRegistros((prev) => [...prev, novoRegistro]);
-
-    setPagamentos((prev) =>
-      prev.map((pagamento) => {
-        if (pagamento.id !== viewingPagamento.id) {
-          return pagamento;
-        }
-
-        const novoValorPago = pagamento.valorPago + data.valorPago;
-
-        return {
-          ...pagamento,
-          valorPago: novoValorPago,
-          status: getPagamentoStatus(novoValorPago, pagamento.valorTotal),
-        };
-      }),
+    onAddRegistroPagamento(
+      viewingPagamento.id,
+      data.valorPago,
+      data.meioPagamento,
     );
-
     setIsRegistroModalOpen(false);
-
-    const pagamentoAtualizado = {
-      ...viewingPagamento,
-      valorPago: viewingPagamento.valorPago + data.valorPago,
-    };
-
-    setViewingPagamento(pagamentoAtualizado);
   }
 
   const columns: Column<Pagamento>[] = [
@@ -169,7 +131,7 @@ export function Pagamentos() {
       label: "Visualizar pagamento",
       icon: Eye,
       variant: "view",
-      onClick: (pagamento) => handleViewPagamento(pagamento.id),
+      onClick: (pagamento) => setViewingPagamentoId(pagamento.id),
     },
     {
       label: "Imprimir pagamento",
@@ -193,21 +155,18 @@ export function Pagamentos() {
           description="Total já recebido"
           icon={CircleDollarSign}
         />
-
         <StatCard
           title="A Receber"
           value={formatCurrencyDisplay(totalAReceber)}
           description="Valor pendente"
           icon={Wallet}
         />
-
         <StatCard
           title="Pagamentos"
           value={pagamentos.length.toString()}
           description="Total de pagamentos"
           icon={CircleDollarSign}
         />
-
         <StatCard
           title="Pendentes"
           value={pagamentosPendentes.toString()}
@@ -230,7 +189,6 @@ export function Pagamentos() {
         searchTerm={searchTerm}
         searchFn={(pagamento, term) => {
           const cliente = getClienteNome(pagamento.osId);
-
           return (
             pagamento.osId.toString().includes(term) ||
             pagamento.id.toString().includes(term) ||
@@ -244,20 +202,17 @@ export function Pagamentos() {
         <ViewPagamentoModal
           pagamento={viewingPagamento}
           registros={registros.filter(
-            (registro) => registro.pagamentoId === viewingPagamento.id,
+            (r) => r.pagamentoId === viewingPagamento.id,
           )}
           onAddPagamento={() => setIsRegistroModalOpen(true)}
-          onClose={() => setViewingPagamento(null)}
+          onClose={() => setViewingPagamentoId(null)}
         />
       )}
 
       {isRegistroModalOpen && viewingPagamento && (
-        <EntityForm<RegistroPagamentoFormData>
-          title={`Registrar Pagamento - OS #${viewingPagamento.osId
-            .toString()
-            .padStart(4, "0")}`}
-          fields={registroPagamentoFields}
-          onSubmit={handleAddRegistro}
+        <PaymentRegistrationModal
+          pagamento={viewingPagamento}
+          onSave={handleAddRegistro}
           onClose={() => setIsRegistroModalOpen(false)}
         />
       )}
@@ -265,32 +220,14 @@ export function Pagamentos() {
   );
 }
 
-function getPagamentoStatus(
-  valorPago: number,
-  valorTotal: number,
-): StatusPagamento {
-  if (valorPago <= 0) {
-    return "PENDENTE";
-  }
-
-  if (valorPago >= valorTotal) {
-    return "PAGO";
-  }
-
-  return "PARCIAL";
-}
-
 function formatPagamentoStatus(status: string): string {
   switch (status) {
     case "PAGO":
       return "Pago";
-
     case "PARCIAL":
       return "Parcial";
-
     case "PENDENTE":
       return "Pendente";
-
     default:
       return status;
   }
@@ -298,13 +235,10 @@ function formatPagamentoStatus(status: string): string {
 
 function getClienteNome(osId: number): string {
   const ordem = MOCK_ORDENS_SERVICO.find((os) => os.id === osId);
-
   return ordem?.nomeCliente ?? "Cliente não encontrado";
 }
 
 function handlePrintPagamento(pagamentoId: number) {
   console.log("Imprimir pagamento:", pagamentoId);
-
-  // TODO:
-  // implementar impressão do comprovante
+  // TODO: implementar impressão do comprovante
 }

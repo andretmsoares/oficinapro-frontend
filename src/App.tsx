@@ -9,8 +9,14 @@ import { OrdemDeServico } from "./pages/OrdensServico";
 import { Mecanicos } from "./pages/Mecanicos";
 import { Pecas } from "./pages/Pecas";
 import { Pagamentos } from "./pages/Pagamentos";
-import type { Pagamento } from "./types/pagamento/pagamento";
+import type {
+  MeioDePagamento,
+  Pagamento,
+  RegistroPagamento,
+} from "./types/pagamento/pagamento";
 import { MOCK_PAGAMENTOS } from "./mocks/pagamento";
+import { MOCK_REGISTROS_PAGAMENTO } from "./mocks/registroPagamento";
+import { getPagamentoStatus } from "./services/pagamentoCalculos";
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
@@ -18,6 +24,9 @@ export default function App() {
   });
 
   const [pagamentos, setPagamentos] = useState<Pagamento[]>(MOCK_PAGAMENTOS);
+  const [registros, setRegistros] = useState<RegistroPagamento[]>(
+    MOCK_REGISTROS_PAGAMENTO,
+  );
 
   function handleLogin() {
     localStorage.setItem("token", "mock-token-123");
@@ -46,6 +55,54 @@ export default function App() {
     setPagamentos((prev) => [...prev, novoPagamento]);
   }
 
+  function handleUpdatePagamentoValorTotal(
+    osId: number,
+    novoValorTotal: number,
+  ) {
+    setPagamentos((prev) =>
+      prev.map((pagamento) =>
+        pagamento.osId === osId
+          ? {
+              ...pagamento,
+              valorTotal: novoValorTotal,
+              status: getPagamentoStatus(pagamento.valorPago, novoValorTotal),
+            }
+          : pagamento,
+      ),
+    );
+  }
+
+  function handleAddRegistroPagamento(
+    pagamentoId: number,
+    valor: number,
+    formaPagamento: MeioDePagamento,
+  ) {
+    const novoRegistro: RegistroPagamento = {
+      id:
+        registros.length > 0 ? Math.max(...registros.map((r) => r.id)) + 1 : 1,
+      pagamentoId,
+      valor,
+      formaPagamento,
+      dataPagamento: new Date().toISOString(),
+    };
+
+    setRegistros((prev) => [...prev, novoRegistro]);
+
+    setPagamentos((prev) =>
+      prev.map((pagamento) => {
+        if (pagamento.id !== pagamentoId) return pagamento;
+
+        const novoValorPago = pagamento.valorPago + valor;
+
+        return {
+          ...pagamento,
+          valorPago: novoValorPago,
+          status: getPagamentoStatus(novoValorPago, pagamento.valorTotal),
+        };
+      }),
+    );
+  }
+
   return (
     <BrowserRouter>
       <MainLayout>
@@ -59,12 +116,23 @@ export default function App() {
               <OrdemDeServico
                 pagamentos={pagamentos}
                 onCreatePagamento={handleCreatePagamento}
+                onUpdatePagamentoValorTotal={handleUpdatePagamentoValorTotal}
+                onAddRegistroPagamento={handleAddRegistroPagamento}
               />
             }
           />
           <Route path="/mecanicos" element={<Mecanicos />} />
           <Route path="/pecas" element={<Pecas />} />
-          <Route path="/pagamentos" element={<Pagamentos />} />
+          <Route
+            path="/pagamentos"
+            element={
+              <Pagamentos
+                pagamentos={pagamentos}
+                registros={registros}
+                onAddRegistroPagamento={handleAddRegistroPagamento}
+              />
+            }
+          />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </MainLayout>

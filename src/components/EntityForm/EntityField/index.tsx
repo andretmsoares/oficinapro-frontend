@@ -24,7 +24,7 @@ export function EntityField<T>({
   error,
   onChangeRaw,
 }: EntityFieldProps<T>) {
-  const { name, label, type } = field;
+  const { name, label, type, readOnly } = field;
 
   if (type === "select") {
     return (
@@ -138,6 +138,7 @@ export function EntityField<T>({
         label={label}
         type={type}
         value={displayValue}
+        readOnly={readOnly}
         onChange={(val) =>
           onChangeRaw(
             name,

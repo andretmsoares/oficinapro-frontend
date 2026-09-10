@@ -1,0 +1,122 @@
+.relate-peca-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background-color: rgba(15, 23, 42, 0.55);
+}
+
+.relate-peca-modal {
+  width: min(100%, 560px);
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow:
+    0 20px 40px rgba(15, 23, 42, 0.15),
+    0 8px 16px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+}
+
+.relate-peca-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px 0;
+}
+
+.relate-peca-header h2 {
+  margin: 0;
+  font-size: 18px;
+  color: #111827;
+}
+
+.relate-peca-header span {
+  display: block;
+  margin-top: 6px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.relate-peca-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.relate-peca-close:hover {
+  background-color: #f1f5f9;
+}
+
+.relate-peca-search {
+  padding: 16px 24px 0;
+}
+
+.relate-peca-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 24px 24px;
+  overflow-y: auto;
+}
+
+.relate-peca-empty {
+  padding: 24px;
+  text-align: center;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.relate-peca-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background-color: #ffffff;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+}
+
+.relate-peca-item:hover:not(:disabled) {
+  border-color: #2563eb;
+  background-color: #eff6ff;
+}
+
+.relate-peca-item:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.relate-peca-item strong {
+  display: block;
+  color: #0f172a;
+  font-size: 14px;
+}
+
+.relate-peca-item span {
+  color: #64748b;
+  font-size: 12.5px;
+}
+
+.relate-peca-select {
+  flex-shrink: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #2563eb;
+}

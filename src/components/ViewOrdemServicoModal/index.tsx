@@ -1,13 +1,15 @@
+import { useState } from "react";
 import { Plus, Wrench, DollarSign, Package, Tag } from "lucide-react";
 
 import type { OrdemDeServico } from "../../types/ordemDeServico/ordemDeServico";
 import type { Pagamento } from "../../types/pagamento/pagamento";
+import type { PecaOrdemServico } from "../../types/pecas/pecas";
+import type { MaoDeObraOrdemServico } from "../../types/maoDeObra/maoDeObra";
 
 import { formatCurrencyDisplay } from "../../services/formatters";
 
 import "./viewOrdemServicoModal.style.css";
-import { MOCK_PECAS } from "../../mocks/pecas";
-import { MOCK_MAO_DE_OBRA } from "../../mocks/maoDeObra";
+
 import { HeaderOs } from "./HeaderOs";
 import { DataOS } from "./DataOs";
 import { SectionTitle } from "./SectionTitle";
@@ -17,29 +19,94 @@ import { ButtonClose } from "../Buttons/ButtonClose";
 import { ViewValor } from "./ViewValor";
 import { PaymentSection } from "./PaymentSection";
 
+import { PecaActionModal } from "./PecaActionModal";
+import { PecaCreateModal } from "./PecaCreateModal";
+import { RelatePecaModal } from "./RelatePecaModal";
+import { MaoDeObraModal } from "./MaoDeObraModal";
+import { DescontoModal } from "./DescontoModal";
+import { PaymentRegistrationModal } from "../PaymentRegistrationModal";
+
+import type { PecaFormData } from "../../pages/Pecas/pecasFields";
+import type { MaoDeObraFormData } from "./MaoDeObraModal/maoDeObraFields";
+import type { RegistroPagamentoFormData } from "../PaymentRegistrationModal/registroPagamentoFields";
+
 interface ViewOrdemServicoModalProps {
   ordemServico: OrdemDeServico;
   pagamento?: Pagamento;
+  todasAsPecas: PecaOrdemServico[];
+  todaAMaoDeObra: MaoDeObraOrdemServico[];
   onClose: () => void;
-  onRegistrarPagamento?: () => void;
+  onAddPeca: (peca: Omit<PecaOrdemServico, "id">) => void;
+  onAddMaoDeObra: (item: Omit<MaoDeObraOrdemServico, "id">) => void;
+  onUpdateDesconto: (novoDesconto: number) => void;
+  onRegistrarPagamento: (data: RegistroPagamentoFormData) => void;
 }
+
+type PecaFlow = "action" | "create" | "relate" | null;
 
 export function ViewOrdemServicoModal({
   ordemServico,
   pagamento,
+  todasAsPecas,
+  todaAMaoDeObra,
   onClose,
+  onAddPeca,
+  onAddMaoDeObra,
+  onUpdateDesconto,
   onRegistrarPagamento,
 }: ViewOrdemServicoModalProps) {
-  function handleAddPeca() {
-    console.log("Adicionar peça");
+  const [pecaFlow, setPecaFlow] = useState<PecaFlow>(null);
+  const [isMaoDeObraModalOpen, setIsMaoDeObraModalOpen] = useState(false);
+  const [isDescontoModalOpen, setIsDescontoModalOpen] = useState(false);
+  const [isPagamentoModalOpen, setIsPagamentoModalOpen] = useState(false);
+
+  const pecasDaOs = todasAsPecas.filter(
+    (peca) => peca.osId === ordemServico.id,
+  );
+  const maoDeObraDaOs = todaAMaoDeObra.filter(
+    (item) => item.osId === ordemServico.id,
+  );
+
+  function handleSalvarPecaCriada(data: PecaFormData) {
+    onAddPeca({
+      nome: data.nome,
+      quantidade: data.quantidade,
+      valorUnitario: data.valorUnitario,
+      osId: ordemServico.id,
+    });
+    setPecaFlow(null);
   }
 
-  function handleAddMaoDeObra() {
-    console.log("Adicionar mão de obra");
+  function handleSelecionarPecaExistente(peca: {
+    nome: string;
+    valorUnitario: number;
+  }) {
+    onAddPeca({
+      nome: peca.nome,
+      valorUnitario: peca.valorUnitario,
+      quantidade: 1,
+      osId: ordemServico.id,
+    });
+    setPecaFlow(null);
   }
 
-  function handleAddDesconto() {
-    console.log("Adicionar desconto");
+  function handleSalvarMaoDeObra(data: MaoDeObraFormData) {
+    onAddMaoDeObra({
+      descricao: data.descricao,
+      valor: data.valor,
+      osId: ordemServico.id,
+    });
+    setIsMaoDeObraModalOpen(false);
+  }
+
+  function handleSalvarDesconto(novoDesconto: number) {
+    onUpdateDesconto(novoDesconto);
+    setIsDescontoModalOpen(false);
+  }
+
+  function handleSalvarPagamento(data: RegistroPagamentoFormData) {
+    onRegistrarPagamento(data);
+    setIsPagamentoModalOpen(false);
   }
 
   return (
@@ -52,21 +119,16 @@ export function ViewOrdemServicoModal({
         <ViewSection
           icon={Package}
           title="Peças"
-          onClick={handleAddPeca}
+          onClick={() => setPecaFlow("action")}
           buttonText="Adicionar Peça"
           iconButton={Plus}
         >
           <ViewTable
-            data={MOCK_PECAS}
+            data={pecasDaOs}
+            emptyMessage="Nenhuma peça adicionada a esta OS"
             columns={[
-              {
-                key: "descricao",
-                header: "Descrição",
-              },
-              {
-                key: "quantidade",
-                header: "Qtd.",
-              },
+              { key: "nome", header: "Descrição" },
+              { key: "quantidade", header: "Qtd." },
               {
                 key: "valorUnitario",
                 header: "Valor Unit.",
@@ -90,17 +152,15 @@ export function ViewOrdemServicoModal({
         <ViewSection
           icon={Wrench}
           title="Mão de Obra"
-          onClick={handleAddMaoDeObra}
+          onClick={() => setIsMaoDeObraModalOpen(true)}
           buttonText="Adicionar Mão de Obra"
           iconButton={Plus}
         >
           <ViewTable
-            data={MOCK_MAO_DE_OBRA}
+            data={maoDeObraDaOs}
+            emptyMessage="Nenhuma mão de obra adicionada a esta OS"
             columns={[
-              {
-                key: "descricao",
-                header: "Serviço",
-              },
+              { key: "descricao", header: "Serviço" },
               {
                 key: "valor",
                 header: "Valor",
@@ -118,7 +178,7 @@ export function ViewOrdemServicoModal({
           <SectionTitle
             icon={DollarSign}
             title="Resumo financeiro"
-            onClick={handleAddDesconto}
+            onClick={() => setIsDescontoModalOpen(true)}
             buttonText="Adicionar Desconto"
             iconButton={Tag}
           />
@@ -126,6 +186,10 @@ export function ViewOrdemServicoModal({
           <div className="view-os-totals">
             <div className="view-os-total-item">
               <ViewValor text="Valor Total" valor={ordemServico.valorTotal} />
+            </div>
+
+            <div className="view-os-total-item">
+              <ViewValor text="Desconto" valor={ordemServico.desconto} />
             </div>
 
             <div className="view-os-total-item view-os-total-final">
@@ -140,12 +204,65 @@ export function ViewOrdemServicoModal({
         {pagamento && (
           <PaymentSection
             pagamento={pagamento}
-            onRegistrarPagamento={onRegistrarPagamento}
+            onRegistrarPagamento={() => setIsPagamentoModalOpen(true)}
           />
         )}
+
         <footer className="view-os-footer">
           <ButtonClose onClose={onClose} />
         </footer>
+
+        {pecaFlow === "action" && (
+          <PecaActionModal
+            osId={ordemServico.id}
+            onClose={() => setPecaFlow(null)}
+            onCriarPeca={() => setPecaFlow("create")}
+            onRelacionarPeca={() => setPecaFlow("relate")}
+          />
+        )}
+
+        {pecaFlow === "create" && (
+          <PecaCreateModal
+            osId={ordemServico.id}
+            onClose={() => setPecaFlow(null)}
+            onSave={handleSalvarPecaCriada}
+          />
+        )}
+
+        {pecaFlow === "relate" && (
+          <RelatePecaModal
+            osId={ordemServico.id}
+            todasAsPecas={todasAsPecas}
+            pecasDaOsAtual={pecasDaOs}
+            onClose={() => setPecaFlow(null)}
+            onSelecionar={handleSelecionarPecaExistente}
+          />
+        )}
+
+        {isMaoDeObraModalOpen && (
+          <MaoDeObraModal
+            osId={ordemServico.id}
+            onClose={() => setIsMaoDeObraModalOpen(false)}
+            onSave={handleSalvarMaoDeObra}
+          />
+        )}
+
+        {isDescontoModalOpen && (
+          <DescontoModal
+            osId={ordemServico.id}
+            descontoAtual={ordemServico.desconto}
+            onClose={() => setIsDescontoModalOpen(false)}
+            onSave={handleSalvarDesconto}
+          />
+        )}
+
+        {isPagamentoModalOpen && pagamento && (
+          <PaymentRegistrationModal
+            pagamento={pagamento}
+            onClose={() => setIsPagamentoModalOpen(false)}
+            onSave={handleSalvarPagamento}
+          />
+        )}
       </div>
     </div>
   );
