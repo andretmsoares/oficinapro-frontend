@@ -1,6 +1,8 @@
 import { Plus, Wrench, DollarSign, Package, Tag } from "lucide-react";
 
 import type { OrdemDeServico } from "../../types/ordemDeServico/ordemDeServico";
+import type { Pagamento } from "../../types/pagamento/pagamento";
+
 import { formatCurrencyDisplay } from "../../services/formatters";
 
 import "./viewOrdemServicoModal.style.css";
@@ -13,15 +15,20 @@ import { ViewSection } from "./ViewSection";
 import { ViewTable } from "./ViewTable";
 import { ButtonClose } from "../Buttons/ButtonClose";
 import { ViewValor } from "./ViewValor";
+import { PaymentSection } from "./PaymentSection";
 
 interface ViewOrdemServicoModalProps {
   ordemServico: OrdemDeServico;
+  pagamento?: Pagamento;
   onClose: () => void;
+  onRegistrarPagamento?: () => void;
 }
 
 export function ViewOrdemServicoModal({
   ordemServico,
+  pagamento,
   onClose,
+  onRegistrarPagamento,
 }: ViewOrdemServicoModalProps) {
   function handleAddPeca() {
     console.log("Adicionar peça");
@@ -39,6 +46,7 @@ export function ViewOrdemServicoModal({
     <div className="view-os-overlay">
       <div className="view-os-modal">
         <HeaderOs id={ordemServico.id} />
+
         <DataOS ordemServico={ordemServico} />
 
         <ViewSection
@@ -129,6 +137,12 @@ export function ViewOrdemServicoModal({
           </div>
         </section>
 
+        {pagamento && (
+          <PaymentSection
+            pagamento={pagamento}
+            onRegistrarPagamento={onRegistrarPagamento}
+          />
+        )}
         <footer className="view-os-footer">
           <ButtonClose onClose={onClose} />
         </footer>

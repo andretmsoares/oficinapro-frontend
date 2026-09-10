@@ -1,0 +1,24 @@
+.view-os-payment-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+
+  width: fit-content;
+  padding: 9px 14px;
+
+  border: none;
+  border-radius: 6px;
+
+  background-color: #111827;
+  color: white;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.view-os-payment-button:hover {
+  opacity: 0.9;
+}

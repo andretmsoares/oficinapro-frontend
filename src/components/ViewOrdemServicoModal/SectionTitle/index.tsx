@@ -1,12 +1,12 @@
 import { ButtonAdd } from "../../Buttons/ButtonAdd";
-import './sectionTitle.style.css'
+import "./sectionTitle.style.css";
 
 interface SectionTitleProps {
   icon: React.ElementType;
-  iconButton: React.ElementType;
+  iconButton?: React.ElementType;
   title: string;
-  onClick: () => void;
-  buttonText: string;
+  onClick?: () => void;
+  buttonText?: string;
 }
 
 export function SectionTitle({
@@ -22,7 +22,9 @@ export function SectionTitle({
         <Icon size={19} />
         <h3>{title}</h3>
       </div>
-      <ButtonAdd onClick={onClick} text={buttonText} icon={Icon2}/>
+      {onClick && buttonText && Icon2 && (
+        <ButtonAdd icon={Icon2} onClick={onClick} text={buttonText} />
+      )}
     </div>
   );
 }
