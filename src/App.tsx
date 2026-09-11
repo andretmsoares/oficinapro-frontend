@@ -14,13 +14,17 @@ import type {
   Pagamento,
   RegistroPagamento,
 } from "./types/pagamento/pagamento";
-import type { PapelUsuario, UsuarioLogado } from "./types/usuario/usuario";
+import type { UsuarioLogado } from "./types/usuario/usuario";
 import { MOCK_PAGAMENTOS } from "./mocks/pagamento";
 import { MOCK_REGISTROS_PAGAMENTO } from "./mocks/registroPagamento";
 import { MOCK_USUARIO_LOGADO } from "./mocks/usuarioLogado";
 import { getPagamentoStatus } from "./services/pagamentoCalculos";
+import { Usuarios } from "./pages/Usuarios";
+import { AdminUsuarios } from "./pages/AdminUsuarios";
+import { Oficinas } from "./pages/Oficinas";
+import type { Role } from "./types/usuario/role";
 
-function homeRouteFor(role: PapelUsuario): string {
+function homeRouteFor(role: Role): string {
   return role === "ADMIN" ? "/admin/oficinas" : "/dashboard";
 }
 
@@ -29,7 +33,7 @@ function RequireRole({
   usuarioLogado,
   children,
 }: {
-  allowed: PapelUsuario[];
+  allowed: Role[];
   usuarioLogado: UsuarioLogado;
   children: React.ReactElement;
 }) {
@@ -135,7 +139,7 @@ export default function App() {
             path="/dashboard"
             element={
               <RequireRole
-                allowed={["USUARIO", "GERENTE"]}
+                allowed={["MECANICO", "GERENTE"]}
                 usuarioLogado={usuarioLogado}
               >
                 <Dashboard />
@@ -146,7 +150,7 @@ export default function App() {
             path="/clientes"
             element={
               <RequireRole
-                allowed={["USUARIO", "GERENTE"]}
+                allowed={["MECANICO", "GERENTE"]}
                 usuarioLogado={usuarioLogado}
               >
                 <Clientes />
@@ -157,7 +161,7 @@ export default function App() {
             path="/veiculos"
             element={
               <RequireRole
-                allowed={["USUARIO", "GERENTE"]}
+                allowed={["MECANICO", "GERENTE"]}
                 usuarioLogado={usuarioLogado}
               >
                 <Veiculos />
@@ -168,7 +172,7 @@ export default function App() {
             path="/ordens-servico"
             element={
               <RequireRole
-                allowed={["USUARIO", "GERENTE"]}
+                allowed={["MECANICO", "GERENTE"]}
                 usuarioLogado={usuarioLogado}
               >
                 <OrdemDeServico
@@ -184,7 +188,7 @@ export default function App() {
             path="/mecanicos"
             element={
               <RequireRole
-                allowed={["USUARIO", "GERENTE"]}
+                allowed={["MECANICO", "GERENTE"]}
                 usuarioLogado={usuarioLogado}
               >
                 <Mecanicos />
@@ -195,7 +199,7 @@ export default function App() {
             path="/pecas"
             element={
               <RequireRole
-                allowed={["USUARIO", "GERENTE"]}
+                allowed={["MECANICO", "GERENTE"]}
                 usuarioLogado={usuarioLogado}
               >
                 <Pecas />
@@ -206,7 +210,7 @@ export default function App() {
             path="/pagamentos"
             element={
               <RequireRole
-                allowed={["USUARIO", "GERENTE"]}
+                allowed={["MECANICO", "GERENTE"]}
                 usuarioLogado={usuarioLogado}
               >
                 <Pagamentos
@@ -223,8 +227,7 @@ export default function App() {
             path="/usuarios"
             element={
               <RequireRole allowed={["GERENTE"]} usuarioLogado={usuarioLogado}>
-                {/* TODO: página de gerenciamento de usuários da oficina */}
-                <div>Usuários da oficina</div>
+                <Usuarios oficinaId={usuarioLogado.oficinaId ?? 0} />
               </RequireRole>
             }
           />
@@ -235,7 +238,7 @@ export default function App() {
             element={
               <RequireRole allowed={["ADMIN"]} usuarioLogado={usuarioLogado}>
                 {/* TODO: página de gerenciamento das oficinas do SaaS */}
-                <div>Oficinas (SaaS)</div>
+                <Oficinas />
               </RequireRole>
             }
           />
@@ -244,7 +247,7 @@ export default function App() {
             element={
               <RequireRole allowed={["ADMIN"]} usuarioLogado={usuarioLogado}>
                 {/* TODO: página de gerenciamento de usuários de todas as oficinas */}
-                <div>Usuários (SaaS)</div>
+                <AdminUsuarios />
               </RequireRole>
             }
           />
