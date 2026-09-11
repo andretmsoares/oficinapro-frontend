@@ -4,15 +4,22 @@ import { Header } from "../Header";
 import { Sidebar } from "../Sidebar";
 
 import "./mainLayout.style.css";
+import type { UsuarioLogado } from "../../types/usuario/usuario";
 
 interface MainLayoutProps {
   children: ReactNode;
+  usuarioLogado: UsuarioLogado;
+  onLogout?: () => void;
 }
 
-export function MainLayout({ children }: MainLayoutProps) {
+export function MainLayout({
+  children,
+  usuarioLogado,
+  onLogout,
+}: MainLayoutProps) {
   return (
     <div className="app-layout">
-      <Sidebar />
+      <Sidebar usuarioLogado={usuarioLogado} onLogout={onLogout} />
 
       <div className="main-content">
         <Header />
