@@ -74,15 +74,17 @@ export function EntityForm<T extends Record<string, unknown>>({
             handleSubmit();
           }}
         >
-          {fields.map((field) => (
-            <EntityField
-              key={field.name}
-              field={field}
-              displayValue={displayValues[field.name] ?? ""}
-              error={errors[field.name]}
-              onChangeRaw={handleFieldChange}
-            />
-          ))}
+          {fields
+            .filter((field) => !field.hidden?.(rawValues))
+            .map((field) => (
+              <EntityField
+                key={field.name}
+                field={field}
+                displayValue={displayValues[field.name] ?? ""}
+                error={errors[field.name]}
+                onChangeRaw={handleFieldChange}
+              />
+            ))}
         </form>
         <ButtonsForm onClose={onClose} onSave={handleSubmit} />
       </div>

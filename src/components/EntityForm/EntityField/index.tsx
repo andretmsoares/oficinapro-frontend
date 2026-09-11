@@ -31,7 +31,12 @@ export function EntityField<T>({
       <div className="input-create-entity">
         <select
           value={displayValue}
-          onChange={(e) => onChangeRaw(name, e.target.value, e.target.value)}
+          onChange={(e) => {
+            const val = e.target.value;
+            const raw =
+              val !== "" && !Number.isNaN(Number(val)) ? Number(val) : val;
+            onChangeRaw(name, raw, val);
+          }}
         >
           <option value="" disabled>
             {label}
