@@ -14,7 +14,7 @@ import type {
   Pagamento,
   RegistroPagamento,
 } from "./types/pagamento/pagamento";
-import type { UsuarioLogado } from "./types/usuario/usuario";
+import type { Usuario } from "./types/usuario/usuario";
 import { MOCK_PAGAMENTOS } from "./mocks/pagamento";
 import { MOCK_REGISTROS_PAGAMENTO } from "./mocks/registroPagamento";
 import { MOCK_USUARIO_LOGADO } from "./mocks/usuarioLogado";
@@ -23,6 +23,7 @@ import { Usuarios } from "./pages/Usuarios";
 import { AdminUsuarios } from "./pages/AdminUsuarios";
 import { Oficinas } from "./pages/Oficinas";
 import type { Role } from "./types/usuario/role";
+import type { EditUsuarioFormData } from "./components/EditUsuarioModal/editUsuarioFields";
 
 function homeRouteFor(role: Role): string {
   return role === "ADMIN" ? "/admin/oficinas" : "/dashboard";
@@ -34,7 +35,7 @@ function RequireRole({
   children,
 }: {
   allowed: Role[];
-  usuarioLogado: UsuarioLogado;
+  usuarioLogado: Usuario;
   children: React.ReactElement;
 }) {
   if (!allowed.includes(usuarioLogado.role)) {
@@ -49,7 +50,8 @@ export default function App() {
   });
 
   // TODO: substituir pelo usuário real retornado no login.
-  const [usuarioLogado] = useState<UsuarioLogado>(MOCK_USUARIO_LOGADO);
+  const [usuarioLogado, setUsuarioLogado] =
+    useState<Usuario>(MOCK_USUARIO_LOGADO);
 
   const [pagamentos, setPagamentos] = useState<Pagamento[]>(MOCK_PAGAMENTOS);
   const [registros, setRegistros] = useState<RegistroPagamento[]>(
@@ -125,14 +127,29 @@ export default function App() {
     );
   }
 
+  function handleUpdateUsuarioLogado(data: EditUsuarioFormData) {
+    // TODO: substituir por chamada real ao backend (PUT /usuarios/me),
+    // incluindo hash de senha quando novaSenha vier preenchida.
+    setUsuarioLogado((prev) => ({
+      ...prev,
+      nome: data.nome,
+      documento: data.documento,
+      telefone: data.telefone,
+      username: data.username,
+    }));
+  }
+
+  function handleLogout() {
+    localStorage.removeItem("token");
+    setIsAuthenticated(false);
+  }
+
   return (
     <BrowserRouter>
       <MainLayout
         usuarioLogado={usuarioLogado}
-        onLogout={() => {
-          localStorage.removeItem("token");
-          setIsAuthenticated(false);
-        }}
+        onLogout={handleLogout}
+        onUpdateUsuarioLogado={handleUpdateUsuarioLogado}
       >
         <Routes>
           <Route
