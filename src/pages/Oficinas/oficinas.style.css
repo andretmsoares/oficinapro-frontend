@@ -1,0 +1,14 @@
+.oficina-name {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.count-badge {
+  display: inline-block;
+  padding: 0.25rem 0.65rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1e293b;
+  background-color: #f1f5f9;
+  border-radius: 9999px;
+}

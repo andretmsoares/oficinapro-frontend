@@ -7,9 +7,13 @@ function isEmpty(value: unknown): boolean {
   return false;
 }
 
-export function validateForm<T>(fields: FormField<T>[], rawValues: Partial<T>): Record<string, string> {
+export function validateForm<T>(
+  fields: FormField<T>[],
+  rawValues: Partial<T>,
+): Record<string, string> {
   const errors: Record<string, string> = {};
   for (const field of fields) {
+    if (field.hidden?.(rawValues)) continue;
     const value = rawValues[field.name];
     if (field.required && isEmpty(value)) {
       errors[field.name] = `${field.label} é obrigatório`;
