@@ -24,6 +24,7 @@ import { AdminUsuarios } from "./pages/AdminUsuarios";
 import { Oficinas } from "./pages/Oficinas";
 import type { Role } from "./types/usuario/role";
 import type { EditUsuarioFormData } from "./components/EditUsuarioModal/editUsuarioFields";
+import { Unidades } from "./pages/Unidades";
 
 function homeRouteFor(role: Role): string {
   return role === "ADMIN" ? "/admin/oficinas" : "/dashboard";
@@ -245,6 +246,15 @@ export default function App() {
             element={
               <RequireRole allowed={["GERENTE"]} usuarioLogado={usuarioLogado}>
                 <Usuarios oficinaId={usuarioLogado.oficinaId ?? 0} />
+              </RequireRole>
+            }
+          />
+
+          <Route
+            path="/unidades"
+            element={
+              <RequireRole allowed={["GERENTE"]} usuarioLogado={usuarioLogado}>
+                <Unidades oficinaId={usuarioLogado.oficinaId ?? 0} />
               </RequireRole>
             }
           />
