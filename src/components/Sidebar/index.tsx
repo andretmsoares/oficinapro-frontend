@@ -12,11 +12,11 @@ import {
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
-import type { UsuarioLogado } from "../../types/usuario/usuario";
+import type { Usuario } from "../../types/usuario/usuario";
 import "./sidebar.style.css";
 
 interface SidebarProps {
-  usuarioLogado: UsuarioLogado;
+  usuarioLogado: Usuario;
   onLogout?: () => void;
 }
 
