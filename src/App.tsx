@@ -249,6 +249,15 @@ export default function App() {
             }
           />
 
+          <Route
+            path="/unidades"
+            element={
+              <RequireRole allowed={["GERENTE"]} usuarioLogado={usuarioLogado}>
+                <Usuarios oficinaId={usuarioLogado.oficinaId ?? 0} />
+              </RequireRole>
+            }
+          />
+
           {/* Seção exclusiva do Admin SaaS */}
           <Route
             path="/admin/oficinas"

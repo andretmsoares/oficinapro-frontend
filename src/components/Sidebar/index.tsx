@@ -75,10 +75,16 @@ export function Sidebar({ usuarioLogado, onLogout }: SidebarProps) {
             </NavLink>
 
             {isGerenteOficina && (
-              <NavLink to="/usuarios" className="nav-item">
-                <UserCog size={18} />
-                <span>Usuários</span>
-              </NavLink>
+              <>
+                <NavLink to="/usuarios" className="nav-item">
+                  <UserCog size={18} />
+                  <span>Usuários</span>
+                </NavLink>
+                <NavLink to="/unidades" className="nav-item">
+                  <Building2 size={18} />
+                  <span>Unidades</span>
+                </NavLink>
+              </>
             )}
           </>
         )}
