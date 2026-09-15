@@ -10,6 +10,7 @@ const descontoFields = defineFields<DescontoFormData>([
   {
     name: "novoDesconto",
     label: "Novo desconto",
+    placeholder: "Digite o desconto a ser aplicado",
     type: "currency",
     required: true,
   },

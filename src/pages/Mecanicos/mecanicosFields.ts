@@ -9,9 +9,37 @@ export type MecanicoFormData = {
 };
 
 export const mecanicoFields = defineFields<MecanicoFormData>([
-  { name: "nome", label: "Nome", type: "text", required: true },
-  { name: "documento", label: "CPF/CNPJ", type: "document", required: true },
-  { name: "telefone", label: "Telefone", type: "phone", required: true },
-  { name: "salario", label: "Salário", type: "currency" },
-  { name: "obs", label: "Observações", type: "textarea" },
+  {
+    name: "nome",
+    label: "Nome",
+    placeholder: "Digite o nome do mecânico",
+    type: "text",
+    required: true,
+  },
+  {
+    name: "documento",
+    label: "CPF",
+    placeholder: "Digite o CPF do mecânico",
+    type: "document",
+    required: true,
+  },
+  {
+    name: "telefone",
+    label: "Telefone",
+    placeholder: "Digite o telefone do mecânico",
+    type: "phone",
+    required: true,
+  },
+  {
+    name: "salario",
+    label: "Salário",
+    placeholder: "Digite o salário do mecânico",
+    type: "currency",
+  },
+  {
+    name: "obs",
+    label: "Observações",
+    placeholder: "Digite observações quando necessário",
+    type: "textarea",
+  },
 ]);

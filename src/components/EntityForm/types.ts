@@ -19,6 +19,7 @@ export interface SelectOption {
 interface BaseField<T> {
   name: keyof T & string;
   label: string;
+  placeholder: string;
   required?: boolean;
   readOnly?: boolean;
   hidden?: (formData: Partial<T>) => boolean;

@@ -11,6 +11,8 @@ import {
 } from "../../../services/formatters";
 import type { FormField } from "../types";
 
+import "./entityField.style.css";
+
 interface EntityFieldProps<T> {
   field: FormField<T>;
   displayValue: string;
@@ -24,11 +26,12 @@ export function EntityField<T>({
   error,
   onChangeRaw,
 }: EntityFieldProps<T>) {
-  const { name, label, type, readOnly } = field;
+  const { name, label, placeholder, type, readOnly } = field;
 
   if (type === "select") {
     return (
       <div className="input-create-entity">
+        <label>{label}</label>
         <select
           value={displayValue}
           onChange={(e) => {
@@ -39,7 +42,7 @@ export function EntityField<T>({
           }}
         >
           <option value="" disabled>
-            {label}
+            {placeholder}
           </option>
           {field.options.map((opt) => (
             <option key={opt.value} value={opt.value}>
@@ -55,8 +58,9 @@ export function EntityField<T>({
   if (type === "textarea") {
     return (
       <div className="input-create-entity">
+        <label>{label}</label>
         <textarea
-          placeholder={label}
+          placeholder={placeholder}
           value={displayValue}
           onChange={(e) => onChangeRaw(name, e.target.value, e.target.value)}
         />
@@ -71,6 +75,7 @@ export function EntityField<T>({
         <CreateEntityInput
           label={label}
           type="tel"
+          placeholder={placeholder}
           value={displayValue}
           onChange={(val) =>
             onChangeRaw(name, unformatPhone(val), formatPhone(val))
@@ -86,6 +91,7 @@ export function EntityField<T>({
       <>
         <CreateEntityInput
           label={label}
+          placeholder={placeholder}
           type="text"
           value={displayValue}
           onChange={(val) =>
@@ -106,6 +112,7 @@ export function EntityField<T>({
       <>
         <CreateEntityInput
           label={label}
+          placeholder={placeholder}
           type="text"
           value={displayValue}
           onChange={(val) => {
@@ -125,6 +132,7 @@ export function EntityField<T>({
       <>
         <CreateEntityInput
           label={label}
+          placeholder={placeholder}
           type="text"
           value={displayValue}
           onChange={(val) =>
@@ -141,6 +149,7 @@ export function EntityField<T>({
     <>
       <CreateEntityInput
         label={label}
+        placeholder={placeholder}
         type={type}
         value={displayValue}
         readOnly={readOnly}

@@ -7,7 +7,25 @@ export type OficinaFormData = {
 };
 
 export const oficinaFields = defineFields<OficinaFormData>([
-  { name: "nome", label: "Nome", type: "text", required: true },
-  { name: "cnpj", label: "CNPJ", type: "document", required: true },
-  { name: "telefone", label: "Telefone", type: "phone", required: true },
+  {
+    name: "nome",
+    label: "Nome",
+    placeholder: "Digite o nome da Oficina",
+    type: "text",
+    required: true,
+  },
+  {
+    name: "cnpj",
+    label: "CNPJ",
+    placeholder: "Digite o CNPJ da oficina",
+    type: "document",
+    required: true,
+  },
+  {
+    name: "telefone",
+    label: "Telefone",
+    placeholder: "Digite o telefone da oficina",
+    type: "phone",
+    required: true,
+  },
 ]);

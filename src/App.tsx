@@ -20,7 +20,6 @@ import { MOCK_REGISTROS_PAGAMENTO } from "./mocks/registroPagamento";
 import { MOCK_USUARIO_LOGADO } from "./mocks/usuarioLogado";
 import { getPagamentoStatus } from "./services/pagamentoCalculos";
 import { Usuarios } from "./pages/Usuarios";
-import { AdminUsuarios } from "./pages/AdminUsuarios";
 import { Oficinas } from "./pages/Oficinas";
 import type { Role } from "./types/usuario/role";
 import type { EditUsuarioFormData } from "./components/EditUsuarioModal/editUsuarioFields";
@@ -245,7 +244,7 @@ export default function App() {
             path="/usuarios"
             element={
               <RequireRole allowed={["GERENTE"]} usuarioLogado={usuarioLogado}>
-                <Usuarios oficinaId={usuarioLogado.oficinaId ?? 0} />
+                <Usuarios usuarioLogado={usuarioLogado} />
               </RequireRole>
             }
           />
@@ -273,8 +272,7 @@ export default function App() {
             path="/admin/usuarios"
             element={
               <RequireRole allowed={["ADMIN"]} usuarioLogado={usuarioLogado}>
-                {/* TODO: página de gerenciamento de usuários de todas as oficinas */}
-                <AdminUsuarios />
+                <Usuarios usuarioLogado={usuarioLogado} />
               </RequireRole>
             }
           />

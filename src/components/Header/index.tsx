@@ -43,7 +43,11 @@ export function Header({
     <header className="header">
       <div>
         <h2>Olá, {usuarioLogado.nome} 👋</h2>
-        <p>Confira o resumo da sua oficina hoje.</p>
+        <p>
+          {usuarioLogado.role === "ADMIN"
+            ? "Acompanhe e gerencie todas as oficinas do sistema."
+            : "Confira o resumo da sua oficina hoje."}
+        </p>
       </div>
 
       <div className="header-actions">
@@ -53,7 +57,9 @@ export function Header({
             className="avatar-button"
             onClick={() => setIsMenuOpen((prev) => !prev)}
           >
-            <div className="avatar">{usuarioLogado.nome[0]}</div>
+            <div className="avatar">
+              {usuarioLogado.nome[0] ?? "Nome não encontrado"}
+            </div>
 
             <div>
               <strong>{usuarioLogado.nome}</strong>
