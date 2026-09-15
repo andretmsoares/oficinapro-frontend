@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  Outlet,
+} from "react-router-dom";
 import { MainLayout } from "./components/MainLayout";
 import { Dashboard } from "./pages/Dashboard";
 import { Clientes } from "./pages/Clientes";
@@ -32,22 +38,25 @@ function homeRouteFor(role: Role): string {
 function RequireRole({
   allowed,
   usuarioLogado,
-  children,
 }: {
   allowed: Role[];
   usuarioLogado: Usuario;
-  children: React.ReactElement;
 }) {
   if (!allowed.includes(usuarioLogado.role)) {
     return <Navigate to={homeRouteFor(usuarioLogado.role)} replace />;
   }
-  return children;
+
+  return <Outlet />;
 }
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
     return !!localStorage.getItem("token");
   });
+
+  const OPERATIONAL_ROLES: Role[] = ["MECANICO", "GERENTE"];
+  const GERENTE_ROLES: Role[] = ["GERENTE"];
+  const ADMIN_ROLES: Role[] = ["ADMIN"];
 
   // TODO: substituir pelo usuário real retornado no login.
   const [usuarioLogado, setUsuarioLogado] =
@@ -152,131 +161,99 @@ export default function App() {
         onUpdateUsuarioLogado={handleUpdateUsuarioLogado}
       >
         <Routes>
+          {/* Rotas operacionais */}
           <Route
-            path="/dashboard"
             element={
               <RequireRole
-                allowed={["MECANICO", "GERENTE"]}
+                allowed={OPERATIONAL_ROLES}
                 usuarioLogado={usuarioLogado}
-              >
-                <Dashboard />
-              </RequireRole>
+              />
             }
-          />
-          <Route
-            path="/clientes"
-            element={
-              <RequireRole
-                allowed={["MECANICO", "GERENTE"]}
-                usuarioLogado={usuarioLogado}
-              >
-                <Clientes />
-              </RequireRole>
-            }
-          />
-          <Route
-            path="/veiculos"
-            element={
-              <RequireRole
-                allowed={["MECANICO", "GERENTE"]}
-                usuarioLogado={usuarioLogado}
-              >
-                <Veiculos />
-              </RequireRole>
-            }
-          />
-          <Route
-            path="/ordens-servico"
-            element={
-              <RequireRole
-                allowed={["MECANICO", "GERENTE"]}
-                usuarioLogado={usuarioLogado}
-              >
+          >
+            <Route path="/dashboard" element={<Dashboard />} />
+
+            <Route path="/clientes" element={<Clientes />} />
+
+            <Route path="/veiculos" element={<Veiculos />} />
+
+            <Route
+              path="/ordens-servico"
+              element={
                 <OrdemDeServico
                   pagamentos={pagamentos}
                   onCreatePagamento={handleCreatePagamento}
                   onUpdatePagamentoValorTotal={handleUpdatePagamentoValorTotal}
                   onAddRegistroPagamento={handleAddRegistroPagamento}
                 />
-              </RequireRole>
-            }
-          />
-          <Route
-            path="/mecanicos"
-            element={
-              <RequireRole
-                allowed={["MECANICO", "GERENTE"]}
-                usuarioLogado={usuarioLogado}
-              >
-                <Mecanicos />
-              </RequireRole>
-            }
-          />
-          <Route
-            path="/pecas"
-            element={
-              <RequireRole
-                allowed={["MECANICO", "GERENTE"]}
-                usuarioLogado={usuarioLogado}
-              >
-                <Pecas />
-              </RequireRole>
-            }
-          />
-          <Route
-            path="/pagamentos"
-            element={
-              <RequireRole
-                allowed={["MECANICO", "GERENTE"]}
-                usuarioLogado={usuarioLogado}
-              >
+              }
+            />
+
+            <Route path="/mecanicos" element={<Mecanicos />} />
+
+            <Route path="/pecas" element={<Pecas />} />
+
+            <Route
+              path="/pagamentos"
+              element={
                 <Pagamentos
                   pagamentos={pagamentos}
                   registros={registros}
                   onAddRegistroPagamento={handleAddRegistroPagamento}
                 />
-              </RequireRole>
+              }
+            />
+          </Route>
+
+          {/* Rotas exclusivas do GERENTE */}
+          <Route
+            element={
+              <RequireRole
+                allowed={GERENTE_ROLES}
+                usuarioLogado={usuarioLogado}
+              />
             }
+          >
+            <Route
+              path="/usuarios"
+              element={<Usuarios usuarioLogado={usuarioLogado} />}
+            />
+
+            <Route
+              path="/unidades"
+              element={<Unidades oficinaId={usuarioLogado.oficinaId ?? 0} />}
+            />
+          </Route>
+
+          {/* Rotas exclusivas do ADMIN SaaS */}
+          <Route
+            element={
+              <RequireRole
+                allowed={ADMIN_ROLES}
+                usuarioLogado={usuarioLogado}
+              />
+            }
+          >
+            <Route path="/admin/oficinas" element={<Oficinas />} />
+
+            <Route
+              path="/admin/usuarios"
+              element={<Usuarios usuarioLogado={usuarioLogado} />}
+            />
+          </Route>
+
+          {/* Rota inicial */}
+          <Route
+            path="/"
+            element={<Navigate to={homeRouteFor(usuarioLogado.role)} replace />}
           />
 
-          {/* Seção exclusiva da oficina (Admin da própria oficina) */}
+          {/* Login não deve aparecer autenticado */}
           <Route
-            path="/usuarios"
-            element={
-              <RequireRole allowed={["GERENTE"]} usuarioLogado={usuarioLogado}>
-                <Usuarios usuarioLogado={usuarioLogado} />
-              </RequireRole>
-            }
+            path="/login"
+            element={<Navigate to={homeRouteFor(usuarioLogado.role)} replace />}
           />
 
-          <Route
-            path="/unidades"
-            element={
-              <RequireRole allowed={["GERENTE"]} usuarioLogado={usuarioLogado}>
-                <Unidades oficinaId={usuarioLogado.oficinaId ?? 0} />
-              </RequireRole>
-            }
-          />
-
-          {/* Seção exclusiva do Admin SaaS */}
-          <Route
-            path="/admin/oficinas"
-            element={
-              <RequireRole allowed={["ADMIN"]} usuarioLogado={usuarioLogado}>
-                {/* TODO: página de gerenciamento das oficinas do SaaS */}
-                <Oficinas />
-              </RequireRole>
-            }
-          />
-          <Route
-            path="/admin/usuarios"
-            element={
-              <RequireRole allowed={["ADMIN"]} usuarioLogado={usuarioLogado}>
-                <Usuarios usuarioLogado={usuarioLogado} />
-              </RequireRole>
-            }
-          />
-
+          {/* Fallback */}
           <Route
             path="*"
             element={<Navigate to={homeRouteFor(usuarioLogado.role)} replace />}
