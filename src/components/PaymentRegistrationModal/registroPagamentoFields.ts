@@ -12,6 +12,7 @@ export function createRegistroPagamentoFields(saldoRestante: number) {
     {
       name: "valorPago",
       label: "Valor Pago",
+      placeholder: "Digite o valor pago",
       type: "currency",
       required: true,
       validate: (value) => {
@@ -25,6 +26,7 @@ export function createRegistroPagamentoFields(saldoRestante: number) {
     {
       name: "meioPagamento",
       label: "Meio de Pagamento",
+      placeholder: "Selecione o meio de pagamento usado",
       type: "select",
       required: true,
       options: [

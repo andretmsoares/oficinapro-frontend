@@ -2,6 +2,7 @@ import "./createEntity.style.css";
 
 export function CreateEntityInput(props: {
   label: string;
+  placeholder: string;
   value: string;
   onChange: (value: string) => void;
   type?: string;
@@ -10,9 +11,10 @@ export function CreateEntityInput(props: {
 }) {
   return (
     <div className="input-create-entity">
+      <label>{props.label}</label>
       <input
         type={props.type || "text"}
-        placeholder={props.label}
+        placeholder={props.placeholder}
         value={props.value}
         disabled={props.disabled}
         readOnly={props.readOnly}

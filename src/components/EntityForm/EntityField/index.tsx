@@ -11,6 +11,8 @@ import {
 } from "../../../services/formatters";
 import type { FormField } from "../types";
 
+import "./entityField.style.css";
+
 interface EntityFieldProps<T> {
   field: FormField<T>;
   displayValue: string;
@@ -24,7 +26,7 @@ export function EntityField<T>({
   error,
   onChangeRaw,
 }: EntityFieldProps<T>) {
-  const { name, label, type, readOnly } = field;
+  const { name, label, placeholder, type, readOnly } = field;
 
   if (type === "select") {
     return (
@@ -71,6 +73,7 @@ export function EntityField<T>({
         <CreateEntityInput
           label={label}
           type="tel"
+          placeholder={placeholder}
           value={displayValue}
           onChange={(val) =>
             onChangeRaw(name, unformatPhone(val), formatPhone(val))
@@ -86,6 +89,7 @@ export function EntityField<T>({
       <>
         <CreateEntityInput
           label={label}
+          placeholder={placeholder}
           type="text"
           value={displayValue}
           onChange={(val) =>
@@ -106,6 +110,7 @@ export function EntityField<T>({
       <>
         <CreateEntityInput
           label={label}
+          placeholder={placeholder}
           type="text"
           value={displayValue}
           onChange={(val) => {
@@ -125,6 +130,7 @@ export function EntityField<T>({
       <>
         <CreateEntityInput
           label={label}
+          placeholder={placeholder}
           type="text"
           value={displayValue}
           onChange={(val) =>
@@ -141,6 +147,7 @@ export function EntityField<T>({
     <>
       <CreateEntityInput
         label={label}
+        placeholder={placeholder}
         type={type}
         value={displayValue}
         readOnly={readOnly}
