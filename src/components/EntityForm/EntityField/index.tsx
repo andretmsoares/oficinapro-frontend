@@ -31,6 +31,7 @@ export function EntityField<T>({
   if (type === "select") {
     return (
       <div className="input-create-entity">
+        <label>{label}</label>
         <select
           value={displayValue}
           onChange={(e) => {
@@ -41,7 +42,7 @@ export function EntityField<T>({
           }}
         >
           <option value="" disabled>
-            {label}
+            {placeholder}
           </option>
           {field.options.map((opt) => (
             <option key={opt.value} value={opt.value}>
@@ -57,8 +58,9 @@ export function EntityField<T>({
   if (type === "textarea") {
     return (
       <div className="input-create-entity">
+        <label>{label}</label>
         <textarea
-          placeholder={label}
+          placeholder={placeholder}
           value={displayValue}
           onChange={(e) => onChangeRaw(name, e.target.value, e.target.value)}
         />

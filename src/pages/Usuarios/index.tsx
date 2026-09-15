@@ -7,13 +7,15 @@ import {
   IdCard,
   Phone,
   ShieldCheck,
+  Building2,
 } from "lucide-react";
 
 import { StatCard } from "../../components/StatCard";
-import { HeaderPage } from "../../components/HeaderPage";
+import { HeaderPageWithButton } from "../../components/HeaderPageWithButton";
 import { SearchBar } from "../../components/SearchBar";
 import { EntityTable } from "../../components/EntityTable";
 import type { Column, EntityAction } from "../../components/EntityTable/types";
+import { EntityForm } from "../../components/EntityForm";
 import { ConfirmDeleteEntity } from "../../components/ConfirmDeleteEntity";
 import { EntityViewModal } from "../../components/EntityViewModal";
 
@@ -21,22 +23,55 @@ import type { Usuario } from "../../types/usuario/usuario";
 import { ROLE_LABELS } from "../../types/usuario/role";
 import { formatDocument, formatPhone } from "../../services/formatters";
 
-import { MOCK_USUARIOS } from "../../mocks/usuario";
+import { createUsuarioFields, type UsuarioFormData } from "./usuarioFields";
 
-import "./usuarios.style.css";
+import { MOCK_USUARIOS } from "../../mocks/usuario";
+import { MOCK_OFICINAS } from "../../mocks/oficina";
 
 interface UsuariosProps {
-  oficinaId: number;
+  usuarioLogado: Usuario;
 }
 
-export function Usuarios({ oficinaId }: UsuariosProps) {
+export function Usuarios({ usuarioLogado }: UsuariosProps) {
+  const isAdmin = usuarioLogado.role === "ADMIN";
+  const oficinaId = usuarioLogado.oficinaId;
   const [usuarios, setUsuarios] = useState<Usuario[]>(
-    MOCK_USUARIOS.filter((usuario) => usuario.oficinaId === oficinaId),
+    isAdmin
+      ? MOCK_USUARIOS
+      : MOCK_USUARIOS.filter(
+          (usuario) => usuario.oficinaId === usuarioLogado.oficinaId,
+        ),
   );
-
   const [searchTerm, setSearchTerm] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewingUsuario, setViewingUsuario] = useState<Usuario | null>(null);
   const [deletingUsuario, setDeletingUsuario] = useState<Usuario | null>(null);
+
+  const oficinaOptions = isAdmin
+    ? MOCK_OFICINAS.map((oficina) => ({
+        label: oficina.nome,
+        value: String(oficina.id),
+      }))
+    : [];
+
+  const roleOptions = isAdmin
+    ? [
+        { label: "Administrador", value: "ADMIN" },
+        { label: "Gerente", value: "GERENTE" },
+        { label: "Mecânico", value: "MECANICO" },
+      ]
+    : [
+        { label: "Gerente", value: "GERENTE" },
+        { label: "Mecânico", value: "MECANICO" },
+      ];
+
+  function getOficinaNome(oficinaId: number | null): string {
+    if (oficinaId === null) return "Global";
+    return (
+      MOCK_OFICINAS.find((o) => o.id === oficinaId)?.nome ??
+      "Oficina não encontrada"
+    );
+  }
 
   function handleView(id: number) {
     const usuario = usuarios.find((u) => u.id === id);
@@ -52,39 +87,75 @@ export function Usuarios({ oficinaId }: UsuariosProps) {
 
   function handleConfirmDelete() {
     if (!deletingUsuario) return;
-    // TODO: substituir por chamada real ao backend (DELETE /usuarios/{id})
+    // TODO: substituir por chamada real ao backend (DELETE /admin/usuarios/{id})
     setUsuarios((prev) => prev.filter((u) => u.id !== deletingUsuario.id));
     setDeletingUsuario(null);
+  }
+
+  function handleAddUsuario(data: UsuarioFormData) {
+    const novoId =
+      usuarios.length > 0 ? Math.max(...usuarios.map((u) => u.id)) + 1 : 1;
+
+    const { password: _password, ...rest } = data;
+    void _password;
+
+    const novoOficinaId =
+      usuarioLogado.role === "ADMIN"
+        ? rest.role === "ADMIN"
+          ? null
+          : (rest.oficinaId ?? null)
+        : usuarioLogado.oficinaId;
+
+    setUsuarios((prev) => [
+      ...prev,
+      {
+        id: novoId,
+        nome: rest.nome,
+        documento: rest.documento,
+        telefone: rest.telefone,
+        username: rest.username,
+        role: rest.role,
+        oficinaId: novoOficinaId,
+      },
+    ]);
+
+    setIsModalOpen(false);
   }
 
   const columns: Column<Usuario>[] = [
     {
       key: "nome",
       header: "Nome",
-      width: "28%",
+      width: "22%",
       render: (u) => <strong className="user-name">{u.nome}</strong>,
     },
     {
       key: "documento",
       header: "Documento",
-      width: "20%",
+      width: "16%",
       render: (u) => formatDocument(u.documento).display,
     },
     {
       key: "telefone",
       header: "Telefone",
-      width: "20%",
+      width: "16%",
       render: (u) => formatPhone(u.telefone),
     },
     {
       key: "role",
       header: "Role",
-      width: "18%",
+      width: "14%",
       render: (u) => (
         <span className={`role-badge role-${u.role.toLowerCase()}`}>
           {ROLE_LABELS[u.role]}
         </span>
       ),
+    },
+    {
+      key: "oficinaNome",
+      header: "Oficina",
+      width: "20%",
+      render: (u) => getOficinaNome(u.oficinaId),
     },
   ];
 
@@ -105,20 +176,26 @@ export function Usuarios({ oficinaId }: UsuariosProps) {
 
   return (
     <div className="page">
-      <HeaderPage
+      <HeaderPageWithButton
         title="Usuários"
-        subtitle="Gerencie os usuários desta oficina"
+        subtitle={
+          oficinaId !== undefined
+            ? "Gerencie os usuários desta oficina"
+            : "Gerencie os usuários de todas as oficinas"
+        }
+        onButtonClick={() => setIsModalOpen(true)}
+        buttonText="Novo Usuário"
       />
 
       <StatCard
         title="Usuários Cadastrados"
         value={usuarios.length.toString()}
-        description="Total na oficina"
+        description="Total de usuários"
         icon={Users}
       />
 
       <SearchBar
-        placeholder="Pesquisar por nome, documento ou telefone"
+        placeholder="Pesquisar por nome, documento, telefone ou oficina"
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
       />
@@ -129,9 +206,23 @@ export function Usuarios({ oficinaId }: UsuariosProps) {
         actions={actions}
         getRowKey={(u) => u.id}
         searchTerm={searchTerm}
-        searchFields={["nome", "documento", "telefone"]}
+        searchFn={(usuario, term) =>
+          usuario.nome.toLowerCase().includes(term) ||
+          usuario.documento.includes(term) ||
+          usuario.telefone.includes(term) ||
+          getOficinaNome(usuario.oficinaId).toLowerCase().includes(term)
+        }
         emptyMessage="Nenhum usuário cadastrado"
       />
+
+      {isModalOpen && (
+        <EntityForm<UsuarioFormData>
+          title="Cadastro de Usuário"
+          fields={createUsuarioFields(oficinaOptions, roleOptions)}
+          onSubmit={handleAddUsuario}
+          onClose={() => setIsModalOpen(false)}
+        />
+      )}
 
       {viewingUsuario && (
         <EntityViewModal
@@ -154,6 +245,11 @@ export function Usuarios({ oficinaId }: UsuariosProps) {
               icon: ShieldCheck,
               label: "Role",
               value: ROLE_LABELS[viewingUsuario.role],
+            },
+            {
+              icon: Building2,
+              label: "Oficina",
+              value: getOficinaNome(viewingUsuario.oficinaId),
             },
           ]}
         />

@@ -13,6 +13,7 @@ export type UsuarioFormData = {
 
 export function createUsuarioFields(
   oficinaOptions: { label: string; value: string }[],
+  roleOptions: { label: string; value: string }[],
 ) {
   return defineFields<UsuarioFormData>([
     {
@@ -52,24 +53,24 @@ export function createUsuarioFields(
     },
     {
       name: "role",
-      label: "Role",
+      label: "Cargo",
       placeholder: "Escolha o cargo do usuário",
       type: "select",
       required: true,
-      options: [
-        { label: "Administrador", value: "ADMIN" },
-        { label: "Gerente", value: "GERENTE" },
-        { label: "Mecânico", value: "MECANICO" },
-      ],
+      options: roleOptions,
     },
-    {
-      name: "oficinaId",
-      label: "Oficina",
-      placeholder: "Digite o id da oficina do usuário",
-      type: "select",
-      required: true,
-      hidden: (formData) => formData.role === "ADMIN",
-      options: oficinaOptions,
-    },
+
+    ...(oficinaOptions.length > 0
+      ? [
+          {
+            name: "oficinaId" as const,
+            label: "Oficina",
+            placeholder: "Escolha a oficina do usuário",
+            type: "select" as const,
+            required: true,
+            options: oficinaOptions,
+          },
+        ]
+      : []),
   ]);
 }
