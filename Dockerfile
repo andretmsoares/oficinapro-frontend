@@ -1,8 +1,10 @@
-FROM node:22-alpine AS build
+FROM node:22-bookworm-slim AS build
 
 WORKDIR /app
 
 COPY package*.json ./
+
+RUN node --version && npm --version
 
 RUN npm ci
 
