@@ -13,8 +13,15 @@ import { formatPhone, formatDocument } from "../../services/formatters";
 
 import "./clientes.style.css";
 import { MOCK_CLIENTES } from "../../mocks/cliente";
+import { type Usuario } from "../../types/usuario/usuario";
+import { HeaderPage } from "../../components/HeaderPage";
 
-export function Clientes() {
+interface ClientesProps {
+  usuarioLogado: Usuario;
+}
+
+export function Clientes({ usuarioLogado }: ClientesProps) {
+  const isGerente = usuarioLogado.role === "GERENTE";
   const [clientes, setClientes] = useState<Cliente[]>(MOCK_CLIENTES);
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -125,31 +132,42 @@ export function Clientes() {
       variant: "view",
       onClick: (c) => handleViewOrders(c.id),
     },
-    {
-      label: "Editar cliente",
-      icon: Pencil,
-      variant: "edit",
-      onClick: (c) => handleEdit(c.id),
-    },
-    {
-      label: "Excluir cliente",
-      icon: Trash2,
-      variant: "delete",
-      onClick: (c) => handleDelete(c.id),
-    },
+    ...(isGerente
+      ? [
+          {
+            label: "Editar cliente",
+            icon: Pencil,
+            variant: "edit" as const,
+            onClick: (c: Cliente) => handleEdit(c.id),
+          },
+          {
+            label: "Excluir cliente",
+            icon: Trash2,
+            variant: "delete" as const,
+            onClick: (c: Cliente) => handleDelete(c.id),
+          },
+        ]
+      : []),
   ];
 
   return (
     <div className="page">
-      <HeaderPageWithButton
-        title="Clientes"
-        subtitle="Gerencie seus clientes cadastrados"
-        onButtonClick={() => {
-          setEditingCliente(null);
-          setIsModalOpen(true);
-        }}
-        buttonText="Novo Cliente"
-      />
+      {isGerente ? (
+        <HeaderPageWithButton
+          title="Clientes"
+          subtitle="Gerencie seus clientes cadastrados"
+          onButtonClick={() => {
+            setEditingCliente(null);
+            setIsModalOpen(true);
+          }}
+          buttonText="Novo Cliente"
+        />
+      ) : (
+        <HeaderPage
+          title="Clientes"
+          subtitle="Consulte os clientes cadastrados"
+        />
+      )}
 
       <StatCard
         title="Clientes Cadastrados"

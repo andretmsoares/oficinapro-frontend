@@ -6,6 +6,6 @@ export const MOCK_USUARIO_LOGADO: Usuario = {
   documento: "12345678900",
   telefone: "83988881111",
   username: "carlos.silva",
-  role: "GERENTE",
+  role: "MECANICO",
   oficinaId: 1,
 };

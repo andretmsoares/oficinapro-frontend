@@ -46,8 +46,11 @@ import { ViewOrdemServicoModal } from "../../components/ViewOrdemServicoModal";
 import { MOCK_ORDENS_SERVICO } from "../../mocks/ordemDeServico";
 import { MOCK_VEICULOS } from "../../mocks/veiculo";
 import { MOCK_CLIENTES } from "../../mocks/cliente";
+import type { Usuario } from "../../types/usuario/usuario";
+import { HeaderPage } from "../../components/HeaderPage";
 
 interface OrdensServicoProps {
+  usuarioLogado: Usuario;
   pagamentos: Pagamento[];
   onCreatePagamento: (osId: number, valorTotal: number) => void;
   onUpdatePagamentoValorTotal: (osId: number, novoValorTotal: number) => void;
@@ -93,12 +96,14 @@ const statusOptions = [
   },
 ];
 
-export function OrdemDeServico({
+export function OrdensServico({
+  usuarioLogado,
   pagamentos,
   onCreatePagamento,
   onUpdatePagamentoValorTotal,
   onAddRegistroPagamento,
 }: OrdensServicoProps) {
+  const isGerente = usuarioLogado.role == "GERENTE";
   const [ordensServico, setOrdensServico] =
     useState<OrdemDeServico[]>(MOCK_ORDENS_SERVICO);
   const [pecas, setPecas] = useState<PecaOrdemServico[]>(MOCK_PECAS);
@@ -372,23 +377,27 @@ export function OrdemDeServico({
       onClick: (os) => handleUpdateStatus(os.id),
     },
     {
-      label: "Editar ordem de serviço",
-      icon: Pencil,
-      variant: "edit",
-      onClick: (os) => handleEdit(os.id),
-    },
-    {
       label: "Imprimir ordem de serviço",
       icon: Printer,
       variant: "print",
       onClick: (os) => handlePrint(os.id),
     },
-    {
-      label: "Excluir ordem de serviço",
-      icon: Trash2,
-      variant: "delete",
-      onClick: (os) => handleDelete(os.id),
-    },
+    ...(isGerente
+      ? [
+          {
+            label: "Editar ordem de serviço",
+            icon: Pencil,
+            variant: "edit" as const,
+            onClick: (os: OrdemDeServico) => handleEdit(os.id),
+          },
+          {
+            label: "Excluir ordem de serviço",
+            icon: Trash2,
+            variant: "delete" as const,
+            onClick: (os: OrdemDeServico) => handleDelete(os.id),
+          },
+        ]
+      : []),
   ];
 
   const pagamentoDaOrdem = viewingOrdem
@@ -397,15 +406,22 @@ export function OrdemDeServico({
 
   return (
     <div className="page">
-      <HeaderPageWithButton
-        title="Ordens de Serviço"
-        subtitle="Gerencie as ordens de serviço da oficina"
-        onButtonClick={() => {
-          setEditingOrdem(null);
-          setIsModalOpen(true);
-        }}
-        buttonText="Nova Ordem de Serviço"
-      />
+      {isGerente ? (
+        <HeaderPageWithButton
+          title="Ordens de Serviço"
+          subtitle="Gerencie as ordens de serviço da oficina"
+          onButtonClick={() => {
+            setEditingOrdem(null);
+            setIsModalOpen(true);
+          }}
+          buttonText="Nova Ordem de Serviço"
+        />
+      ) : (
+        <HeaderPage
+          title="Ordens de Serviço"
+          subtitle="Gerencie as ordens de serviço da oficina"
+        />
+      )}
 
       <StatCard
         title="Ordens de Serviço"
@@ -482,6 +498,7 @@ export function OrdemDeServico({
 
       {viewingOrdem && (
         <ViewOrdemServicoModal
+          usuarioLogado={usuarioLogado}
           ordemServico={viewingOrdem}
           pagamento={pagamentoDaOrdem}
           todasAsPecas={pecas}

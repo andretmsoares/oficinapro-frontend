@@ -61,21 +61,21 @@ export function Sidebar({ usuarioLogado, onLogout }: SidebarProps) {
               <ClipboardList size={18} />
               <span>Ordens de Serviço</span>
             </NavLink>
-            <NavLink to="/mecanicos" className="nav-item">
-              <Wrench size={18} />
-              <span>Mecânicos</span>
-            </NavLink>
-            <NavLink to="/pecas" className="nav-item">
-              <Package size={18} />
-              <span>Peças</span>
-            </NavLink>
-            <NavLink to="/pagamentos" className="nav-item">
-              <CreditCard size={18} />
-              <span>Pagamentos</span>
-            </NavLink>
 
             {isGerenteOficina && (
               <>
+                <NavLink to="/pecas" className="nav-item">
+                  <Package size={18} />
+                  <span>Peças</span>
+                </NavLink>
+                <NavLink to="/mecanicos" className="nav-item">
+                  <Wrench size={18} />
+                  <span>Mecânicos</span>
+                </NavLink>
+                <NavLink to="/pagamentos" className="nav-item">
+                  <CreditCard size={18} />
+                  <span>Pagamentos</span>
+                </NavLink>
                 <NavLink to="/usuarios" className="nav-item">
                   <UserCog size={18} />
                   <span>Usuários</span>

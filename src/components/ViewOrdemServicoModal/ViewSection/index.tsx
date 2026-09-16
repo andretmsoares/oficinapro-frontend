@@ -4,9 +4,9 @@ import { SectionTitle } from "../SectionTitle";
 interface ViewSectionProps {
   icon: React.ElementType;
   title: string;
-  onClick: () => void;
-  buttonText: string;
-  iconButton: React.ElementType;
+  onClick?: () => void;
+  buttonText?: string;
+  iconButton?: React.ElementType;
   children: React.ReactNode;
 }
 
@@ -20,7 +20,13 @@ export function ViewSection({
 }: ViewSectionProps) {
   return (
     <section className="view-os-section">
-      <SectionTitle icon={Icon} title={title} onClick={onClick} buttonText={buttonText} iconButton={ButtonIcon}/>
+      <SectionTitle
+        icon={Icon}
+        title={title}
+        onClick={onClick}
+        buttonText={buttonText}
+        iconButton={ButtonIcon}
+      />
 
       {children}
     </section>

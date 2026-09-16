@@ -7,6 +7,7 @@ import { StatCard } from "../../components/StatCard";
 
 import "./dashboard.style.css";
 import { HeaderPage } from "../../components/HeaderPage";
+import type { Usuario } from "../../types/usuario/usuario";
 
 // Dados mockados temporários
 const MOCK_DATA = {
@@ -17,7 +18,11 @@ const MOCK_DATA = {
   pagamentosPendentes: 12,
 };
 
-export function Dashboard() {
+interface DashboardProps {
+  usuarioLogado: Usuario;
+}
+export function Dashboard({ usuarioLogado }: DashboardProps) {
+  const isGerente = usuarioLogado.role == "GERENTE";
   const [ordensAbertas] = useState<number>(MOCK_DATA.ordensAbertas);
   const [veiculosCadastrados] = useState<number>(MOCK_DATA.veiculosCadastrados);
   const [clientesCadastrados] = useState<number>(MOCK_DATA.clientesCadastrados);
@@ -57,12 +62,16 @@ export function Dashboard() {
           icon={Users}
         />
 
-        <StatCard
-          title="A receber"
-          value={aReceberFormatado}
-          description={`${pagamentosPendentes} pagamentos pendentes`}
-          icon={CreditCard}
-        />
+        {isGerente ? (
+          <StatCard
+            title="A receber"
+            value={aReceberFormatado}
+            description={`${pagamentosPendentes} pagamentos pendentes`}
+            icon={CreditCard}
+          />
+        ) : (
+          <></>
+        )}
       </section>
 
       <section className="dashboard-grid">
