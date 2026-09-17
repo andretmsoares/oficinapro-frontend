@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Eye,
   Trash2,
@@ -25,7 +25,11 @@ import { formatDocument, formatPhone } from "../../utils/formatters";
 
 import { createUsuarioFields, type UsuarioFormData } from "./usuarioFields";
 
-import { MOCK_USUARIOS } from "../../mocks/usuario";
+import {
+  listarUsuarios,
+  criarUsuario,
+  deletarUsuario,
+} from "../../services/usuario/usuarioService";
 import { MOCK_OFICINAS } from "../../mocks/oficina";
 
 interface UsuariosProps {
@@ -35,17 +39,12 @@ interface UsuariosProps {
 export function Usuarios({ usuarioLogado }: UsuariosProps) {
   const isAdmin = usuarioLogado.role === "ADMIN";
   const oficinaId = usuarioLogado.oficinaId;
-  const [usuarios, setUsuarios] = useState<Usuario[]>(
-    isAdmin
-      ? MOCK_USUARIOS
-      : MOCK_USUARIOS.filter(
-          (usuario) => usuario.oficinaId === usuarioLogado.oficinaId,
-        ),
-  );
+  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewingUsuario, setViewingUsuario] = useState<Usuario | null>(null);
   const [deletingUsuario, setDeletingUsuario] = useState<Usuario | null>(null);
+  console.log("USUÁRIOS:", usuarios);
 
   const oficinaOptions = isAdmin
     ? MOCK_OFICINAS.map((oficina) => ({
@@ -85,41 +84,58 @@ export function Usuarios({ usuarioLogado }: UsuariosProps) {
     setDeletingUsuario(usuario);
   }
 
-  function handleConfirmDelete() {
+  async function handleConfirmDelete() {
     if (!deletingUsuario) return;
-    // TODO: substituir por chamada real ao backend (DELETE /admin/usuarios/{id})
-    setUsuarios((prev) => prev.filter((u) => u.id !== deletingUsuario.id));
-    setDeletingUsuario(null);
+
+    try {
+      await deletarUsuario(deletingUsuario.id);
+
+      setUsuarios((prev) => prev.filter((u) => u.id !== deletingUsuario.id));
+
+      setDeletingUsuario(null);
+    } catch (err) {
+      console.error("Erro ao excluir usuário:", err);
+    }
   }
 
-  function handleAddUsuario(data: UsuarioFormData) {
-    const novoId =
-      usuarios.length > 0 ? Math.max(...usuarios.map((u) => u.id)) + 1 : 1;
+  useEffect(() => {
+    async function carregarUsuarios() {
+      try {
+        const response = await listarUsuarios(0, 100);
 
-    const { password: _password, ...rest } = data;
-    void _password;
+        setUsuarios(response.content);
+      } catch (err) {
+        console.error("Erro ao carregar usuários:", err);
+      }
+    }
 
-    const novoOficinaId =
-      usuarioLogado.role === "ADMIN"
-        ? rest.role === "ADMIN"
-          ? null
-          : (rest.oficinaId ?? null)
-        : usuarioLogado.oficinaId;
+    carregarUsuarios();
+  }, []);
 
-    setUsuarios((prev) => [
-      ...prev,
-      {
-        id: novoId,
-        nome: rest.nome,
-        documento: rest.documento,
-        telefone: rest.telefone,
-        username: rest.username,
-        role: rest.role,
-        oficinaId: novoOficinaId,
-      },
-    ]);
+  async function handleAddUsuario(data: UsuarioFormData) {
+    try {
+      const oficinaId =
+        usuarioLogado.role === "ADMIN"
+          ? data.role === "ADMIN"
+            ? null
+            : (data.oficinaId ?? null)
+          : usuarioLogado.oficinaId;
 
-    setIsModalOpen(false);
+      const novoUsuario = await criarUsuario({
+        nome: data.nome,
+        documento: data.documento,
+        telefone: data.telefone,
+        username: data.username,
+        password: data.password,
+        role: data.role,
+        oficinaId,
+      });
+
+      setUsuarios((prev) => [...prev, novoUsuario]);
+      setIsModalOpen(false);
+    } catch (err) {
+      console.error("Erro ao criar usuário:", err);
+    }
   }
 
   const columns: Column<Usuario>[] = [
