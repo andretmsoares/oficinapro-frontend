@@ -50,7 +50,7 @@ export function LoginForm({ onSubmit }: LoginFormProps) {
         autoComplete="current-password"
       />
 
-      {error && <span className="login-error">{error}</span>}
+      {error && <span className="error">{error}</span>}
 
       <button type="submit" disabled={loading}>
         {loading ? "Entrando..." : "Entrar"}

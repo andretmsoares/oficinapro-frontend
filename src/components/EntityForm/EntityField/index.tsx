@@ -64,7 +64,7 @@ export function EntityField<T>({
           value={displayValue}
           onChange={(e) => onChangeRaw(name, e.target.value, e.target.value)}
         />
-        {error && <span className="field-error">{error}</span>}
+        {error && <span className="error">{error}</span>}
       </div>
     );
   }
