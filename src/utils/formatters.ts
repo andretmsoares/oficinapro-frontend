@@ -2,7 +2,10 @@ function onlyDigits(value: string): string {
   return value.replace(/\D/g, "");
 }
 
-export function formatPhone(value: string): string {
+export function formatPhone(value: string | null | undefined) {
+  if (!value) {
+    return "Não informado";
+  }
   const digits = onlyDigits(value).slice(0, 11);
   if (!digits) return "";
   const area = digits.slice(0, 2);
@@ -36,10 +39,14 @@ function formatCNPJ(d: string): string {
   return r;
 }
 
-export function formatDocument(value: string): {
-  display: string;
-  kind: "cpf" | "cnpj";
-} {
+export function formatDocument(value: string | null | undefined) {
+  if (!value) {
+    return {
+      display: "Não informado",
+      value: "",
+    };
+  }
+
   const digits = onlyDigits(value).slice(0, 14);
   return digits.length <= 11
     ? { display: formatCPF(digits), kind: "cpf" }
