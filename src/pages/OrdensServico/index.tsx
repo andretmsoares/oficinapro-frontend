@@ -23,7 +23,7 @@ import {
 import { ConfirmDeleteEntity } from "../../components/ConfirmDeleteEntity";
 import { SelectStatusModal } from "../../components/SelectStatusModal";
 
-import { formatCurrencyDisplay } from "../../services/formatters";
+import { formatCurrencyDisplay } from "../../utils/formatters";
 
 import type { OrdemDeServico } from "../../types/ordemDeServico/ordemDeServico";
 import type {
@@ -38,7 +38,7 @@ import type { MaoDeObraOrdemServico } from "../../types/maoDeObra/maoDeObra";
 import {
   calcularValorTotal,
   calcularValorComDesconto,
-} from "../../services/ordemServicoCalculos";
+} from "../../utils/ordemServicoCalculos";
 import type { RegistroPagamentoFormData } from "../../components/PaymentRegistrationModal/registroPagamentoFields";
 
 import "./ordensServico.style.css";

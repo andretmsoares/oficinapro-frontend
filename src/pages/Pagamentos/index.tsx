@@ -16,7 +16,7 @@ import type {
   MeioDePagamento,
 } from "../../types/pagamento/pagamento";
 
-import { formatCurrencyDisplay } from "../../services/formatters";
+import { formatCurrencyDisplay } from "../../utils/formatters";
 
 import "./pagamentos.style.css";
 import { MOCK_ORDENS_SERVICO } from "../../mocks/ordemDeServico";

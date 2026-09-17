@@ -14,7 +14,7 @@ import { ConfirmDeleteEntity } from "../../components/ConfirmDeleteEntity";
 
 import type { Veiculo } from "../../types/veiculo/veiculo";
 
-import { formatPlate } from "../../services/formatters";
+import { formatPlate } from "../../utils/formatters";
 
 import "./veiculos.style.css";
 

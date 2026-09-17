@@ -9,7 +9,7 @@ import { MOCK_PECAS } from "../../mocks/pecas";
 import type { PecaOrdemServico } from "../../types/pecas/pecas";
 import { pecasFields, type PecaFormData } from "./pecasFields";
 import type { Column, EntityAction } from "../../components/EntityTable/types";
-import { formatCurrencyDisplay } from "../../services/formatters";
+import { formatCurrencyDisplay } from "../../utils/formatters";
 import { NotepadText, Package, Pencil, Trash2 } from "lucide-react";
 
 export function Pecas() {

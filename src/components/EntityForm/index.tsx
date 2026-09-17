@@ -8,7 +8,7 @@ import {
   formatDocument,
   formatCurrencyDisplay,
   formatPlate,
-} from "../../services/formatters";
+} from "../../utils/formatters";
 import type { EntityFormProps, FormField } from "./types";
 
 function buildInitialDisplay<T>(

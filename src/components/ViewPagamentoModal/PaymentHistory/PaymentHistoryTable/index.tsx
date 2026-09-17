@@ -1,6 +1,6 @@
 import type { RegistroPagamento } from "../../../../types/pagamento/pagamento";
 
-import { formatCurrencyDisplay } from "../../../../services/formatters";
+import { formatCurrencyDisplay } from "../../../../utils/formatters";
 
 import "./paymentHistoryTable.style.css";
 

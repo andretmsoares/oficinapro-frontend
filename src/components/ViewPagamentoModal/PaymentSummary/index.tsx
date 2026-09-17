@@ -1,6 +1,6 @@
 import { CircleDollarSign, CreditCard, Wallet } from "lucide-react";
 
-import { formatCurrencyDisplay } from "../../../services/formatters";
+import { formatCurrencyDisplay } from "../../../utils/formatters";
 
 import "./paymentSummary.style.css";
 
