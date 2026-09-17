@@ -19,8 +19,16 @@ import { formatPlate } from "../../services/formatters";
 import "./veiculos.style.css";
 
 import { MOCK_VEICULOS } from "../../mocks/veiculo";
+import type { Usuario } from "../../types/usuario/usuario";
+import { HeaderPage } from "../../components/HeaderPage";
 
-export function Veiculos() {
+interface VeiculoProps {
+  usuarioLogado: Usuario;
+}
+
+export function Veiculos({ usuarioLogado }: VeiculoProps) {
+  const isGerente = usuarioLogado.role === "GERENTE";
+
   const [veiculos, setVeiculos] = useState<Veiculo[]>(MOCK_VEICULOS);
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -143,31 +151,42 @@ export function Veiculos() {
       variant: "view",
       onClick: (veiculo) => handleViewOrders(veiculo.id),
     },
-    {
-      label: "Editar veículo",
-      icon: Pencil,
-      variant: "edit",
-      onClick: (veiculo) => handleEdit(veiculo.id),
-    },
-    {
-      label: "Excluir veículo",
-      icon: Trash2,
-      variant: "delete",
-      onClick: (veiculo) => handleDelete(veiculo.id),
-    },
+    ...(isGerente
+      ? [
+          {
+            label: "Editar cliente",
+            icon: Pencil,
+            variant: "edit" as const,
+            onClick: (v: Veiculo) => handleEdit(v.id),
+          },
+          {
+            label: "Excluir cliente",
+            icon: Trash2,
+            variant: "delete" as const,
+            onClick: (v: Veiculo) => handleDelete(v.id),
+          },
+        ]
+      : []),
   ];
 
   return (
     <div className="page">
-      <HeaderPageWithButton
-        title="Veículos"
-        subtitle="Gerencie os veículos cadastrados"
-        buttonText="Novo Veículo"
-        onButtonClick={() => {
-          setEditingVeiculo(null);
-          setIsModalOpen(true);
-        }}
-      />
+      {isGerente ? (
+        <HeaderPageWithButton
+          title="Veículos"
+          subtitle="Gerencie os veículos cadastrados"
+          buttonText="Novo Veículo"
+          onButtonClick={() => {
+            setEditingVeiculo(null);
+            setIsModalOpen(true);
+          }}
+        />
+      ) : (
+        <HeaderPage
+          title="Veículos"
+          subtitle="Gerencie os veículos cadastrados"
+        />
+      )}
 
       <div className="vehicles-stats">
         <StatCard

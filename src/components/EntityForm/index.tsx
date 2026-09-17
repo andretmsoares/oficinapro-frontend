@@ -55,6 +55,14 @@ export function EntityForm<T extends Record<string, unknown>>({
   ) {
     setRawValues((prev) => ({ ...prev, [name]: raw }));
     setDisplayValues((prev) => ({ ...prev, [name]: display }));
+
+    setErrors((prev) => {
+      if (!prev[name]) return prev;
+
+      const newErrors = { ...prev };
+      delete newErrors[name];
+      return newErrors;
+    });
   }
 
   function handleSubmit() {

@@ -11,7 +11,7 @@ import { Dashboard } from "./pages/Dashboard";
 import { Clientes } from "./pages/Clientes";
 import { Login } from "./pages/Login";
 import { Veiculos } from "./pages/Veiculos";
-import { OrdemDeServico } from "./pages/OrdensServico";
+import { OrdensServico } from "./pages/OrdensServico";
 import { Mecanicos } from "./pages/Mecanicos";
 import { Pecas } from "./pages/Pecas";
 import { Pagamentos } from "./pages/Pagamentos";
@@ -170,34 +170,29 @@ export default function App() {
               />
             }
           >
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route
+              path="/dashboard"
+              element={<Dashboard usuarioLogado={usuarioLogado} />}
+            />
 
-            <Route path="/clientes" element={<Clientes />} />
+            <Route
+              path="/clientes"
+              element={<Clientes usuarioLogado={usuarioLogado} />}
+            />
 
-            <Route path="/veiculos" element={<Veiculos />} />
+            <Route
+              path="/veiculos"
+              element={<Veiculos usuarioLogado={usuarioLogado} />}
+            />
 
             <Route
               path="/ordens-servico"
               element={
-                <OrdemDeServico
+                <OrdensServico
+                  usuarioLogado={usuarioLogado}
                   pagamentos={pagamentos}
                   onCreatePagamento={handleCreatePagamento}
                   onUpdatePagamentoValorTotal={handleUpdatePagamentoValorTotal}
-                  onAddRegistroPagamento={handleAddRegistroPagamento}
-                />
-              }
-            />
-
-            <Route path="/mecanicos" element={<Mecanicos />} />
-
-            <Route path="/pecas" element={<Pecas />} />
-
-            <Route
-              path="/pagamentos"
-              element={
-                <Pagamentos
-                  pagamentos={pagamentos}
-                  registros={registros}
                   onAddRegistroPagamento={handleAddRegistroPagamento}
                 />
               }
@@ -213,6 +208,18 @@ export default function App() {
               />
             }
           >
+            <Route path="/pecas" element={<Pecas />} />
+            <Route
+              path="/pagamentos"
+              element={
+                <Pagamentos
+                  pagamentos={pagamentos}
+                  registros={registros}
+                  onAddRegistroPagamento={handleAddRegistroPagamento}
+                />
+              }
+            />
+            <Route path="/mecanicos" element={<Mecanicos />} />
             <Route
               path="/usuarios"
               element={<Usuarios usuarioLogado={usuarioLogado} />}

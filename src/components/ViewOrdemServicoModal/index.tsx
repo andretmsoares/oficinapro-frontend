@@ -29,8 +29,10 @@ import { PaymentRegistrationModal } from "../PaymentRegistrationModal";
 import type { PecaFormData } from "../../pages/Pecas/pecasFields";
 import type { MaoDeObraFormData } from "./MaoDeObraModal/maoDeObraFields";
 import type { RegistroPagamentoFormData } from "../PaymentRegistrationModal/registroPagamentoFields";
+import type { Usuario } from "../../types/usuario/usuario";
 
 interface ViewOrdemServicoModalProps {
+  usuarioLogado: Usuario;
   ordemServico: OrdemDeServico;
   pagamento?: Pagamento;
   todasAsPecas: PecaOrdemServico[];
@@ -45,6 +47,7 @@ interface ViewOrdemServicoModalProps {
 type PecaFlow = "action" | "create" | "relate" | null;
 
 export function ViewOrdemServicoModal({
+  usuarioLogado,
   ordemServico,
   pagamento,
   todasAsPecas,
@@ -55,6 +58,7 @@ export function ViewOrdemServicoModal({
   onUpdateDesconto,
   onRegistrarPagamento,
 }: ViewOrdemServicoModalProps) {
+  const isGerente = usuarioLogado.role == "GERENTE";
   const [pecaFlow, setPecaFlow] = useState<PecaFlow>(null);
   const [isMaoDeObraModalOpen, setIsMaoDeObraModalOpen] = useState(false);
   const [isDescontoModalOpen, setIsDescontoModalOpen] = useState(false);
@@ -119,9 +123,9 @@ export function ViewOrdemServicoModal({
         <ViewSection
           icon={Package}
           title="Peças"
-          onClick={() => setPecaFlow("action")}
-          buttonText="Adicionar Peça"
-          iconButton={Plus}
+          onClick={isGerente ? () => setPecaFlow("action") : undefined}
+          buttonText={isGerente ? "Adicionar Peça" : undefined}
+          iconButton={isGerente ? Plus : undefined}
         >
           <ViewTable
             data={pecasDaOs}
@@ -152,9 +156,9 @@ export function ViewOrdemServicoModal({
         <ViewSection
           icon={Wrench}
           title="Mão de Obra"
-          onClick={() => setIsMaoDeObraModalOpen(true)}
-          buttonText="Adicionar Mão de Obra"
-          iconButton={Plus}
+          onClick={isGerente ? () => setIsMaoDeObraModalOpen(true) : undefined}
+          buttonText={isGerente ? "Adicionar Mão de Obra" : undefined}
+          iconButton={isGerente ? Plus : undefined}
         >
           <ViewTable
             data={maoDeObraDaOs}
@@ -178,9 +182,9 @@ export function ViewOrdemServicoModal({
           <SectionTitle
             icon={DollarSign}
             title="Resumo financeiro"
-            onClick={() => setIsDescontoModalOpen(true)}
-            buttonText="Adicionar Desconto"
-            iconButton={Tag}
+            onClick={isGerente ? () => setIsDescontoModalOpen(true) : undefined}
+            buttonText={isGerente ? "Adicionar Desconto" : undefined}
+            iconButton={isGerente ? Tag : undefined}
           />
 
           <div className="view-os-totals">
@@ -204,7 +208,9 @@ export function ViewOrdemServicoModal({
         {pagamento && (
           <PaymentSection
             pagamento={pagamento}
-            onRegistrarPagamento={() => setIsPagamentoModalOpen(true)}
+            onRegistrarPagamento={
+              isGerente ? () => setIsPagamentoModalOpen(true) : undefined
+            }
           />
         )}
 
