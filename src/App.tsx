@@ -24,7 +24,7 @@ import type { Usuario } from "./types/usuario/usuario";
 import { MOCK_PAGAMENTOS } from "./mocks/pagamento";
 import { MOCK_REGISTROS_PAGAMENTO } from "./mocks/registroPagamento";
 import { MOCK_USUARIO_LOGADO } from "./mocks/usuarioLogado";
-import { getPagamentoStatus } from "./services/pagamentoCalculos";
+import { getPagamentoStatus } from "./utils/pagamentoCalculos";
 import { Usuarios } from "./pages/Usuarios";
 import { Oficinas } from "./pages/Oficinas";
 import type { Role } from "./types/usuario/role";

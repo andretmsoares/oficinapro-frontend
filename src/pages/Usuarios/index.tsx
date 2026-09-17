@@ -21,7 +21,7 @@ import { EntityViewModal } from "../../components/EntityViewModal";
 
 import type { Usuario } from "../../types/usuario/usuario";
 import { ROLE_LABELS } from "../../types/usuario/role";
-import { formatDocument, formatPhone } from "../../services/formatters";
+import { formatDocument, formatPhone } from "../../utils/formatters";
 
 import { createUsuarioFields, type UsuarioFormData } from "./usuarioFields";
 

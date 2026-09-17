@@ -1,6 +1,6 @@
 import { EntityForm } from "../../EntityForm";
 import { defineFields } from "../../EntityForm/types";
-import { formatCurrencyDisplay } from "../../../services/formatters";
+import { formatCurrencyDisplay } from "../../../utils/formatters";
 
 export type DescontoFormData = {
   novoDesconto: number;

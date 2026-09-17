@@ -8,7 +8,7 @@ import {
   parseCurrencyToCents,
   formatPlate,
   normalizePlate,
-} from "../../../services/formatters";
+} from "../../../utils/formatters";
 import type { FormField } from "../types";
 
 import "./entityField.style.css";

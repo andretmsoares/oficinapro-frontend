@@ -19,7 +19,7 @@ import { ConfirmDeleteEntity } from "../../components/ConfirmDeleteEntity";
 import { EntityViewModal } from "../../components/EntityViewModal";
 
 import type { Unidade } from "../../types/unidade/unidade";
-import { formatPhone } from "../../services/formatters";
+import { formatPhone } from "../../utils/formatters";
 
 import { unidadeFields, type UnidadeFormData } from "./unidadeFields";
 import { MOCK_UNIDADES } from "../../mocks/unidade";

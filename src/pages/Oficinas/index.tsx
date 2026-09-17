@@ -21,7 +21,7 @@ import { ConfirmDeleteEntity } from "../../components/ConfirmDeleteEntity";
 import { EntityViewModal } from "../../components/EntityViewModal";
 
 import type { Oficina } from "../../types/oficina/oficina";
-import { formatDocument, formatPhone } from "../../services/formatters";
+import { formatDocument, formatPhone } from "../../utils/formatters";
 
 import { oficinaFields, type OficinaFormData } from "./oficinasFields";
 import { MOCK_OFICINAS } from "../../mocks/oficina";

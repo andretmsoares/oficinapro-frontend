@@ -1,5 +1,5 @@
 import { defineFields } from "../EntityForm/types";
-import { formatCurrencyDisplay } from "../../services/formatters";
+import { formatCurrencyDisplay } from "../../utils/formatters";
 import type { MeioDePagamento } from "../../types/pagamento/pagamento";
 
 export type RegistroPagamentoFormData = {

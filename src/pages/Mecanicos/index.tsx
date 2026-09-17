@@ -12,7 +12,7 @@ import {
   formatCurrencyDisplay,
   formatDocument,
   formatPhone,
-} from "../../services/formatters";
+} from "../../utils/formatters";
 import { Pencil, Phone, Trash2, Wrench } from "lucide-react";
 import { EntityForm } from "../../components/EntityForm";
 import { ConfirmDeleteEntity } from "../../components/ConfirmDeleteEntity";

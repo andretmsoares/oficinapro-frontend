@@ -6,7 +6,7 @@ import type { Pagamento } from "../../types/pagamento/pagamento";
 import type { PecaOrdemServico } from "../../types/pecas/pecas";
 import type { MaoDeObraOrdemServico } from "../../types/maoDeObra/maoDeObra";
 
-import { formatCurrencyDisplay } from "../../services/formatters";
+import { formatCurrencyDisplay } from "../../utils/formatters";
 
 import "./viewOrdemServicoModal.style.css";
 
