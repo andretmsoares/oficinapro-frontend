@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Building2,
   Eye,
@@ -22,18 +22,22 @@ import type { Unidade } from "../../types/unidade/unidade";
 import { formatPhone } from "../../utils/formatters";
 
 import { unidadeFields, type UnidadeFormData } from "./unidadeFields";
-import { MOCK_UNIDADES } from "../../mocks/unidade";
 
 import "./unidades.style.css";
+import {
+  atualizarUnidade,
+  criarUnidade,
+  deletarUnidade,
+  listarUnidades,
+} from "../../services/unidade/unidadeService";
 
 interface UnidadesProps {
   oficinaId: number;
 }
 
 export function Unidades({ oficinaId }: UnidadesProps) {
-  const [unidades, setUnidades] = useState<Unidade[]>(
-    MOCK_UNIDADES.filter((unidade) => unidade.oficinaId === oficinaId),
-  );
+  const [unidades, setUnidades] = useState<Unidade[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -60,38 +64,67 @@ export function Unidades({ oficinaId }: UnidadesProps) {
     setDeletingUnidade(unidade);
   }
 
-  function handleConfirmDelete() {
+  async function handleConfirmDelete() {
     if (!deletingUnidade) return;
-    // TODO: substituir por chamada real ao backend (DELETE /unidades/{id}).
-    // Tratar erro de FK (unidade referenciada por outros dados) conforme
-    // o padrão de tratamento de erros do projeto quando a API existir.
-    setUnidades((prev) => prev.filter((u) => u.id !== deletingUnidade.id));
-    setDeletingUnidade(null);
+
+    try {
+      await deletarUnidade(deletingUnidade.id);
+
+      setUnidades((prev) => prev.filter((u) => u.id !== deletingUnidade.id));
+
+      setDeletingUnidade(null);
+    } catch (error) {
+      console.error("Erro ao excluir unidade:", error);
+    }
   }
 
-  function handleAddUnidade(data: UnidadeFormData) {
-    const novoId =
-      unidades.length > 0 ? Math.max(...unidades.map((u) => u.id)) + 1 : 1;
-    // TODO: substituir por chamada real ao backend (POST /unidades).
-    // A oficina é resolvida pelo backend via contexto de autenticação —
-    // aqui só usamos oficinaId da prop porque ainda é mock local.
-    // TODO: tratar erro de "Endereço já cadastrado" (unique constraint)
-    // retornado pelo backend, conforme padrão de erros do projeto.
-    setUnidades((prev) => [...prev, { id: novoId, ...data, oficinaId }]);
-    setIsModalOpen(false);
+  async function handleAddUnidade(data: UnidadeFormData) {
+    try {
+      const unidade = await criarUnidade(oficinaId, data);
+
+      setUnidades((prev) => [...prev, unidade]);
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Erro ao cadastrar unidade:", error);
+    }
   }
 
-  function handleUpdateUnidade(data: UnidadeFormData) {
+  async function handleUpdateUnidade(data: UnidadeFormData) {
     if (!editingUnidade) return;
-    // TODO: substituir por chamada real ao backend (PUT /unidades/{id}).
-    setUnidades((prev) =>
-      prev.map((unidade) =>
-        unidade.id === editingUnidade.id ? { ...unidade, ...data } : unidade,
-      ),
-    );
-    setEditingUnidade(null);
-    setIsModalOpen(false);
+
+    try {
+      const unidadeAtualizada = await atualizarUnidade(editingUnidade.id, data);
+
+      setUnidades((prev) =>
+        prev.map((unidade) =>
+          unidade.id === unidadeAtualizada.id ? unidadeAtualizada : unidade,
+        ),
+      );
+
+      setEditingUnidade(null);
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Erro ao atualizar unidade:", error);
+    }
   }
+
+  useEffect(() => {
+    async function carregar() {
+      try {
+        setLoading(true);
+
+        const data = await listarUnidades();
+
+        setUnidades(data);
+      } catch (error) {
+        console.error("Erro ao carregar unidades:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    carregar();
+  }, []);
 
   const columns: Column<Unidade>[] = [
     {
@@ -178,6 +211,7 @@ export function Unidades({ oficinaId }: UnidadesProps) {
         data={unidades}
         columns={columns}
         actions={actions}
+        loading={loading}
         getRowKey={(u) => u.id}
         searchTerm={searchTerm}
         searchFields={["nome", "endereco", "telefone"]}
@@ -193,7 +227,7 @@ export function Unidades({ oficinaId }: UnidadesProps) {
               ? {
                   nome: editingUnidade.nome,
                   endereco: editingUnidade.endereco,
-                  telefone: editingUnidade.telefone,
+                  telefone: editingUnidade.telefone ?? undefined,
                 }
               : undefined
           }
