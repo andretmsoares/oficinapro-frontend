@@ -7,7 +7,6 @@ export const MOCK_VEICULOS: Veiculo[] = [
     marca: "Toyota",
     modelo: "Corolla",
     ano: 2022,
-    osCount: 3,
   },
   {
     id: 2,
@@ -15,7 +14,6 @@ export const MOCK_VEICULOS: Veiculo[] = [
     marca: "Honda",
     modelo: "Civic",
     ano: 2021,
-    osCount: 1,
   },
   {
     id: 3,
@@ -23,7 +21,6 @@ export const MOCK_VEICULOS: Veiculo[] = [
     marca: "Volkswagen",
     modelo: "T-Cross",
     ano: 2023,
-    osCount: 4,
   },
   {
     id: 4,
@@ -31,6 +28,5 @@ export const MOCK_VEICULOS: Veiculo[] = [
     marca: "Chevrolet",
     modelo: "Onix",
     ano: 2020,
-    osCount: 2,
   },
 ];
