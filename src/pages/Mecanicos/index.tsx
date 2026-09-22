@@ -31,6 +31,7 @@ export function Mecanicos() {
   const [deletingMecanico, setDeletingMecanico] = useState<Mecanico | null>(
     null,
   );
+  const [submitError, setSubmitError] = useState("");
 
   function handleEdit(id: number) {
     const mecanico = mecanicos.find((c) => c.id === id);
@@ -51,6 +52,7 @@ export function Mecanicos() {
 
   async function handleAddMecanico(data: MecanicoFormData) {
     try {
+      setSubmitError("");
       const mecanico = await criarMecanico({
         ...data,
         oficinaId: 1,
@@ -60,6 +62,11 @@ export function Mecanicos() {
       setIsModalOpen(false);
     } catch (error) {
       console.error("Erro ao criar mecânico:", error);
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível criar o mecânico.",
+      );
     }
   }
 
@@ -67,6 +74,7 @@ export function Mecanicos() {
     if (!editingMecanico) return;
 
     try {
+      setSubmitError("");
       const mecanicoAtualizado = await atualizarMecanico(editingMecanico.id, {
         ...data,
         oficinaId: editingMecanico.oficinaId,
@@ -82,6 +90,11 @@ export function Mecanicos() {
       setIsModalOpen(false);
     } catch (error) {
       console.error("Erro ao atualizar mecânico:", error);
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível atualizar o mecânico.",
+      );
     }
   }
 
@@ -89,6 +102,7 @@ export function Mecanicos() {
     if (!deletingMecanico) return;
 
     try {
+      setSubmitError("");
       await deletarMecanico(deletingMecanico.id);
 
       setMecanicos((prev) =>
@@ -98,6 +112,11 @@ export function Mecanicos() {
       setDeletingMecanico(null);
     } catch (error) {
       console.error("Erro ao excluir mecânico:", error);
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível deletar o mecânico.",
+      );
     }
   }
 
@@ -215,6 +234,7 @@ export function Mecanicos() {
         <EntityForm<MecanicoFormData>
           title={editingMecanico ? "Editar Mecânico" : "Cadastro de Mecânico"}
           fields={mecanicoFields}
+          submitError={submitError}
           initialValues={
             editingMecanico
               ? {

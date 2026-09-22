@@ -42,6 +42,7 @@ export function Oficinas() {
   const [editingOficina, setEditingOficina] = useState<Oficina | null>(null);
   const [viewingOficina, setViewingOficina] = useState<Oficina | null>(null);
   const [deletingOficina, setDeletingOficina] = useState<Oficina | null>(null);
+  const [submitError, setSubmitError] = useState("");
 
   function handleView(id: number) {
     const oficina = oficinas.find((o) => o.id === id);
@@ -66,6 +67,7 @@ export function Oficinas() {
     if (!deletingOficina) return;
 
     try {
+      setSubmitError("");
       await deletarOficina(deletingOficina.id);
 
       setOficinas((prev) =>
@@ -73,13 +75,19 @@ export function Oficinas() {
       );
 
       setDeletingOficina(null);
-    } catch (err) {
-      console.error("Erro ao excluir oficina:", err);
+    } catch (error) {
+      console.error("Erro ao excluir oficina:", error);
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível excluir a oficina.",
+      );
     }
   }
 
   async function handleAddOficina(data: OficinaFormData) {
     try {
+      setSubmitError("");
       const novaOficina = await criarOficina({
         nome: data.nome,
         cnpj: data.cnpj,
@@ -99,6 +107,11 @@ export function Oficinas() {
       setIsModalOpen(false);
     } catch (err) {
       console.error("Erro ao criar oficina:", err);
+      setSubmitError(
+        err instanceof Error
+          ? err.message
+          : "Não foi possível excluir a oficina.",
+      );
     }
   }
 
@@ -106,6 +119,7 @@ export function Oficinas() {
     if (!editingOficina) return;
 
     try {
+      setSubmitError("");
       const oficinaAtualizada = await atualizarOficina(editingOficina.id, {
         nome: data.nome,
         cnpj: data.cnpj,
@@ -126,6 +140,11 @@ export function Oficinas() {
       setIsModalOpen(false);
     } catch (err) {
       console.error("Erro ao atualizar oficina:", err);
+      setSubmitError(
+        err instanceof Error
+          ? err.message
+          : "Não foi possível excluir a oficina.",
+      );
     }
   }
 
@@ -289,6 +308,7 @@ export function Oficinas() {
         <EntityForm<OficinaFormData>
           title={editingOficina ? "Editar Oficina" : "Cadastro de Oficina"}
           fields={oficinaFields}
+          submitError={submitError}
           initialValues={
             editingOficina
               ? {
