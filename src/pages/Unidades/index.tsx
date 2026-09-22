@@ -44,6 +44,7 @@ export function Unidades({ oficinaId }: UnidadesProps) {
   const [editingUnidade, setEditingUnidade] = useState<Unidade | null>(null);
   const [viewingUnidade, setViewingUnidade] = useState<Unidade | null>(null);
   const [deletingUnidade, setDeletingUnidade] = useState<Unidade | null>(null);
+  const [submitError, setSubmitError] = useState("");
 
   function handleView(id: number) {
     const unidade = unidades.find((u) => u.id === id);
@@ -68,6 +69,7 @@ export function Unidades({ oficinaId }: UnidadesProps) {
     if (!deletingUnidade) return;
 
     try {
+      setSubmitError("");
       await deletarUnidade(deletingUnidade.id);
 
       setUnidades((prev) => prev.filter((u) => u.id !== deletingUnidade.id));
@@ -75,17 +77,28 @@ export function Unidades({ oficinaId }: UnidadesProps) {
       setDeletingUnidade(null);
     } catch (error) {
       console.error("Erro ao excluir unidade:", error);
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível deletar a unidade.",
+      );
     }
   }
 
   async function handleAddUnidade(data: UnidadeFormData) {
     try {
+      setSubmitError("");
       const unidade = await criarUnidade(oficinaId, data);
 
       setUnidades((prev) => [...prev, unidade]);
       setIsModalOpen(false);
     } catch (error) {
       console.error("Erro ao cadastrar unidade:", error);
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível criar a Unidade.",
+      );
     }
   }
 
@@ -93,6 +106,7 @@ export function Unidades({ oficinaId }: UnidadesProps) {
     if (!editingUnidade) return;
 
     try {
+      setSubmitError("");
       const unidadeAtualizada = await atualizarUnidade(editingUnidade.id, data);
 
       setUnidades((prev) =>
@@ -105,6 +119,11 @@ export function Unidades({ oficinaId }: UnidadesProps) {
       setIsModalOpen(false);
     } catch (error) {
       console.error("Erro ao atualizar unidade:", error);
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível atualizar a unidade.",
+      );
     }
   }
 
@@ -222,6 +241,7 @@ export function Unidades({ oficinaId }: UnidadesProps) {
         <EntityForm<UnidadeFormData>
           title={editingUnidade ? "Editar Unidade" : "Cadastro de Unidade"}
           fields={unidadeFields}
+          submitError={submitError}
           initialValues={
             editingUnidade
               ? {
