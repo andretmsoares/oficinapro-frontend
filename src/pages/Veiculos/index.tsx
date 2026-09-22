@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Car, Pencil, Trash2, NotepadText } from "lucide-react";
 
 import { StatCard } from "../../components/StatCard";
 import { HeaderPageWithButton } from "../../components/HeaderPageWithButton";
+import { HeaderPage } from "../../components/HeaderPage";
 import { SearchBar } from "../../components/SearchBar";
 import { EntityTable } from "../../components/EntityTable";
 import type { Column, EntityAction } from "../../components/EntityTable/types";
@@ -13,14 +14,19 @@ import { vehicleFields, type VeiculoFormData } from "./vehicleFields";
 import { ConfirmDeleteEntity } from "../../components/ConfirmDeleteEntity";
 
 import type { Veiculo } from "../../types/veiculo/veiculo";
+import type { Usuario } from "../../types/usuario/usuario";
+
+import {
+  criarVeiculo,
+  atualizarVeiculo,
+  deletarVeiculo,
+  listarVeiculos,
+  type VeiculoRequest,
+} from "../../services/veiculo/veiculoService";
 
 import { formatPlate } from "../../utils/formatters";
 
 import "./veiculos.style.css";
-
-import { MOCK_VEICULOS } from "../../mocks/veiculo";
-import type { Usuario } from "../../types/usuario/usuario";
-import { HeaderPage } from "../../components/HeaderPage";
 
 interface VeiculoProps {
   usuarioLogado: Usuario;
@@ -29,7 +35,8 @@ interface VeiculoProps {
 export function Veiculos({ usuarioLogado }: VeiculoProps) {
   const isGerente = usuarioLogado.role === "GERENTE";
 
-  const [veiculos, setVeiculos] = useState<Veiculo[]>(MOCK_VEICULOS);
+  const [veiculos, setVeiculos] = useState<Veiculo[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -39,24 +46,36 @@ export function Veiculos({ usuarioLogado }: VeiculoProps) {
 
   const [deletingVeiculo, setDeletingVeiculo] = useState<Veiculo | null>(null);
 
-  function handleAddVehicle(data: VeiculoFormData) {
-    setVeiculos((prev) => {
-      const nextId =
-        prev.length > 0
-          ? Math.max(...prev.map((veiculo) => veiculo.id)) + 1
-          : 1;
+  const [submitError, setSubmitError] = useState("");
 
-      return [
-        ...prev,
-        {
-          id: nextId,
-          ...data,
-          osCount: 0,
-        },
-      ];
-    });
-
+  function fecharModal() {
+    setEditingVeiculo(null);
     setIsModalOpen(false);
+  }
+
+  async function handleAddVehicle(data: VeiculoFormData) {
+    try {
+      setSubmitError("");
+      const request: VeiculoRequest = {
+        placa: data.placa,
+        marca: data.marca,
+        modelo: data.modelo,
+        ano: data.ano,
+      };
+
+      const novoVeiculo = await criarVeiculo(request);
+
+      setVeiculos((prev) => [...prev, novoVeiculo]);
+
+      fecharModal();
+    } catch (error) {
+      console.error("Erro ao cadastrar veículo:", error);
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível atualizar a unidade.",
+      );
+    }
   }
 
   function handleViewOrders(id: number) {
@@ -64,7 +83,7 @@ export function Veiculos({ usuarioLogado }: VeiculoProps) {
   }
 
   function handleEdit(id: number) {
-    const veiculo = veiculos.find((v) => v.id === id);
+    const veiculo = veiculos.find((veiculo) => veiculo.id === id);
 
     if (!veiculo) return;
 
@@ -72,48 +91,91 @@ export function Veiculos({ usuarioLogado }: VeiculoProps) {
     setIsModalOpen(true);
   }
 
-  function handleUpdateVehicle(data: VeiculoFormData) {
+  async function handleUpdateVehicle(data: VeiculoFormData) {
     if (!editingVeiculo) return;
 
-    setVeiculos((prev) =>
-      prev.map((veiculo) =>
-        veiculo.id === editingVeiculo.id
-          ? {
-              ...veiculo,
-              ...data,
-            }
-          : veiculo,
-      ),
-    );
+    try {
+      setSubmitError("");
+      const request: VeiculoRequest = {
+        placa: data.placa,
+        marca: data.marca,
+        modelo: data.modelo,
+        ano: data.ano,
+      };
 
-    setEditingVeiculo(null);
-    setIsModalOpen(false);
+      const veiculoAtualizado = await atualizarVeiculo(
+        editingVeiculo.id,
+        request,
+      );
+
+      setVeiculos((prev) =>
+        prev.map((veiculo) =>
+          veiculo.id === editingVeiculo.id ? veiculoAtualizado : veiculo,
+        ),
+      );
+
+      fecharModal();
+    } catch (error) {
+      console.error("Erro ao atualizar veículo:", error);
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível atualizar a unidade.",
+      );
+    }
   }
 
   function handleDelete(id: number) {
-    const veiculo = veiculos.find((v) => v.id === id);
+    const veiculo = veiculos.find((veiculo) => veiculo.id === id);
 
     if (!veiculo) return;
 
     setDeletingVeiculo(veiculo);
   }
 
-  function handleConfirmDelete() {
+  async function handleConfirmDelete() {
     if (!deletingVeiculo) return;
 
-    setVeiculos((prev) =>
-      prev.filter((veiculo) => veiculo.id !== deletingVeiculo.id),
-    );
+    try {
+      setSubmitError("");
+      await deletarVeiculo(deletingVeiculo.id);
 
-    setDeletingVeiculo(null);
+      setVeiculos((prev) =>
+        prev.filter((veiculo) => veiculo.id !== deletingVeiculo.id),
+      );
+
+      setDeletingVeiculo(null);
+    } catch (error) {
+      console.error("Erro ao excluir veículo:", error);
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível atualizar a unidade.",
+      );
+    }
   }
+
+  useEffect(() => {
+    async function carregarVeiculos() {
+      try {
+        const data = await listarVeiculos();
+        setVeiculos(data.content);
+      } catch (error) {
+        console.error("Erro ao carregar veículos:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    carregarVeiculos();
+  }, []);
 
   const columns: Column<Veiculo>[] = [
     {
       key: "codigo",
       header: "Código",
       width: "10%",
-      render: (c) => `#${c.id.toString().padStart(4, "0")}`,
+      render: (veiculo) => `#${veiculo.id.toString().padStart(4, "0")}`,
     },
     {
       key: "placa",
@@ -124,23 +186,17 @@ export function Veiculos({ usuarioLogado }: VeiculoProps) {
     {
       key: "marca",
       header: "Marca",
-      width: "15%",
+      width: "20%",
     },
     {
       key: "modelo",
       header: "Modelo",
-      width: "20%",
+      width: "25%",
     },
     {
       key: "ano",
       header: "Ano",
-      width: "10%",
-    },
-    {
-      key: "osCount",
-      header: "Ordens de Serviço",
-      width: "20%",
-      render: (c) => <span className="badge-os">{c.osCount} </span>,
+      width: "15",
     },
   ];
 
@@ -154,16 +210,16 @@ export function Veiculos({ usuarioLogado }: VeiculoProps) {
     ...(isGerente
       ? [
           {
-            label: "Editar cliente",
+            label: "Editar veículo",
             icon: Pencil,
             variant: "edit" as const,
-            onClick: (v: Veiculo) => handleEdit(v.id),
+            onClick: (veiculo: Veiculo) => handleEdit(veiculo.id),
           },
           {
-            label: "Excluir cliente",
+            label: "Excluir veículo",
             icon: Trash2,
             variant: "delete" as const,
-            onClick: (v: Veiculo) => handleDelete(v.id),
+            onClick: (veiculo: Veiculo) => handleDelete(veiculo.id),
           },
         ]
       : []),
@@ -212,13 +268,15 @@ export function Veiculos({ usuarioLogado }: VeiculoProps) {
         getRowKey={(veiculo) => veiculo.id}
         searchTerm={searchTerm}
         searchFields={["placa", "marca", "modelo", "ano"]}
+        loading={loading}
         emptyMessage="Nenhum veículo cadastrado"
       />
 
-      {isModalOpen && (
+      {isModalOpen && isGerente && (
         <EntityForm<VeiculoFormData>
           title={editingVeiculo ? "Editar Veículo" : "Cadastro de Veículo"}
           fields={vehicleFields}
+          submitError={submitError}
           initialValues={
             editingVeiculo
               ? {
@@ -230,10 +288,7 @@ export function Veiculos({ usuarioLogado }: VeiculoProps) {
               : undefined
           }
           onSubmit={editingVeiculo ? handleUpdateVehicle : handleAddVehicle}
-          onClose={() => {
-            setEditingVeiculo(null);
-            setIsModalOpen(false);
-          }}
+          onClose={fecharModal}
         />
       )}
 
