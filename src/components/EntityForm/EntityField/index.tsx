@@ -10,7 +10,7 @@ import {
   normalizePlate,
 } from "../../../utils/formatters";
 import type { FormField } from "../types";
-
+import { EntityAutocompleteField } from "../EntityAutocompleteField";
 import "./entityField.style.css";
 
 interface EntityFieldProps<T> {
@@ -52,6 +52,17 @@ export function EntityField<T>({
         </select>
         {error && <span className="field-error">{error}</span>}
       </div>
+    );
+  }
+
+  if (type === "entity-select") {
+    return (
+      <EntityAutocompleteField
+        field={field}
+        displayValue={displayValue}
+        error={error}
+        onChangeRaw={onChangeRaw}
+      />
     );
   }
 
@@ -117,11 +128,9 @@ export function EntityField<T>({
           value={displayValue}
           onChange={(val) => {
             const cents = parseCurrencyToCents(val);
-
             onChangeRaw(name, cents, formatCurrencyDisplay(cents));
           }}
         />
-
         {error && <span className="field-error">{error}</span>}
       </>
     );

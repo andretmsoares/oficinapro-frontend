@@ -9,7 +9,6 @@ import {
   ShieldCheck,
   Building2,
 } from "lucide-react";
-
 import { StatCard } from "../../components/StatCard";
 import { HeaderPageWithButton } from "../../components/HeaderPageWithButton";
 import { SearchBar } from "../../components/SearchBar";
@@ -18,19 +17,16 @@ import type { Column, EntityAction } from "../../components/EntityTable/types";
 import { EntityForm } from "../../components/EntityForm";
 import { ConfirmDeleteEntity } from "../../components/ConfirmDeleteEntity";
 import { EntityViewModal } from "../../components/EntityViewModal";
-
 import type { Usuario } from "../../types/usuario/usuario";
 import { ROLE_LABELS } from "../../types/usuario/role";
 import { formatDocument, formatPhone } from "../../utils/formatters";
-
 import { createUsuarioFields, type UsuarioFormData } from "./usuarioFields";
-
 import {
   listarUsuarios,
   criarUsuario,
   deletarUsuario,
 } from "../../services/usuario/usuarioService";
-import { MOCK_OFICINAS } from "../../mocks/oficina";
+import { buscarOficinaPorId } from "../../services/oficina/oficinaService";
 
 interface UsuariosProps {
   usuarioLogado: Usuario;
@@ -39,19 +35,16 @@ interface UsuariosProps {
 export function Usuarios({ usuarioLogado }: UsuariosProps) {
   const isAdmin = usuarioLogado.role === "ADMIN";
   const oficinaId = usuarioLogado.oficinaId;
+
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewingUsuario, setViewingUsuario] = useState<Usuario | null>(null);
   const [deletingUsuario, setDeletingUsuario] = useState<Usuario | null>(null);
-  console.log("USUÁRIOS:", usuarios);
 
-  const oficinaOptions = isAdmin
-    ? MOCK_OFICINAS.map((oficina) => ({
-        label: oficina.nome,
-        value: String(oficina.id),
-      }))
-    : [];
+  // Cache local de nomes de oficina, resolvidos sob demanda (nunca a lista
+  // completa) só para os IDs que aparecem nos usuários já carregados.
+  const [oficinaNomes, setOficinaNomes] = useState<Record<number, string>>({});
 
   const roleOptions = isAdmin
     ? [
@@ -66,10 +59,7 @@ export function Usuarios({ usuarioLogado }: UsuariosProps) {
 
   function getOficinaNome(oficinaId: number | null): string {
     if (oficinaId === null) return "Global";
-    return (
-      MOCK_OFICINAS.find((o) => o.id === oficinaId)?.nome ??
-      "Oficina não encontrada"
-    );
+    return oficinaNomes[oficinaId] ?? "Carregando...";
   }
 
   function handleView(id: number) {
@@ -86,12 +76,9 @@ export function Usuarios({ usuarioLogado }: UsuariosProps) {
 
   async function handleConfirmDelete() {
     if (!deletingUsuario) return;
-
     try {
       await deletarUsuario(deletingUsuario.id);
-
       setUsuarios((prev) => prev.filter((u) => u.id !== deletingUsuario.id));
-
       setDeletingUsuario(null);
     } catch (err) {
       console.error("Erro ao excluir usuário:", err);
@@ -102,15 +89,40 @@ export function Usuarios({ usuarioLogado }: UsuariosProps) {
     async function carregarUsuarios() {
       try {
         const response = await listarUsuarios(0, 100);
-
         setUsuarios(response.content);
       } catch (err) {
         console.error("Erro ao carregar usuários:", err);
       }
     }
-
     carregarUsuarios();
   }, []);
+
+  useEffect(() => {
+    const idsFaltantes = Array.from(
+      new Set(
+        usuarios
+          .map((u) => u.oficinaId)
+          .filter(
+            (id): id is number => id !== null && oficinaNomes[id] === undefined,
+          ),
+      ),
+    );
+
+    if (idsFaltantes.length === 0) return;
+
+    idsFaltantes.forEach(async (id) => {
+      try {
+        const oficina = await buscarOficinaPorId(id);
+        setOficinaNomes((prev) => ({ ...prev, [id]: oficina.nome }));
+      } catch (err) {
+        console.error(`Erro ao buscar oficina ${id}:`, err);
+        setOficinaNomes((prev) => ({
+          ...prev,
+          [id]: "Oficina não encontrada",
+        }));
+      }
+    });
+  }, [usuarios, oficinaNomes]);
 
   async function handleAddUsuario(data: UsuarioFormData) {
     try {
@@ -234,7 +246,7 @@ export function Usuarios({ usuarioLogado }: UsuariosProps) {
       {isModalOpen && (
         <EntityForm<UsuarioFormData>
           title="Cadastro de Usuário"
-          fields={createUsuarioFields(oficinaOptions, roleOptions)}
+          fields={createUsuarioFields(isAdmin, roleOptions)}
           onSubmit={handleAddUsuario}
           onClose={() => setIsModalOpen(false)}
         />
