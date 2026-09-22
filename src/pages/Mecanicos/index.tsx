@@ -1,9 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { EntityTable } from "../../components/EntityTable";
 import { HeaderPageWithButton } from "../../components/HeaderPageWithButton";
 import { SearchBar } from "../../components/SearchBar";
 import { StatCard } from "../../components/StatCard";
-import { MOCK_MECANICOS } from "../../mocks/mecanico";
+import {
+  atualizarMecanico,
+  criarMecanico,
+  deletarMecanico,
+  listarMecanicos,
+} from "../../services/mecanico/mecanicoService";
 import "./mecanicos.style.css";
 import type { Mecanico } from "../../types/mecanico/mecanico";
 import { mecanicoFields, type MecanicoFormData } from "./mecanicosFields";
@@ -18,7 +23,8 @@ import { EntityForm } from "../../components/EntityForm";
 import { ConfirmDeleteEntity } from "../../components/ConfirmDeleteEntity";
 
 export function Mecanicos() {
-  const [mecanicos, setMecanicos] = useState<Mecanico[]>(MOCK_MECANICOS);
+  const [mecanicos, setMecanicos] = useState<Mecanico[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMecanico, setEditingMecanico] = useState<Mecanico | null>(null);
@@ -43,41 +49,73 @@ export function Mecanicos() {
     setDeletingMecanico(mecanico);
   }
 
-  function handleAddMecanico(data: MecanicoFormData) {
-    setMecanicos((prev) => [
-      ...prev,
-      { id: prev.length + 1, oficinaId: 1, ...data },
-    ]);
-    setIsModalOpen(false);
+  async function handleAddMecanico(data: MecanicoFormData) {
+    try {
+      const mecanico = await criarMecanico({
+        ...data,
+        oficinaId: 1,
+      });
+
+      setMecanicos((prev) => [...prev, mecanico]);
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Erro ao criar mecânico:", error);
+    }
   }
 
-  function handleUpdateClient(data: MecanicoFormData) {
+  async function handleUpdateMecanico(data: MecanicoFormData) {
     if (!editingMecanico) return;
 
-    setMecanicos((prev) =>
-      prev.map((mecanico) =>
-        mecanico.id === editingMecanico.id
-          ? {
-              ...mecanico,
-              ...data,
-            }
-          : mecanico,
-      ),
-    );
+    try {
+      const mecanicoAtualizado = await atualizarMecanico(editingMecanico.id, {
+        ...data,
+        oficinaId: editingMecanico.oficinaId,
+      });
 
-    setEditingMecanico(null);
-    setIsModalOpen(false);
+      setMecanicos((prev) =>
+        prev.map((mecanico) =>
+          mecanico.id === mecanicoAtualizado.id ? mecanicoAtualizado : mecanico,
+        ),
+      );
+
+      setEditingMecanico(null);
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Erro ao atualizar mecânico:", error);
+    }
   }
 
-  function handleConfirmDelete() {
+  async function handleConfirmDelete() {
     if (!deletingMecanico) return;
 
-    setMecanicos((prev) =>
-      prev.filter((mecanico) => mecanico.id !== deletingMecanico.id),
-    );
+    try {
+      await deletarMecanico(deletingMecanico.id);
 
-    setDeletingMecanico(null);
+      setMecanicos((prev) =>
+        prev.filter((mecanico) => mecanico.id !== deletingMecanico.id),
+      );
+
+      setDeletingMecanico(null);
+    } catch (error) {
+      console.error("Erro ao excluir mecânico:", error);
+    }
   }
+
+  useEffect(() => {
+    async function carregarMecanicos() {
+      try {
+        const response = await listarMecanicos();
+
+        setMecanicos(response.content);
+      } catch (error) {
+        console.error("Erro ao carregar mecânicos:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    carregarMecanicos();
+  }, []);
 
   const columns: Column<Mecanico>[] = [
     {
@@ -170,6 +208,7 @@ export function Mecanicos() {
         searchTerm={searchTerm}
         searchFields={["nome", "documento", "telefone"]}
         emptyMessage="Nenhum mecanico cadastrado"
+        loading={loading}
       />
 
       {isModalOpen && (
@@ -180,14 +219,14 @@ export function Mecanicos() {
             editingMecanico
               ? {
                   nome: editingMecanico.nome,
-                  documento: editingMecanico.documento,
-                  telefone: editingMecanico.telefone,
-                  salario: editingMecanico.salario,
-                  obs: editingMecanico.obs,
+                  documento: editingMecanico.documento ?? undefined,
+                  telefone: editingMecanico.telefone ?? undefined,
+                  salario: editingMecanico.salario ?? undefined,
+                  obs: editingMecanico.obs ?? undefined,
                 }
               : undefined
           }
-          onSubmit={editingMecanico ? handleUpdateClient : handleAddMecanico}
+          onSubmit={editingMecanico ? handleUpdateMecanico : handleAddMecanico}
           onClose={() => {
             setEditingMecanico(null);
             setIsModalOpen(false);
