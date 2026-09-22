@@ -17,6 +17,17 @@
   width: 100%;
 }
 
+.form-submit-error {
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border: 1px solid #ef4444;
+  border-radius: 8px;
+  background-color: #fef2f2;
+  color: #b91c1c;
+  font-size: 14px;
+  font-weight: 500;
+}
+
 /* Inputs */
 .form-content input,
 .form-content select,

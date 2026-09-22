@@ -32,6 +32,14 @@ export interface UsuarioUpdateRequest {
   oficinaId: number | null;
 }
 
+export interface UsuarioMeUpdateRequest {
+  nome: string;
+  documento: string;
+  telefone: string;
+  username: string;
+  password?: string;
+}
+
 export async function listarUsuarios(
   page = 0,
   size = 20,
@@ -63,5 +71,14 @@ export async function atualizarUsuario(
 export async function deletarUsuario(id: number): Promise<void> {
   await api<void>(`/usuarios/${id}`, {
     method: "DELETE",
+  });
+}
+
+export async function atualizarUsuarioLogado(
+  data: UsuarioMeUpdateRequest,
+): Promise<Usuario> {
+  return api<Usuario>("/usuarios/me", {
+    method: "PUT",
+    body: JSON.stringify(data),
   });
 }

@@ -77,4 +77,5 @@ export interface EntityFormProps<T> {
   initialValues?: Partial<T>;
   onSubmit: (data: T) => void;
   onClose: () => void;
+  submitError?: string;
 }

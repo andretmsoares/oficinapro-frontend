@@ -9,12 +9,14 @@ interface EditUsuarioModalProps {
   usuarioLogado: Usuario;
   onClose: () => void;
   onSave: (data: EditUsuarioFormData) => void;
+  submitError: string;
 }
 
 export function EditUsuarioModal({
   usuarioLogado,
   onClose,
   onSave,
+  submitError,
 }: EditUsuarioModalProps) {
   return (
     <EntityForm<EditUsuarioFormData>
@@ -29,6 +31,7 @@ export function EditUsuarioModal({
       }}
       onSubmit={onSave}
       onClose={onClose}
+      submitError={submitError}
     />
   );
 }

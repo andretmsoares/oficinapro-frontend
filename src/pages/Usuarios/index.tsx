@@ -45,6 +45,7 @@ export function Usuarios({ usuarioLogado }: UsuariosProps) {
   // Cache local de nomes de oficina, resolvidos sob demanda (nunca a lista
   // completa) só para os IDs que aparecem nos usuários já carregados.
   const [oficinaNomes, setOficinaNomes] = useState<Record<number, string>>({});
+  const [submitError, setSubmitError] = useState("");
 
   const roleOptions = isAdmin
     ? [
@@ -126,6 +127,7 @@ export function Usuarios({ usuarioLogado }: UsuariosProps) {
 
   async function handleAddUsuario(data: UsuarioFormData) {
     try {
+      setSubmitError("");
       const oficinaId =
         usuarioLogado.role === "ADMIN"
           ? data.role === "ADMIN"
@@ -147,6 +149,12 @@ export function Usuarios({ usuarioLogado }: UsuariosProps) {
       setIsModalOpen(false);
     } catch (err) {
       console.error("Erro ao criar usuário:", err);
+
+      setSubmitError(
+        err instanceof Error
+          ? err.message
+          : "Não foi possível criar o usuário.",
+      );
     }
   }
 
@@ -179,12 +187,16 @@ export function Usuarios({ usuarioLogado }: UsuariosProps) {
         </span>
       ),
     },
-    {
-      key: "oficinaNome",
-      header: "Oficina",
-      width: "20%",
-      render: (u) => getOficinaNome(u.oficinaId),
-    },
+    ...(isAdmin
+      ? [
+          {
+            key: "oficinaNome",
+            header: "Oficina",
+            width: "20%",
+            render: (u: Usuario) => getOficinaNome(u.oficinaId),
+          },
+        ]
+      : []),
   ];
 
   const actions: EntityAction<Usuario>[] = [
@@ -249,6 +261,7 @@ export function Usuarios({ usuarioLogado }: UsuariosProps) {
           fields={createUsuarioFields(isAdmin, roleOptions)}
           onSubmit={handleAddUsuario}
           onClose={() => setIsModalOpen(false)}
+          submitError={submitError}
         />
       )}
 

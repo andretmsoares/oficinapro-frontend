@@ -29,7 +29,6 @@ import type {
 
 import type { Usuario } from "./types/usuario/usuario";
 import type { Role } from "./types/usuario/role";
-import type { EditUsuarioFormData } from "./components/EditUsuarioModal/editUsuarioFields";
 
 import {
   buscarUsuarioLogado,
@@ -252,7 +251,7 @@ export default function App() {
      USUÁRIO LOGADO
      ========================================================= */
 
-  function handleUpdateUsuarioLogado(data: EditUsuarioFormData) {
+  function handleUpdateUsuarioLogado(data: Usuario) {
     /*
      * Ainda é atualização local.
      *
