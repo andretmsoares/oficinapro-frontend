@@ -9,7 +9,7 @@ import { type Cliente } from "../../types/cliente/cliente";
 import { EntityForm } from "../../components/EntityForm";
 import { clientFields, type ClienteFormData } from "./clientFields";
 import { ConfirmDeleteEntity } from "../../components/ConfirmDeleteEntity";
-import { formatPhone, formatDocument } from "../../services/formatters";
+import { formatPhone, formatDocument } from "../../utils/formatters";
 
 import "./clientes.style.css";
 import { MOCK_CLIENTES } from "../../mocks/cliente";

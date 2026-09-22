@@ -1,5 +1,6 @@
 import { defineFields } from "../../components/EntityForm/types";
 import type { Role } from "../../types/usuario/role";
+import { buscarOficinasAutocomplete } from "../../services/oficina/oficinaService";
 
 export type UsuarioFormData = {
   nome: string;
@@ -12,7 +13,7 @@ export type UsuarioFormData = {
 };
 
 export function createUsuarioFields(
-  oficinaOptions: { label: string; value: string }[],
+  isAdmin: boolean,
   roleOptions: { label: string; value: string }[],
 ) {
   return defineFields<UsuarioFormData>([
@@ -60,15 +61,20 @@ export function createUsuarioFields(
       options: roleOptions,
     },
 
-    ...(oficinaOptions.length > 0
+    ...(isAdmin
       ? [
           {
             name: "oficinaId" as const,
             label: "Oficina",
-            placeholder: "Escolha a oficina do usuário",
-            type: "select" as const,
+            placeholder: "Digite nome ou CNPJ...",
+            type: "entity-select" as const,
             required: true,
-            options: oficinaOptions,
+            hidden: (formData: Partial<UsuarioFormData>) =>
+              formData.role === "ADMIN",
+            fetchOptions: buscarOficinasAutocomplete,
+            minChars: 2,
+            debounceMs: 400,
+            noResultsText: "Nenhuma oficina encontrada",
           },
         ]
       : []),

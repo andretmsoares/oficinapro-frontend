@@ -5,13 +5,12 @@ import { Sidebar } from "../Sidebar";
 
 import "./mainLayout.style.css";
 import type { Usuario } from "../../types/usuario/usuario";
-import type { EditUsuarioFormData } from "../EditUsuarioModal/editUsuarioFields";
 
 interface MainLayoutProps {
   children: ReactNode;
   usuarioLogado: Usuario;
   onLogout: () => void;
-  onUpdateUsuarioLogado: (data: EditUsuarioFormData) => void;
+  onUpdateUsuarioLogado: (data: Usuario) => void;
 }
 
 export function MainLayout({

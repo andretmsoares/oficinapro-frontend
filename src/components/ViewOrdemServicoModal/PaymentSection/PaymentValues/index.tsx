@@ -1,4 +1,4 @@
-import { formatCurrencyDisplay } from "../../../../services/formatters";
+import { formatCurrencyDisplay } from "../../../../utils/formatters";
 import "./paymentValues.style.css";
 
 interface PaymentValuesProps {

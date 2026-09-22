@@ -1,0 +1,85 @@
+.entity-autocomplete {
+  position: relative;
+}
+
+.entity-autocomplete-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.entity-autocomplete-input-wrapper input {
+  width: 100%;
+  padding-right: 2rem;
+}
+
+.entity-autocomplete-clear {
+  position: absolute;
+  right: 0.5rem;
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #666;
+  padding: 0.25rem;
+}
+
+.entity-autocomplete-clear:hover {
+  color: #222;
+}
+
+.entity-autocomplete-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.entity-autocomplete-status {
+  padding: 0.6rem 0.8rem;
+  font-size: 0.85rem;
+  color: #777;
+}
+
+.entity-autocomplete-error {
+  color: #c0392b;
+}
+
+.entity-autocomplete-option {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  border-bottom: 1px solid #f0f0f0;
+  padding: 0.6rem 0.8rem;
+  cursor: pointer;
+}
+
+.entity-autocomplete-option:last-child {
+  border-bottom: none;
+}
+
+.entity-autocomplete-option:hover,
+.entity-autocomplete-option:focus {
+  background-color: #f5f5f5;
+}
+
+.entity-autocomplete-option-label {
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.entity-autocomplete-option-description {
+  font-size: 0.78rem;
+  color: #777;
+}

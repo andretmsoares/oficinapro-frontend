@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Eye,
   Trash2,
@@ -9,7 +9,6 @@ import {
   ShieldCheck,
   Building2,
 } from "lucide-react";
-
 import { StatCard } from "../../components/StatCard";
 import { HeaderPageWithButton } from "../../components/HeaderPageWithButton";
 import { SearchBar } from "../../components/SearchBar";
@@ -18,15 +17,16 @@ import type { Column, EntityAction } from "../../components/EntityTable/types";
 import { EntityForm } from "../../components/EntityForm";
 import { ConfirmDeleteEntity } from "../../components/ConfirmDeleteEntity";
 import { EntityViewModal } from "../../components/EntityViewModal";
-
 import type { Usuario } from "../../types/usuario/usuario";
 import { ROLE_LABELS } from "../../types/usuario/role";
-import { formatDocument, formatPhone } from "../../services/formatters";
-
+import { formatDocument, formatPhone } from "../../utils/formatters";
 import { createUsuarioFields, type UsuarioFormData } from "./usuarioFields";
-
-import { MOCK_USUARIOS } from "../../mocks/usuario";
-import { MOCK_OFICINAS } from "../../mocks/oficina";
+import {
+  listarUsuarios,
+  criarUsuario,
+  deletarUsuario,
+} from "../../services/usuario/usuarioService";
+import { buscarOficinaPorId } from "../../services/oficina/oficinaService";
 
 interface UsuariosProps {
   usuarioLogado: Usuario;
@@ -35,24 +35,17 @@ interface UsuariosProps {
 export function Usuarios({ usuarioLogado }: UsuariosProps) {
   const isAdmin = usuarioLogado.role === "ADMIN";
   const oficinaId = usuarioLogado.oficinaId;
-  const [usuarios, setUsuarios] = useState<Usuario[]>(
-    isAdmin
-      ? MOCK_USUARIOS
-      : MOCK_USUARIOS.filter(
-          (usuario) => usuario.oficinaId === usuarioLogado.oficinaId,
-        ),
-  );
+
+  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewingUsuario, setViewingUsuario] = useState<Usuario | null>(null);
   const [deletingUsuario, setDeletingUsuario] = useState<Usuario | null>(null);
 
-  const oficinaOptions = isAdmin
-    ? MOCK_OFICINAS.map((oficina) => ({
-        label: oficina.nome,
-        value: String(oficina.id),
-      }))
-    : [];
+  // Cache local de nomes de oficina, resolvidos sob demanda (nunca a lista
+  // completa) só para os IDs que aparecem nos usuários já carregados.
+  const [oficinaNomes, setOficinaNomes] = useState<Record<number, string>>({});
+  const [submitError, setSubmitError] = useState("");
 
   const roleOptions = isAdmin
     ? [
@@ -67,10 +60,7 @@ export function Usuarios({ usuarioLogado }: UsuariosProps) {
 
   function getOficinaNome(oficinaId: number | null): string {
     if (oficinaId === null) return "Global";
-    return (
-      MOCK_OFICINAS.find((o) => o.id === oficinaId)?.nome ??
-      "Oficina não encontrada"
-    );
+    return oficinaNomes[oficinaId] ?? "Carregando...";
   }
 
   function handleView(id: number) {
@@ -85,41 +75,87 @@ export function Usuarios({ usuarioLogado }: UsuariosProps) {
     setDeletingUsuario(usuario);
   }
 
-  function handleConfirmDelete() {
+  async function handleConfirmDelete() {
     if (!deletingUsuario) return;
-    // TODO: substituir por chamada real ao backend (DELETE /admin/usuarios/{id})
-    setUsuarios((prev) => prev.filter((u) => u.id !== deletingUsuario.id));
-    setDeletingUsuario(null);
+    try {
+      await deletarUsuario(deletingUsuario.id);
+      setUsuarios((prev) => prev.filter((u) => u.id !== deletingUsuario.id));
+      setDeletingUsuario(null);
+    } catch (err) {
+      console.error("Erro ao excluir usuário:", err);
+    }
   }
 
-  function handleAddUsuario(data: UsuarioFormData) {
-    const novoId =
-      usuarios.length > 0 ? Math.max(...usuarios.map((u) => u.id)) + 1 : 1;
+  useEffect(() => {
+    async function carregarUsuarios() {
+      try {
+        const response = await listarUsuarios(0, 100);
+        setUsuarios(response.content);
+      } catch (err) {
+        console.error("Erro ao carregar usuários:", err);
+      }
+    }
+    carregarUsuarios();
+  }, []);
 
-    const { password: _password, ...rest } = data;
-    void _password;
+  useEffect(() => {
+    const idsFaltantes = Array.from(
+      new Set(
+        usuarios
+          .map((u) => u.oficinaId)
+          .filter(
+            (id): id is number => id !== null && oficinaNomes[id] === undefined,
+          ),
+      ),
+    );
 
-    const novoOficinaId =
-      usuarioLogado.role === "ADMIN"
-        ? rest.role === "ADMIN"
-          ? null
-          : (rest.oficinaId ?? null)
-        : usuarioLogado.oficinaId;
+    if (idsFaltantes.length === 0) return;
 
-    setUsuarios((prev) => [
-      ...prev,
-      {
-        id: novoId,
-        nome: rest.nome,
-        documento: rest.documento,
-        telefone: rest.telefone,
-        username: rest.username,
-        role: rest.role,
-        oficinaId: novoOficinaId,
-      },
-    ]);
+    idsFaltantes.forEach(async (id) => {
+      try {
+        const oficina = await buscarOficinaPorId(id);
+        setOficinaNomes((prev) => ({ ...prev, [id]: oficina.nome }));
+      } catch (err) {
+        console.error(`Erro ao buscar oficina ${id}:`, err);
+        setOficinaNomes((prev) => ({
+          ...prev,
+          [id]: "Oficina não encontrada",
+        }));
+      }
+    });
+  }, [usuarios, oficinaNomes]);
 
-    setIsModalOpen(false);
+  async function handleAddUsuario(data: UsuarioFormData) {
+    try {
+      setSubmitError("");
+      const oficinaId =
+        usuarioLogado.role === "ADMIN"
+          ? data.role === "ADMIN"
+            ? null
+            : (data.oficinaId ?? null)
+          : usuarioLogado.oficinaId;
+
+      const novoUsuario = await criarUsuario({
+        nome: data.nome,
+        documento: data.documento,
+        telefone: data.telefone,
+        username: data.username,
+        password: data.password,
+        role: data.role,
+        oficinaId,
+      });
+
+      setUsuarios((prev) => [...prev, novoUsuario]);
+      setIsModalOpen(false);
+    } catch (err) {
+      console.error("Erro ao criar usuário:", err);
+
+      setSubmitError(
+        err instanceof Error
+          ? err.message
+          : "Não foi possível criar o usuário.",
+      );
+    }
   }
 
   const columns: Column<Usuario>[] = [
@@ -144,19 +180,23 @@ export function Usuarios({ usuarioLogado }: UsuariosProps) {
     {
       key: "role",
       header: "Role",
-      width: "14%",
+      width: "20%",
       render: (u) => (
         <span className={`role-badge role-${u.role.toLowerCase()}`}>
           {ROLE_LABELS[u.role]}
         </span>
       ),
     },
-    {
-      key: "oficinaNome",
-      header: "Oficina",
-      width: "20%",
-      render: (u) => getOficinaNome(u.oficinaId),
-    },
+    ...(isAdmin
+      ? [
+          {
+            key: "oficinaNome",
+            header: "Oficina",
+            width: "20%",
+            render: (u: Usuario) => getOficinaNome(u.oficinaId),
+          },
+        ]
+      : []),
   ];
 
   const actions: EntityAction<Usuario>[] = [
@@ -218,9 +258,10 @@ export function Usuarios({ usuarioLogado }: UsuariosProps) {
       {isModalOpen && (
         <EntityForm<UsuarioFormData>
           title="Cadastro de Usuário"
-          fields={createUsuarioFields(oficinaOptions, roleOptions)}
+          fields={createUsuarioFields(isAdmin, roleOptions)}
           onSubmit={handleAddUsuario}
           onClose={() => setIsModalOpen(false)}
+          submitError={submitError}
         />
       )}
 

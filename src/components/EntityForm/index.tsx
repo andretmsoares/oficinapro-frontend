@@ -8,7 +8,7 @@ import {
   formatDocument,
   formatCurrencyDisplay,
   formatPlate,
-} from "../../services/formatters";
+} from "../../utils/formatters";
 import type { EntityFormProps, FormField } from "./types";
 
 function buildInitialDisplay<T>(
@@ -41,6 +41,7 @@ export function EntityForm<T extends Record<string, unknown>>({
   initialValues,
   onSubmit,
   onClose,
+  submitError,
 }: EntityFormProps<T>) {
   const [rawValues, setRawValues] = useState<Partial<T>>(initialValues ?? {});
   const [displayValues, setDisplayValues] = useState(() =>
@@ -76,6 +77,7 @@ export function EntityForm<T extends Record<string, unknown>>({
     <div className="form">
       <div className="form-content">
         <h2>{title}</h2>
+        {submitError && <div className="form-submit-error">{submitError}</div>}
         <form
           onSubmit={(e) => {
             e.preventDefault();

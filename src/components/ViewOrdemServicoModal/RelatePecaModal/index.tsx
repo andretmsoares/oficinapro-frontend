@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { X } from "lucide-react";
 
 import { SearchBar } from "../../SearchBar";
-import { formatCurrencyDisplay } from "../../../services/formatters";
+import { formatCurrencyDisplay } from "../../../utils/formatters";
 import type { PecaOrdemServico } from "../../../types/pecas/pecas";
 
 import "./relatePecaModal.style.css";

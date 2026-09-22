@@ -1,4 +1,4 @@
-import { formatCurrencyDisplay } from "../../../services/formatters";
+import { formatCurrencyDisplay } from "../../../utils/formatters";
 
 interface ViewValorProps {
   text: string;

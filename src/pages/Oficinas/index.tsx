@@ -1,14 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Building2,
   Eye,
   Pencil,
   Trash2,
-  Users,
-  Car,
-  ClipboardList,
   Phone,
   IdCard,
+  Power,
+  PowerOff,
 } from "lucide-react";
 
 import { StatCard } from "../../components/StatCard";
@@ -19,17 +18,25 @@ import type { Column, EntityAction } from "../../components/EntityTable/types";
 import { EntityForm } from "../../components/EntityForm";
 import { ConfirmDeleteEntity } from "../../components/ConfirmDeleteEntity";
 import { EntityViewModal } from "../../components/EntityViewModal";
+import {
+  listarOficinas,
+  criarOficina,
+  atualizarOficina,
+  deletarOficina,
+  ativarOficina,
+  desativarOficina,
+} from "../../services/oficina/oficinaService";
 
+import { buscarEstatisticasSistema } from "../../services/estatisticas/estatisticasService";
 import type { Oficina } from "../../types/oficina/oficina";
-import { formatDocument, formatPhone } from "../../services/formatters";
+import { formatDocument, formatPhone } from "../../utils/formatters";
 
 import { oficinaFields, type OficinaFormData } from "./oficinasFields";
-import { MOCK_OFICINAS } from "../../mocks/oficina";
 
 import "./oficinas.style.css";
 
 export function Oficinas() {
-  const [oficinas, setOficinas] = useState<Oficina[]>(MOCK_OFICINAS);
+  const [oficinas, setOficinas] = useState<Oficina[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingOficina, setEditingOficina] = useState<Oficina | null>(null);
@@ -55,75 +62,155 @@ export function Oficinas() {
     setDeletingOficina(oficina);
   }
 
-  function handleConfirmDelete() {
+  async function handleConfirmDelete() {
     if (!deletingOficina) return;
-    // TODO: chamada real ao backend (DELETE /admin/oficinas/{id}).
-    // ⚠️ O backend precisa bloquear/validar exclusão se houver Pessoa/
-    // Usuario/Cliente/Veiculo/OrdemDeServico vinculados (FK) — ver pendência.
-    setOficinas((prev) => prev.filter((o) => o.id !== deletingOficina.id));
-    setDeletingOficina(null);
+
+    try {
+      await deletarOficina(deletingOficina.id);
+
+      setOficinas((prev) =>
+        prev.filter((oficina) => oficina.id !== deletingOficina.id),
+      );
+
+      setDeletingOficina(null);
+    } catch (err) {
+      console.error("Erro ao excluir oficina:", err);
+    }
   }
 
-  function handleAddOficina(data: OficinaFormData) {
-    const novoId =
-      oficinas.length > 0 ? Math.max(...oficinas.map((o) => o.id)) + 1 : 1;
-    // TODO: chamada real ao backend (POST /admin/oficinas).
-    setOficinas((prev) => [
-      ...prev,
-      {
-        id: novoId,
-        ...data,
-        totalClientes: 0,
-        totalVeiculos: 0,
-        totalOrdensServico: 0,
-      },
-    ]);
-    setIsModalOpen(false);
+  async function handleAddOficina(data: OficinaFormData) {
+    try {
+      const novaOficina = await criarOficina({
+        nome: data.nome,
+        cnpj: data.cnpj,
+        telefone: data.telefone,
+      });
+
+      setOficinas((prev) => [
+        ...prev,
+        {
+          ...novaOficina,
+          totalClientes: 0,
+          totalVeiculos: 0,
+          totalOrdensServico: 0,
+        },
+      ]);
+
+      setIsModalOpen(false);
+    } catch (err) {
+      console.error("Erro ao criar oficina:", err);
+    }
   }
 
-  function handleUpdateOficina(data: OficinaFormData) {
+  async function handleUpdateOficina(data: OficinaFormData) {
     if (!editingOficina) return;
-    // TODO: chamada real ao backend (PUT /admin/oficinas/{id}).
-    setOficinas((prev) =>
-      prev.map((oficina) =>
-        oficina.id === editingOficina.id ? { ...oficina, ...data } : oficina,
-      ),
-    );
-    setEditingOficina(null);
-    setIsModalOpen(false);
+
+    try {
+      const oficinaAtualizada = await atualizarOficina(editingOficina.id, {
+        nome: data.nome,
+        cnpj: data.cnpj,
+        telefone: data.telefone,
+      });
+
+      setOficinas((prev) =>
+        prev.map((oficina) =>
+          oficina.id === editingOficina.id
+            ? {
+                ...oficinaAtualizada,
+              }
+            : oficina,
+        ),
+      );
+
+      setEditingOficina(null);
+      setIsModalOpen(false);
+    } catch (err) {
+      console.error("Erro ao atualizar oficina:", err);
+    }
   }
+
+  async function handleToggleStatus(oficina: Oficina) {
+    try {
+      if (oficina.ativo) {
+        await desativarOficina(oficina.id);
+      } else {
+        await ativarOficina(oficina.id);
+      }
+
+      setOficinas((prev) =>
+        prev.map((item) =>
+          item.id === oficina.id ? { ...item, ativo: !item.ativo } : item,
+        ),
+      );
+    } catch (err) {
+      console.error(
+        `Erro ao ${oficina.ativo ? "desativar" : "ativar"} oficina:`,
+        err,
+      );
+    }
+  }
+
+  useEffect(() => {
+    async function carregarOficinas() {
+      try {
+        const [oficinasResponse, estatisticas] = await Promise.all([
+          listarOficinas(),
+          buscarEstatisticasSistema(),
+        ]);
+
+        const oficinasComEstatisticas = oficinasResponse.map((oficina) => {
+          const estatistica = estatisticas.porOficina.find(
+            (item) => item.oficinaId === oficina.id,
+          );
+
+          return {
+            ...oficina,
+            totalClientes: estatistica?.clientes ?? 0,
+            totalVeiculos: estatistica?.veiculos ?? 0,
+            totalOrdensServico: estatistica?.ordensDeServico ?? 0,
+          };
+        });
+
+        setOficinas(oficinasComEstatisticas);
+      } catch (err) {
+        console.error("Erro ao carregar oficinas:", err);
+      }
+    }
+
+    carregarOficinas();
+  }, []);
 
   const columns: Column<Oficina>[] = [
     {
       key: "nome",
       header: "Nome",
-      width: "26%",
+      width: "24%",
       render: (o) => <strong className="oficina-name">{o.nome}</strong>,
     },
     {
       key: "cnpj",
       header: "CNPJ",
-      width: "20%",
+      width: "18%",
       render: (o) => formatDocument(o.cnpj).display,
     },
     {
-      key: "totalClientes",
-      header: "Clientes",
-      width: "14%",
-      render: (o) => <span className="count-badge">{o.totalClientes}</span>,
+      key: "telefone",
+      header: "Telefone",
+      width: "18%",
+      render: (o) => formatDocument(o.telefone).display,
     },
     {
-      key: "totalVeiculos",
-      header: "Veículos",
+      key: "ativo",
+      header: "Status",
       width: "14%",
-      render: (o) => <span className="count-badge">{o.totalVeiculos}</span>,
-    },
-    {
-      key: "totalOrdensServico",
-      header: "Ordens de Serviço",
-      width: "16%",
       render: (o) => (
-        <span className="count-badge">{o.totalOrdensServico}</span>
+        <span
+          className={`status-badge ${
+            o.ativo ? "status-active" : "status-inactive"
+          }`}
+        >
+          {o.ativo ? "Ativa" : "Desativada"}
+        </span>
       ),
     },
   ];
@@ -140,6 +227,20 @@ export function Oficinas() {
       icon: Pencil,
       variant: "edit",
       onClick: (o) => handleEdit(o.id),
+    },
+    {
+      label: "Desativar oficina",
+      icon: PowerOff,
+      variant: "delete",
+      onClick: (o) => handleToggleStatus(o),
+      hidden: (o) => o.ativo,
+    },
+    {
+      label: "Ativar oficina",
+      icon: Power,
+      variant: "edit",
+      onClick: (o) => handleToggleStatus(o),
+      hidden: (o) => !o.ativo,
     },
     {
       label: "Remover oficina",
@@ -193,7 +294,7 @@ export function Oficinas() {
               ? {
                   nome: editingOficina.nome,
                   cnpj: editingOficina.cnpj,
-                  telefone: editingOficina.telefone,
+                  telefone: editingOficina.telefone ?? undefined,
                 }
               : undefined
           }
@@ -220,21 +321,6 @@ export function Oficinas() {
               icon: Phone,
               label: "Telefone",
               value: formatPhone(viewingOficina.telefone),
-            },
-            {
-              icon: Users,
-              label: "Clientes cadastrados",
-              value: String(viewingOficina.totalClientes),
-            },
-            {
-              icon: Car,
-              label: "Veículos cadastrados",
-              value: String(viewingOficina.totalVeiculos),
-            },
-            {
-              icon: ClipboardList,
-              label: "Ordens de Serviço",
-              value: String(viewingOficina.totalOrdensServico),
             },
           ]}
         />

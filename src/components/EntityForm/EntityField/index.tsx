@@ -8,9 +8,9 @@ import {
   parseCurrencyToCents,
   formatPlate,
   normalizePlate,
-} from "../../../services/formatters";
+} from "../../../utils/formatters";
 import type { FormField } from "../types";
-
+import { EntityAutocompleteField } from "../EntityAutocompleteField";
 import "./entityField.style.css";
 
 interface EntityFieldProps<T> {
@@ -55,6 +55,17 @@ export function EntityField<T>({
     );
   }
 
+  if (type === "entity-select") {
+    return (
+      <EntityAutocompleteField
+        field={field}
+        displayValue={displayValue}
+        error={error}
+        onChangeRaw={onChangeRaw}
+      />
+    );
+  }
+
   if (type === "textarea") {
     return (
       <div className="input-create-entity">
@@ -64,7 +75,7 @@ export function EntityField<T>({
           value={displayValue}
           onChange={(e) => onChangeRaw(name, e.target.value, e.target.value)}
         />
-        {error && <span className="field-error">{error}</span>}
+        {error && <span className="error">{error}</span>}
       </div>
     );
   }
@@ -117,11 +128,9 @@ export function EntityField<T>({
           value={displayValue}
           onChange={(val) => {
             const cents = parseCurrencyToCents(val);
-
             onChangeRaw(name, cents, formatCurrencyDisplay(cents));
           }}
         />
-
         {error && <span className="field-error">{error}</span>}
       </>
     );
