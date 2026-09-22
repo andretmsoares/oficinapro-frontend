@@ -180,7 +180,7 @@ export function Usuarios({ usuarioLogado }: UsuariosProps) {
     {
       key: "role",
       header: "Role",
-      width: "14%",
+      width: "20%",
       render: (u) => (
         <span className={`role-badge role-${u.role.toLowerCase()}`}>
           {ROLE_LABELS[u.role]}
