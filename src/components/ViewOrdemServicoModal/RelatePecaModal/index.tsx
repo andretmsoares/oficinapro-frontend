@@ -3,14 +3,14 @@ import { X } from "lucide-react";
 
 import { SearchBar } from "../../SearchBar";
 import { formatCurrencyDisplay } from "../../../utils/formatters";
-import type { PecaOrdemServico } from "../../../types/pecas/pecas";
+import type { ItemOsPeca } from "../../../types/itemOsPeca/itemOsPeca";
 
 import "./relatePecaModal.style.css";
 
 interface RelatePecaModalProps {
   osId: number;
-  todasAsPecas: PecaOrdemServico[];
-  pecasDaOsAtual: PecaOrdemServico[];
+  todasAsPecas: ItemOsPeca[];
+  pecasDaOsAtual: ItemOsPeca[];
   onClose: () => void;
   onSelecionar: (peca: { nome: string; valorUnitario: number }) => void;
 }
@@ -36,7 +36,7 @@ export function RelatePecaModal({
     );
   }
 
-  function handleSelectPeca(peca: PecaOrdemServico) {
+  function handleSelectPeca(peca: ItemOsPeca) {
     if (isPecaJaRelacionada(peca.nome)) return;
     onSelecionar({ nome: peca.nome, valorUnitario: peca.valorUnitario });
   }
@@ -102,8 +102,8 @@ export function RelatePecaModal({
   );
 }
 
-function dedupeByNome(pecas: PecaOrdemServico[]): PecaOrdemServico[] {
-  const map = new Map<string, PecaOrdemServico>();
+function dedupeByNome(pecas: ItemOsPeca[]): ItemOsPeca[] {
+  const map = new Map<string, ItemOsPeca>();
   for (const peca of pecas) {
     map.set(peca.nome.toLowerCase(), peca);
   }

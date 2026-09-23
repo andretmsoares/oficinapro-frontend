@@ -1,13 +1,13 @@
 import { EntityForm } from "../../EntityForm";
 import {
   createPecaFields,
-  type PecaFormData,
-} from "../../../pages/Pecas/pecasFields";
+  type ItemOsPecaFormData,
+} from "../../../pages/Pecas/itemOsPecasFields";
 
 interface PecaCreateModalProps {
   osId: number;
   onClose: () => void;
-  onSave: (data: PecaFormData) => void;
+  onSave: (data: ItemOsPecaFormData) => void;
 }
 
 export function PecaCreateModal({
@@ -16,7 +16,7 @@ export function PecaCreateModal({
   onSave,
 }: PecaCreateModalProps) {
   return (
-    <EntityForm<PecaFormData>
+    <EntityForm<ItemOsPecaFormData>
       title="Cadastrar Peça"
       fields={createPecaFields(osId)}
       initialValues={{ osId, quantidade: 1 }}

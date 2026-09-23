@@ -33,7 +33,7 @@ import type {
 
 import { MOCK_PECAS } from "../../mocks/pecas";
 import { MOCK_MAO_DE_OBRA } from "../../mocks/maoDeObra";
-import type { PecaOrdemServico } from "../../types/pecas/pecas";
+import type { ItemOsPeca } from "../../types/itemOsPeca/itemOsPeca";
 import type { MaoDeObraOrdemServico } from "../../types/maoDeObra/maoDeObra";
 import {
   calcularValorTotal,
@@ -106,7 +106,7 @@ export function OrdensServico({
   const isGerente = usuarioLogado.role == "GERENTE";
   const [ordensServico, setOrdensServico] =
     useState<OrdemDeServico[]>(MOCK_ORDENS_SERVICO);
-  const [pecas, setPecas] = useState<PecaOrdemServico[]>(MOCK_PECAS);
+  const [pecas, setPecas] = useState<ItemOsPeca[]>(MOCK_PECAS);
   const [maoDeObra, setMaoDeObra] =
     useState<MaoDeObraOrdemServico[]>(MOCK_MAO_DE_OBRA);
 
@@ -181,7 +181,7 @@ export function OrdensServico({
 
   function recalcularFinanceiroDaOs(
     osId: number,
-    pecasAtualizadas: PecaOrdemServico[],
+    pecasAtualizadas: ItemOsPeca[],
     maoDeObraAtualizada: MaoDeObraOrdemServico[],
     descontoOverride?: number,
   ) {
@@ -214,12 +214,12 @@ export function OrdensServico({
     );
   }
 
-  function handleAddPeca(peca: Omit<PecaOrdemServico, "id">) {
+  function handleAddPeca(peca: Omit<ItemOsPeca, "id">) {
     const novoId =
       pecas.length > 0 ? Math.max(...pecas.map((p) => p.id)) + 1 : 1;
     const pecasAtualizadas = [...pecas, { id: novoId, ...peca }];
     setPecas(pecasAtualizadas);
-    recalcularFinanceiroDaOs(peca.osId, pecasAtualizadas, maoDeObra);
+    recalcularFinanceiroDaOs(peca.osId ?? 1, pecasAtualizadas, maoDeObra);
   }
 
   function handleAddMaoDeObra(item: Omit<MaoDeObraOrdemServico, "id">) {
