@@ -55,7 +55,6 @@ export function Mecanicos() {
       setSubmitError("");
       const mecanico = await criarMecanico({
         ...data,
-        oficinaId: 1,
       });
 
       setMecanicos((prev) => [...prev, mecanico]);
@@ -77,7 +76,6 @@ export function Mecanicos() {
       setSubmitError("");
       const mecanicoAtualizado = await atualizarMecanico(editingMecanico.id, {
         ...data,
-        oficinaId: editingMecanico.oficinaId,
       });
 
       setMecanicos((prev) =>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Users, NotepadText, Pencil, Phone, Trash2 } from "lucide-react";
 import { StatCard } from "../../components/StatCard";
 import { HeaderPageWithButton } from "../../components/HeaderPageWithButton";
@@ -12,9 +12,14 @@ import { ConfirmDeleteEntity } from "../../components/ConfirmDeleteEntity";
 import { formatPhone, formatDocument } from "../../utils/formatters";
 
 import "./clientes.style.css";
-import { MOCK_CLIENTES } from "../../mocks/cliente";
 import { type Usuario } from "../../types/usuario/usuario";
 import { HeaderPage } from "../../components/HeaderPage";
+import {
+  atualizarCliente,
+  criarCliente,
+  deletarCliente,
+  listarClientes,
+} from "../../services/cliente/clienteService";
 
 interface ClientesProps {
   usuarioLogado: Usuario;
@@ -22,11 +27,13 @@ interface ClientesProps {
 
 export function Clientes({ usuarioLogado }: ClientesProps) {
   const isGerente = usuarioLogado.role === "GERENTE";
-  const [clientes, setClientes] = useState<Cliente[]>(MOCK_CLIENTES);
+  const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCliente, setEditingCliente] = useState<Cliente | null>(null);
   const [deletingCliente, setDeletingCliente] = useState<Cliente | null>(null);
+  const [submitError, setSubmitError] = useState("");
 
   function handleViewOrders(clienteId: number) {
     console.log("Visualizar Ordens de Serviço do cliente:", clienteId);
@@ -49,41 +56,80 @@ export function Clientes({ usuarioLogado }: ClientesProps) {
     setDeletingCliente(cliente);
   }
 
-  function handleAddClient(data: ClienteFormData) {
-    setClientes((prev) => [
-      ...prev,
-      { id: prev.length + 1, ...data, osCount: 0 },
-    ]);
-    setIsModalOpen(false);
+  async function handleAddClient(data: ClienteFormData) {
+    try {
+      setSubmitError("");
+      const cliente = await criarCliente({
+        ...data,
+      });
+      setClientes((prev) => [...prev, cliente]);
+      setIsModalOpen(false);
+    } catch (err) {
+      console.log("Erro ao deletar o cliente", err);
+      setSubmitError(
+        err instanceof Error
+          ? err.message
+          : "Não foi possível deletar o cliente.",
+      );
+    }
   }
 
-  function handleUpdateClient(data: ClienteFormData) {
+  async function handleUpdateClient(data: ClienteFormData) {
     if (!editingCliente) return;
 
-    setClientes((prev) =>
-      prev.map((cliente) =>
-        cliente.id === editingCliente.id
-          ? {
-              ...cliente,
-              ...data,
-            }
-          : cliente,
-      ),
-    );
+    try {
+      setSubmitError("");
+      const clienteAtualizado = await atualizarCliente(editingCliente.id, {
+        ...data,
+      });
 
-    setEditingCliente(null);
-    setIsModalOpen(false);
+      setClientes((prev) => [...prev, clienteAtualizado]);
+      setEditingCliente(null);
+      setIsModalOpen(false);
+    } catch (err) {
+      console.error("Erro ao atualizar cliente:", err);
+      setSubmitError(
+        err instanceof Error
+          ? err.message
+          : "Não foi possível atualizar o cliente.",
+      );
+    }
   }
 
-  function handleConfirmDelete() {
+  async function handleConfirmDelete() {
     if (!deletingCliente) return;
 
-    setClientes((prev) =>
-      prev.filter((cliente) => cliente.id !== deletingCliente.id),
-    );
-
-    setDeletingCliente(null);
+    try {
+      setSubmitError("");
+      await deletarCliente(deletingCliente.id);
+      setClientes((prev) =>
+        prev.filter((cliente) => cliente.id != deletingCliente.id),
+      );
+      setDeletingCliente(null);
+    } catch (err) {
+      console.error("Erro ao deletar cliente:", err);
+      setSubmitError(
+        err instanceof Error
+          ? err.message
+          : "Não foi possível deletar o cliente.",
+      );
+    }
   }
+
+  useEffect(() => {
+    async function carregarClientes() {
+      try {
+        const response = await listarClientes();
+        setClientes(response.content);
+      } catch (err) {
+        console.log("Erro ao carregar clientes", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    carregarClientes();
+  }, []);
 
   const columns: Column<Cliente>[] = [
     {
@@ -95,7 +141,7 @@ export function Clientes({ usuarioLogado }: ClientesProps) {
     {
       key: "nome",
       header: "Nome",
-      width: "28%",
+      width: "40%",
       render: (c) => <strong className="client-name">{c.nome}</strong>,
     },
     {
@@ -116,12 +162,6 @@ export function Clientes({ usuarioLogado }: ClientesProps) {
           </span>
         </div>
       ),
-    },
-    {
-      key: "osCount",
-      header: "Ordens de Serviço",
-      width: "14%",
-      render: (c) => <span className="badge-os">{c.osCount} </span>,
     },
   ];
 
@@ -186,9 +226,10 @@ export function Clientes({ usuarioLogado }: ClientesProps) {
         data={clientes}
         columns={columns}
         actions={actions}
+        loading={loading}
         getRowKey={(c) => c.id}
         searchTerm={searchTerm}
-        searchFields={["nome", "cpf", "telefone"]}
+        searchFields={["nome", "documento", "telefone"]}
         emptyMessage="Nenhum cliente cadastrado"
       />
 
@@ -196,11 +237,12 @@ export function Clientes({ usuarioLogado }: ClientesProps) {
         <EntityForm<ClienteFormData>
           title={editingCliente ? "Editar Cliente" : "Cadastro de Cliente"}
           fields={clientFields}
+          submitError={submitError}
           initialValues={
             editingCliente
               ? {
                   nome: editingCliente.nome,
-                  cpf: editingCliente.cpf,
+                  documento: editingCliente.documento,
                   telefone: editingCliente.telefone,
                 }
               : undefined
