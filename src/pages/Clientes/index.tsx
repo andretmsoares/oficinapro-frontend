@@ -83,7 +83,11 @@ export function Clientes({ usuarioLogado }: ClientesProps) {
         ...data,
       });
 
-      setClientes((prev) => [...prev, clienteAtualizado]);
+      setClientes((prev) =>
+        prev.map((cliente) =>
+          cliente.id === clienteAtualizado.id ? clienteAtualizado : cliente,
+        ),
+      );
       setEditingCliente(null);
       setIsModalOpen(false);
     } catch (err) {
@@ -145,7 +149,7 @@ export function Clientes({ usuarioLogado }: ClientesProps) {
       render: (c) => <strong className="client-name">{c.nome}</strong>,
     },
     {
-      key: "cpf",
+      key: "documento",
       header: "CPF/CNPJ",
       width: "18%",
       format: (value) => (value ? formatDocument(String(value)).display : ""),
