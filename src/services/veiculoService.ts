@@ -1,5 +1,6 @@
 import { api } from "./api";
 import type { Veiculo } from "../types/veiculo/veiculo";
+import type { EntityOption } from "../components/EntityForm/types";
 
 export interface VeiculoRequest {
   placa: string;
@@ -16,6 +17,55 @@ export interface VeiculoPage {
   number: number;
   first: boolean;
   last: boolean;
+}
+
+export async function buscarVeiculosAutocomplete(
+  search: string,
+): Promise<EntityOption[]> {
+  const termo = search.trim().toLowerCase();
+
+  if (!termo) {
+    return [];
+  }
+
+  const pagina = await listarVeiculos();
+
+  return pagina.content
+    .filter((veiculo) => {
+      const placa = veiculo.placa.toLowerCase();
+      const marca = veiculo.marca.toLowerCase();
+      const modelo = veiculo.modelo.toLowerCase();
+
+      return (
+        placa.includes(termo) || marca.includes(termo) || modelo.includes(termo)
+      );
+    })
+    .slice(0, 10)
+    .map((veiculo) => ({
+      id: veiculo.id,
+      label: veiculo.placa,
+      description: `${veiculo.marca} ${veiculo.modelo} - ${veiculo.ano}`,
+    }));
+}
+
+export async function buscarVeiculoAutocompletePorId(
+  id: number,
+): Promise<EntityOption | null> {
+  try {
+    const veiculo = await buscarVeiculoPorId(id);
+
+    return {
+      id: veiculo.id,
+      label: veiculo.placa,
+      description: `${veiculo.marca} ${veiculo.modelo} - ${veiculo.ano}`,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export async function buscarVeiculoPorId(id: number): Promise<Veiculo> {
+  return api<Veiculo>(`/veiculos/${id}`);
 }
 
 export async function listarVeiculos(): Promise<VeiculoPage> {

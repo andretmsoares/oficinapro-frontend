@@ -1,17 +1,45 @@
-export interface OrdemDeServico {
+import type { StatusOrdemDeServico } from "../../enums/StatusOrdemDeServico";
+
+export type OrdemDeServico = {
   id: number;
   oficinaId: number;
   unidadeId: number;
   veiculoId: number;
-  clienteId: number;
-  mecanicoId: number;
-  placaVeiculo: string;
-  nomeCliente: string;
+  clienteId: number | null;
+  mecanicoId: number | null;
   dataAbertura: string;
   dataFechamento: string | null;
-  status: string;
+  status: StatusOrdemDeServico;
   obs: string;
-  desconto: number;
   valorTotal: number;
+  desconto: number;
   valorComDesconto: number;
-}
+  placaVeiculo: string;
+  nomeCliente: string;
+};
+
+export type OrdemDeServicoRequest = {
+  unidadeId: number;
+  veiculoId: number;
+  clienteId: number | null;
+  mecanicoId: number | null;
+  obs: string;
+};
+
+export type AtualizarStatusOSRequest = {
+  status: string;
+};
+
+export type AtribuirMecanicoRequest = {
+  mecanicoId: number;
+};
+
+export type AtribuirClienteRequest = {
+  clienteId: number;
+};
+
+export type FluxoMensalOS = {
+  dia: number;
+  abertas: number;
+  finalizadas: number;
+};

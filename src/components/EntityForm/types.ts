@@ -45,17 +45,23 @@ export interface SelectField<T> extends BaseField<T> {
 
 /**
  * Campo de busca/autocomplete assíncrono para vincular uma entidade (por ID)
- * sem carregar a lista completa antecipadamente. Reutilizável para Oficina,
- * Cliente, Veículo, Mecânico, Fornecedor, etc — basta fornecer `fetchOptions`.
+ * sem carregar a lista completa antecipadamente.
  */
 export interface EntitySelectField<T> extends BaseField<T> {
   type: "entity-select";
+
   /** Recebe o termo já digitado (após debounce) e retorna as opções encontradas. */
   fetchOptions: (search: string) => Promise<EntityOption[]>;
+
+  /** Busca uma entidade específica pelo ID, usada ao editar um registro. */
+  fetchOptionById?: (id: number) => Promise<EntityOption | null>;
+
   /** Nº mínimo de caracteres para disparar a busca. Padrão: 2. */
   minChars?: number;
+
   /** Debounce em ms antes de consultar o backend. Padrão: 400. */
   debounceMs?: number;
+
   /** Mensagem exibida quando a busca não retorna resultados. */
   noResultsText?: string;
 }
