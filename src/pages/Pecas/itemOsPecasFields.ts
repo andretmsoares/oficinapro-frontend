@@ -1,6 +1,22 @@
 import { defineFields } from "../../components/EntityForm/types";
+import type { FormField } from "../../components/EntityForm/types";
 
-export type PecaFormData = {
+export type VincularItemOsPecaFormData = {
+  osId: number;
+};
+
+export const vincularItemOsPecaFields: FormField<VincularItemOsPecaFormData>[] =
+  [
+    {
+      name: "osId",
+      label: "Ordem de Serviço",
+      placeholder: "Digite o ID da Ordem de Serviço",
+      type: "number",
+      required: true,
+    },
+  ];
+
+export type ItemOsPecaFormData = {
   nome: string;
   quantidade: number;
   valorUnitario: number;
@@ -8,7 +24,7 @@ export type PecaFormData = {
 };
 
 export function createPecaFields(lockedOsId?: number) {
-  return defineFields<PecaFormData>([
+  return defineFields<ItemOsPecaFormData>([
     {
       name: "nome",
       label: "Nome",
@@ -35,7 +51,7 @@ export function createPecaFields(lockedOsId?: number) {
       label: "Ordem de Serviço (Id)",
       placeholder: "Digite o ID da ordem de serviço",
       type: "number",
-      required: true,
+      required: false,
       readOnly: lockedOsId !== undefined,
     },
   ]);

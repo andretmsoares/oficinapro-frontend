@@ -1,7 +1,8 @@
-export interface PecaOrdemServico {
+export interface ItemOsPeca {
   id: number;
-  osId: number;
+  osId: number | null;
   nome: string;
   quantidade: number;
   valorUnitario: number;
+  valorTotal: number;
 }

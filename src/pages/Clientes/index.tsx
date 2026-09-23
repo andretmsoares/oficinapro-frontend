@@ -19,7 +19,7 @@ import {
   criarCliente,
   deletarCliente,
   listarClientes,
-} from "../../services/cliente/clienteService";
+} from "../../services/clienteService";
 
 interface ClientesProps {
   usuarioLogado: Usuario;

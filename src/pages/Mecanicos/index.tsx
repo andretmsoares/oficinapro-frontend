@@ -8,7 +8,7 @@ import {
   criarMecanico,
   deletarMecanico,
   listarMecanicos,
-} from "../../services/mecanico/mecanicoService";
+} from "../../services/mecanicoService";
 import "./mecanicos.style.css";
 import type { Mecanico } from "../../types/mecanico/mecanico";
 import { mecanicoFields, type MecanicoFormData } from "./mecanicosFields";

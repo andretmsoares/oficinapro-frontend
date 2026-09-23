@@ -25,8 +25,8 @@ import {
   listarUsuarios,
   criarUsuario,
   deletarUsuario,
-} from "../../services/usuario/usuarioService";
-import { buscarOficinaPorId } from "../../services/oficina/oficinaService";
+} from "../../services/usuarioService";
+import { buscarOficinaPorId } from "../../services/oficinaService";
 
 interface UsuariosProps {
   usuarioLogado: Usuario;

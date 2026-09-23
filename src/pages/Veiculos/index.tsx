@@ -22,7 +22,7 @@ import {
   deletarVeiculo,
   listarVeiculos,
   type VeiculoRequest,
-} from "../../services/veiculo/veiculoService";
+} from "../../services/veiculoService";
 
 import { formatPlate } from "../../utils/formatters";
 

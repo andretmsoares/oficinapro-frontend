@@ -3,7 +3,7 @@ import { Plus, Wrench, DollarSign, Package, Tag } from "lucide-react";
 
 import type { OrdemDeServico } from "../../types/ordemDeServico/ordemDeServico";
 import type { Pagamento } from "../../types/pagamento/pagamento";
-import type { PecaOrdemServico } from "../../types/pecas/pecas";
+import type { ItemOsPeca } from "../../types/itemOsPeca/itemOsPeca";
 import type { MaoDeObraOrdemServico } from "../../types/maoDeObra/maoDeObra";
 
 import { formatCurrencyDisplay } from "../../utils/formatters";
@@ -26,7 +26,7 @@ import { MaoDeObraModal } from "./MaoDeObraModal";
 import { DescontoModal } from "./DescontoModal";
 import { PaymentRegistrationModal } from "../PaymentRegistrationModal";
 
-import type { PecaFormData } from "../../pages/Pecas/pecasFields";
+import type { ItemOsPecaFormData } from "../../pages/Pecas/itemOsPecasFields";
 import type { MaoDeObraFormData } from "./MaoDeObraModal/maoDeObraFields";
 import type { RegistroPagamentoFormData } from "../PaymentRegistrationModal/registroPagamentoFields";
 import type { Usuario } from "../../types/usuario/usuario";
@@ -35,10 +35,10 @@ interface ViewOrdemServicoModalProps {
   usuarioLogado: Usuario;
   ordemServico: OrdemDeServico;
   pagamento?: Pagamento;
-  todasAsPecas: PecaOrdemServico[];
+  todasAsPecas: ItemOsPeca[];
   todaAMaoDeObra: MaoDeObraOrdemServico[];
   onClose: () => void;
-  onAddPeca: (peca: Omit<PecaOrdemServico, "id">) => void;
+  onAddPeca: (peca: Omit<ItemOsPeca, "id">) => void;
   onAddMaoDeObra: (item: Omit<MaoDeObraOrdemServico, "id">) => void;
   onUpdateDesconto: (novoDesconto: number) => void;
   onRegistrarPagamento: (data: RegistroPagamentoFormData) => void;
@@ -71,12 +71,13 @@ export function ViewOrdemServicoModal({
     (item) => item.osId === ordemServico.id,
   );
 
-  function handleSalvarPecaCriada(data: PecaFormData) {
+  function handleSalvarPecaCriada(data: ItemOsPecaFormData) {
     onAddPeca({
       nome: data.nome,
       quantidade: data.quantidade,
       valorUnitario: data.valorUnitario,
       osId: ordemServico.id,
+      valorTotal: data.valorUnitario * data.quantidade,
     });
     setPecaFlow(null);
   }
@@ -90,6 +91,7 @@ export function ViewOrdemServicoModal({
       valorUnitario: peca.valorUnitario,
       quantidade: 1,
       osId: ordemServico.id,
+      valorTotal: peca.valorUnitario * 1,
     });
     setPecaFlow(null);
   }

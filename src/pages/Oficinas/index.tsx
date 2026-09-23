@@ -25,9 +25,9 @@ import {
   deletarOficina,
   ativarOficina,
   desativarOficina,
-} from "../../services/oficina/oficinaService";
+} from "../../services/oficinaService";
 
-import { buscarEstatisticasSistema } from "../../services/estatisticas/estatisticasService";
+import { buscarEstatisticasSistema } from "../../services/estatisticasService";
 import type { Oficina } from "../../types/oficina/oficina";
 import { formatDocument, formatPhone } from "../../utils/formatters";
 

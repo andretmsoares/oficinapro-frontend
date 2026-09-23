@@ -1,4 +1,5 @@
-import { Trash2 } from "lucide-react";
+import { Trash2, type LucideIcon } from "lucide-react";
+import type { ReactNode } from "react";
 import "./confirmDeleteEntity.style.css";
 
 interface ConfirmDeleteEntityProps {
@@ -7,6 +8,10 @@ interface ConfirmDeleteEntityProps {
   entityName: string;
   onConfirm: () => void;
   onCancel: () => void;
+  title?: string;
+  message?: ReactNode;
+  confirmText?: string;
+  icon?: LucideIcon;
 }
 
 export function ConfirmDeleteEntity({
@@ -15,20 +20,28 @@ export function ConfirmDeleteEntity({
   entityName,
   onConfirm,
   onCancel,
+  title,
+  message,
+  confirmText = "Excluir",
+  icon: Icon = Trash2,
 }: ConfirmDeleteEntityProps) {
   return (
     <div className="delete-modal-overlay" onClick={onCancel}>
       <div className="delete-modal" onClick={(e) => e.stopPropagation()}>
         <div className="delete-modal-icon">
-          <Trash2 size={24} />
+          <Icon size={24} />
         </div>
 
         <div className="delete-modal-content">
-          <h2>Excluir {text}</h2>
+          <h2>{title ?? `Excluir ${text}`}</h2>
 
           <p>
-            Tem certeza que deseja excluir {entity}{" "}
-            <strong>{entityName}</strong>?
+            {message ?? (
+              <>
+                Tem certeza que deseja excluir {entity}{" "}
+                <strong>{entityName}</strong>?
+              </>
+            )}
           </p>
 
           <span>Essa ação não poderá ser desfeita.</span>
@@ -48,8 +61,8 @@ export function ConfirmDeleteEntity({
             className="delete-modal-confirm"
             onClick={onConfirm}
           >
-            <Trash2 size={16} />
-            Excluir
+            <Icon size={16} />
+            {confirmText}
           </button>
         </div>
       </div>

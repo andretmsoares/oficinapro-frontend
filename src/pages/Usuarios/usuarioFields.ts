@@ -1,6 +1,6 @@
 import { defineFields } from "../../components/EntityForm/types";
 import type { Role } from "../../types/usuario/role";
-import { buscarOficinasAutocomplete } from "../../services/oficina/oficinaService";
+import { buscarOficinasAutocomplete } from "../../services/oficinaService";
 
 export type UsuarioFormData = {
   nome: string;
