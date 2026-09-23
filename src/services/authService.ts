@@ -1,4 +1,4 @@
-import type { Usuario } from "../../types/usuario/usuario";
+import type { Usuario } from "../types/usuario/usuario";
 
 const API_URL = import.meta.env.VITE_API_URL;
 

@@ -1,5 +1,5 @@
-import { api } from "../api";
-import type { Unidade, UnidadeRequest } from "../../types/unidade/unidade";
+import { api } from "./api";
+import type { Unidade, UnidadeRequest } from "../types/unidade/unidade";
 
 export async function listarUnidades(): Promise<Unidade[]> {
   return api<Unidade[]>("/unidades");

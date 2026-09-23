@@ -1,5 +1,5 @@
-import { api } from "../api";
-import type { Veiculo } from "../../types/veiculo/veiculo";
+import { api } from "./api";
+import type { Veiculo } from "../types/veiculo/veiculo";
 
 export interface VeiculoRequest {
   placa: string;

@@ -33,7 +33,7 @@ import type { Role } from "./types/usuario/role";
 import {
   buscarUsuarioLogado,
   login as loginService,
-} from "./services/auth/authService";
+} from "./services/authService";
 
 import { MOCK_PAGAMENTOS } from "./mocks/pagamento";
 import { MOCK_REGISTROS_PAGAMENTO } from "./mocks/registroPagamento";

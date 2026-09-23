@@ -1,6 +1,6 @@
-import { api } from "../api";
-import type { Usuario } from "../../types/usuario/usuario";
-import type { Role } from "../../types/usuario/role";
+import { api } from "./api";
+import type { Usuario } from "../types/usuario/usuario";
+import type { Role } from "../types/usuario/role";
 
 export interface UsuarioPage {
   content: Usuario[];

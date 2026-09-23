@@ -1,5 +1,5 @@
-import { api } from "../api";
-import type { Cliente, ClienteRequest } from "../../types/cliente/cliente";
+import { api } from "./api";
+import type { Cliente, ClienteRequest } from "../types/cliente/cliente";
 
 export interface ClientePage {
   content: Cliente[];

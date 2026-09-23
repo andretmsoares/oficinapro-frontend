@@ -1,7 +1,7 @@
-import { api } from "../api";
-import type { Oficina } from "../../types/oficina/oficina";
-import type { EntityOption } from "../../components/EntityForm/types";
-import { formatDocument } from "../../utils/formatters";
+import { api } from "./api";
+import type { Oficina } from "../types/oficina/oficina";
+import type { EntityOption } from "../components/EntityForm/types";
+import { formatDocument } from "../utils/formatters";
 
 export interface OficinaRequest {
   nome: string;

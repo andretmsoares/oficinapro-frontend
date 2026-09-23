@@ -29,7 +29,7 @@ import {
   criarUnidade,
   deletarUnidade,
   listarUnidades,
-} from "../../services/unidade/unidadeService";
+} from "../../services/unidadeService";
 
 interface UnidadesProps {
   oficinaId: number;

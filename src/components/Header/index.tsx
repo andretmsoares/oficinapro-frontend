@@ -6,7 +6,7 @@ import type { Usuario } from "../../types/usuario/usuario";
 import { ROLE_LABELS } from "../../types/usuario/role";
 import { EditUsuarioModal } from "../EditUsuarioModal";
 import type { EditUsuarioFormData } from "../EditUsuarioModal/editUsuarioFields";
-import { atualizarUsuarioLogado } from "../../services/usuario/usuarioService";
+import { atualizarUsuarioLogado } from "../../services/usuarioService";
 
 interface HeaderProps {
   usuarioLogado: Usuario;

@@ -1,5 +1,5 @@
-import { api } from "../api";
-import type { Mecanico, MecanicoRequest } from "../../types/mecanico/mecanico";
+import { api } from "./api";
+import type { Mecanico, MecanicoRequest } from "../types/mecanico/mecanico";
 
 export interface MecanicoPage {
   content: Mecanico[];
