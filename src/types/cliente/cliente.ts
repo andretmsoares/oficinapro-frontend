@@ -1,7 +1,13 @@
 export interface Cliente {
   id: number;
   nome: string;
-  cpf: string;
+  documento: string;
   telefone: string;
-  osCount: number;
+  oficinaId: number;
+}
+
+export interface ClienteRequest {
+  nome: string;
+  telefone: string;
+  documento: string;
 }

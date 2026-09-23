@@ -2,7 +2,7 @@ import { defineFields } from "../../components/EntityForm/types";
 
 export type ClienteFormData = {
   nome: string;
-  cpf: string;
+  documento: string;
   telefone: string;
 };
 
@@ -15,7 +15,7 @@ export const clientFields = defineFields<ClienteFormData>([
     required: true,
   },
   {
-    name: "cpf",
+    name: "documento",
     label: "CPF/CNPJ",
     placeholder: "Digite o documento do cliente (CPF/CNPJ)",
     type: "document",

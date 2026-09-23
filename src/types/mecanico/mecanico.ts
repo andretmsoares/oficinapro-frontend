@@ -12,7 +12,6 @@ export interface MecanicoRequest {
   nome: string;
   telefone: string;
   documento: string;
-  oficinaId: number;
   salario: number;
   obs: string;
 }
