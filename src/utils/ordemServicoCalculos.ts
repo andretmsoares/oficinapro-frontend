@@ -1,9 +1,9 @@
 import type { ItemOsPeca } from "../types/itemOsPeca/itemOsPeca";
-import type { MaoDeObraOrdemServico } from "../types/maoDeObra/maoDeObra";
+import type { MaoObra } from "../types/maoObra/maoObra";
 
 export function calcularValorTotal(
   pecasDaOs: ItemOsPeca[],
-  maoDeObraDaOs: MaoDeObraOrdemServico[],
+  maoDeObraDaOs: MaoObra[],
 ): number {
   const totalPecas = pecasDaOs.reduce(
     (soma, peca) => soma + peca.valorUnitario * peca.quantidade,

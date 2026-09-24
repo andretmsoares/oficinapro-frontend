@@ -4,7 +4,7 @@ import { Plus, Wrench, DollarSign, Package, Tag } from "lucide-react";
 import type { OrdemDeServico } from "../../types/ordemDeServico/ordemDeServico";
 import type { Pagamento } from "../../types/pagamento/pagamento";
 import type { ItemOsPeca } from "../../types/itemOsPeca/itemOsPeca";
-import type { MaoDeObraOrdemServico } from "../../types/maoDeObra/maoDeObra";
+import type { MaoObra } from "../../types/maoObra/maoObra";
 
 import { formatCurrencyDisplay } from "../../utils/formatters";
 
@@ -36,10 +36,10 @@ interface ViewOrdemServicoModalProps {
   ordemServico: OrdemDeServico;
   pagamento?: Pagamento;
   todasAsPecas: ItemOsPeca[];
-  todaAMaoDeObra: MaoDeObraOrdemServico[];
+  todaAMaoDeObra: MaoObra[];
   onClose: () => void;
   onAddPeca: (peca: Omit<ItemOsPeca, "id">) => void;
-  onAddMaoDeObra: (item: Omit<MaoDeObraOrdemServico, "id">) => void;
+  onAddMaoDeObra: (item: Omit<MaoObra, "id">) => void;
   onUpdateDesconto: (novoDesconto: number) => void;
   onRegistrarPagamento: (
     data: RegistroPagamentoFormData,

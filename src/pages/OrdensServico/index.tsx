@@ -30,7 +30,7 @@ import type { Pagamento } from "../../types/pagamento/pagamento";
 
 import { MOCK_MAO_DE_OBRA } from "../../mocks/maoDeObra";
 import type { ItemOsPeca } from "../../types/itemOsPeca/itemOsPeca";
-import type { MaoDeObraOrdemServico } from "../../types/maoDeObra/maoDeObra";
+import type { MaoObra } from "../../types/maoObra/maoObra";
 import type { RegistroPagamentoFormData } from "../../components/PaymentRegistrationModal/registroPagamentoFields";
 
 import "./ordensServico.style.css";
@@ -127,8 +127,7 @@ export function OrdensServico({
   const [ordensServico, setOrdensServico] = useState<OrdemDeServico[]>([]);
   const [loading, setLoading] = useState(true);
   const [pecas, setPecas] = useState<ItemOsPeca[]>([]);
-  const [maoDeObra, setMaoDeObra] =
-    useState<MaoDeObraOrdemServico[]>(MOCK_MAO_DE_OBRA);
+  const [maoDeObra, setMaoDeObra] = useState<MaoObra[]>(MOCK_MAO_DE_OBRA);
 
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -212,7 +211,7 @@ export function OrdensServico({
     setPecas(pecasAtualizadas);
   }
 
-  function handleAddMaoDeObra(item: Omit<MaoDeObraOrdemServico, "id">) {
+  function handleAddMaoDeObra(item: Omit<MaoObra, "id">) {
     const novoId =
       maoDeObra.length > 0 ? Math.max(...maoDeObra.map((m) => m.id)) + 1 : 1;
     const maoDeObraAtualizada = [...maoDeObra, { id: novoId, ...item }];
