@@ -56,3 +56,42 @@
 
   text-align: center;
 }
+
+.view-os-table-actions {
+  width: 80px;
+  text-align: center;
+}
+
+.view-os-table-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.view-os-table-action-unlink {
+  color: #d97706;
+}
+
+.view-os-table-action-unlink:hover {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.view-os-table-action-delete {
+  color: #dc2626;
+}
+
+.view-os-table-action-delete:hover {
+  background: #fee2e2;
+  color: #b91c1c;
+}

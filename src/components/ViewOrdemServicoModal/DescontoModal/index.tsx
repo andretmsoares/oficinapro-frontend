@@ -20,7 +20,8 @@ interface DescontoModalProps {
   osId: number;
   descontoAtual: number;
   onClose: () => void;
-  onSave: (novoDesconto: number) => void;
+  onSave: (novoDesconto: number) => void | Promise<void>;
+  submitError?: string;
 }
 
 export function DescontoModal({
@@ -28,6 +29,7 @@ export function DescontoModal({
   descontoAtual,
   onClose,
   onSave,
+  submitError,
 }: DescontoModalProps) {
   return (
     <EntityForm<DescontoFormData>
@@ -36,6 +38,7 @@ export function DescontoModal({
       initialValues={{ novoDesconto: descontoAtual }}
       onSubmit={(data) => onSave(data.novoDesconto)}
       onClose={onClose}
+      submitError={submitError}
     />
   );
 }

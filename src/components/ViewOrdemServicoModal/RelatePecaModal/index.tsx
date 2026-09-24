@@ -12,7 +12,7 @@ interface RelatePecaModalProps {
   todasAsPecas: ItemOsPeca[];
   pecasDaOsAtual: ItemOsPeca[];
   onClose: () => void;
-  onSelecionar: (peca: { nome: string; valorUnitario: number }) => void;
+  onSelecionar: (peca: ItemOsPeca) => void | Promise<void>;
 }
 
 export function RelatePecaModal({
@@ -36,9 +36,12 @@ export function RelatePecaModal({
     );
   }
 
-  function handleSelectPeca(peca: ItemOsPeca) {
-    if (isPecaJaRelacionada(peca.nome)) return;
-    onSelecionar({ nome: peca.nome, valorUnitario: peca.valorUnitario });
+  async function handleSelectPeca(peca: ItemOsPeca) {
+    if (isPecaJaRelacionada(peca.nome)) {
+      return;
+    }
+
+    await onSelecionar(peca);
   }
 
   return (
@@ -47,6 +50,7 @@ export function RelatePecaModal({
         <header className="relate-peca-header">
           <div>
             <h2>Relacionar peça</h2>
+
             <span>
               Selecione uma peça já cadastrada para a OS #
               {osId.toString().padStart(4, "0")}
@@ -83,6 +87,7 @@ export function RelatePecaModal({
                 >
                   <div>
                     <strong>{peca.nome}</strong>
+
                     <span>
                       Valor unitário:{" "}
                       {formatCurrencyDisplay(peca.valorUnitario)}
@@ -104,8 +109,10 @@ export function RelatePecaModal({
 
 function dedupeByNome(pecas: ItemOsPeca[]): ItemOsPeca[] {
   const map = new Map<string, ItemOsPeca>();
+
   for (const peca of pecas) {
     map.set(peca.nome.toLowerCase(), peca);
   }
+
   return Array.from(map.values());
 }

@@ -12,6 +12,7 @@ import type { DashboardData } from "../../types/dashboard/dashboard";
 import { buscarDadosDashboard } from "../../services/dashboardService";
 
 import "./dashboard.style.css";
+import { formatCurrencyDisplay } from "../../utils/formatters";
 
 interface DashboardProps {
   usuarioLogado: Usuario;
@@ -53,10 +54,7 @@ export function Dashboard({ usuarioLogado }: DashboardProps) {
     carregarDashboard();
   }, []);
 
-  const aReceberFormatado = new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  }).format(data.aReceber);
+  const aReceberFormatado = formatCurrencyDisplay(data.aReceber);
 
   if (loading) {
     return (

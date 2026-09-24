@@ -21,8 +21,6 @@ import { Usuarios } from "./pages/Usuarios";
 import { Oficinas } from "./pages/Oficinas";
 import { Unidades } from "./pages/Unidades";
 
-import type { Pagamento } from "./types/pagamento/pagamento";
-
 import type { Usuario } from "./types/usuario/usuario";
 import type { Role } from "./types/usuario/role";
 
@@ -30,14 +28,6 @@ import {
   buscarUsuarioLogado,
   login as loginService,
 } from "./services/authService";
-
-import { MOCK_PAGAMENTOS } from "./mocks/pagamento";
-import { MOCK_REGISTROS_PAGAMENTO } from "./mocks/registroPagamento";
-
-import { getPagamentoStatus } from "./utils/pagamentoCalculos";
-import { StatusPagamento } from "./enums/StatusPagamento";
-import type { RegistroPagamento } from "./types/registroPagamento/registroPagamento";
-import type { MeioPagamento } from "./enums/MeioPagamento";
 
 function homeRouteFor(role: Role): string {
   if (role === "ADMIN") {
@@ -78,16 +68,6 @@ export default function App() {
   const [usuarioLogado, setUsuarioLogado] = useState<Usuario | null>(null);
 
   const [loadingAuth, setLoadingAuth] = useState<boolean>(true);
-
-  /* ---------------------------------------------------------
-     PAGAMENTOS
-     --------------------------------------------------------- */
-
-  const [pagamentos, setPagamentos] = useState<Pagamento[]>(MOCK_PAGAMENTOS);
-
-  const [registros, setRegistros] = useState<RegistroPagamento[]>(
-    MOCK_REGISTROS_PAGAMENTO,
-  );
 
   /* =========================================================
      RESTAURAR SESSÃO
@@ -166,86 +146,6 @@ export default function App() {
 
     setUsuarioLogado(null);
     setIsAuthenticated(false);
-  }
-
-  /* =========================================================
-     PAGAMENTOS
-     ========================================================= */
-
-  function handleCreatePagamento(osId: number, valorTotal: number) {
-    const novoId =
-      pagamentos.length > 0
-        ? Math.max(...pagamentos.map((pagamento) => pagamento.id)) + 1
-        : 1;
-
-    const novoPagamento: Pagamento = {
-      id: novoId,
-      osId,
-      valorTotal,
-      valorPago: 0,
-      valorPendente: valorTotal,
-      status: StatusPagamento.PAGAMENTO_PENDENTE,
-      obs: "",
-      dataPagamentoTotal: null,
-    };
-
-    setPagamentos((prev) => [...prev, novoPagamento]);
-  }
-
-  function handleUpdatePagamentoValorTotal(
-    osId: number,
-    novoValorTotal: number,
-  ) {
-    setPagamentos((prev) =>
-      prev.map((pagamento) => {
-        if (pagamento.osId !== osId) {
-          return pagamento;
-        }
-
-        return {
-          ...pagamento,
-          valorTotal: novoValorTotal,
-          status: getPagamentoStatus(pagamento.valorPago, novoValorTotal),
-        };
-      }),
-    );
-  }
-
-  function handleAddRegistroPagamento(
-    pagamentoId: number,
-    valor: number,
-    meioPagamento: MeioPagamento,
-  ) {
-    const novoId =
-      registros.length > 0
-        ? Math.max(...registros.map((registro) => registro.id)) + 1
-        : 1;
-
-    const novoRegistro: RegistroPagamento = {
-      id: novoId,
-      pagamentoId,
-      valor,
-      meioPagamento,
-      data: new Date().toISOString(),
-    };
-
-    setRegistros((prev) => [...prev, novoRegistro]);
-
-    setPagamentos((prev) =>
-      prev.map((pagamento) => {
-        if (pagamento.id !== pagamentoId) {
-          return pagamento;
-        }
-
-        const novoValorPago = pagamento.valorPago + valor;
-
-        return {
-          ...pagamento,
-          valorPago: novoValorPago,
-          status: getPagamentoStatus(novoValorPago, pagamento.valorTotal),
-        };
-      }),
-    );
   }
 
   /* =========================================================
@@ -344,15 +244,7 @@ export default function App() {
 
             <Route
               path="/ordens-servico"
-              element={
-                <OrdensServico
-                  usuarioLogado={usuarioLogado}
-                  pagamentos={pagamentos}
-                  onCreatePagamento={handleCreatePagamento}
-                  onUpdatePagamentoValorTotal={handleUpdatePagamentoValorTotal}
-                  onAddRegistroPagamento={handleAddRegistroPagamento}
-                />
-              }
+              element={<OrdensServico usuarioLogado={usuarioLogado} />}
             />
           </Route>
 

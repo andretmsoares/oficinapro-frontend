@@ -44,3 +44,30 @@
   color: #111827 !important;
   font-weight: 600;
 }
+
+.payment-table-actions {
+  width: 60px;
+  text-align: center;
+}
+
+.payment-delete-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #dc2626;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.payment-delete-button:hover {
+  background: #fee2e2;
+  color: #b91c1c;
+}

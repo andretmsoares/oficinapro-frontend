@@ -26,14 +26,10 @@ import { SelectStatusModal } from "../../components/SelectStatusModal";
 import { formatCurrencyDisplay } from "../../utils/formatters";
 
 import type { OrdemDeServico } from "../../types/ordemDeServico/ordemDeServico";
-import type { Pagamento } from "../../types/pagamento/pagamento";
-
-import { MOCK_MAO_DE_OBRA } from "../../mocks/maoDeObra";
 import type { ItemOsPeca } from "../../types/itemOsPeca/itemOsPeca";
-import type { MaoObra } from "../../types/maoObra/maoObra";
-import type { RegistroPagamentoFormData } from "../../components/PaymentRegistrationModal/registroPagamentoFields";
 
 import "./ordensServico.style.css";
+
 import { ViewOrdemServicoModal } from "../../components/ViewOrdemServicoModal";
 import type { Usuario } from "../../types/usuario/usuario";
 import { HeaderPage } from "../../components/HeaderPage";
@@ -44,21 +40,14 @@ import {
   atualizarOrdemServico,
   deletarOrdemServico,
   atualizarStatusOrdemServico,
-  aplicarDesconto,
 } from "../../services/ordemDeServicoService";
+
+import { listarItemOsPecas } from "../../services/itemOsPecaService";
+
 import { StatusOrdemDeServico } from "../../enums/StatusOrdemDeServico";
-import type { MeioPagamento } from "../../enums/MeioPagamento";
 
 interface OrdensServicoProps {
   usuarioLogado: Usuario;
-  pagamentos: Pagamento[];
-  onCreatePagamento: (osId: number, valorTotal: number) => void;
-  onUpdatePagamentoValorTotal: (osId: number, novoValorTotal: number) => void;
-  onAddRegistroPagamento: (
-    pagamentoId: number,
-    valor: number,
-    formaPagamento: MeioPagamento,
-  ) => void;
 }
 
 function formatStatusOrdemServico(status: StatusOrdemDeServico): string {
@@ -116,18 +105,14 @@ const statusOptions = [
   },
 ];
 
-export function OrdensServico({
-  usuarioLogado,
-  pagamentos,
-  onCreatePagamento,
-  onUpdatePagamentoValorTotal,
-  onAddRegistroPagamento,
-}: OrdensServicoProps) {
-  const isGerente = usuarioLogado.role == "GERENTE";
+export function OrdensServico({ usuarioLogado }: OrdensServicoProps) {
+  const isGerente = usuarioLogado.role === "GERENTE";
+
   const [ordensServico, setOrdensServico] = useState<OrdemDeServico[]>([]);
+
   const [loading, setLoading] = useState(true);
+
   const [pecas, setPecas] = useState<ItemOsPeca[]>([]);
-  const [maoDeObra, setMaoDeObra] = useState<MaoObra[]>(MOCK_MAO_DE_OBRA);
 
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -143,6 +128,7 @@ export function OrdensServico({
     useState<OrdemDeServico | null>(null);
 
   const [viewingOrdem, setViewingOrdem] = useState<OrdemDeServico | null>(null);
+
   const [submitError, setSubmitError] = useState("");
 
   function handleView(id: number) {
@@ -187,6 +173,7 @@ export function OrdensServico({
 
     try {
       setSubmitError("");
+
       const ordemAtualizada = await atualizarStatusOrdemServico(
         selectingStatusOrdem.id,
         {
@@ -204,68 +191,47 @@ export function OrdensServico({
     }
   }
 
-  function handleAddPeca(peca: Omit<ItemOsPeca, "id">) {
-    const novoId =
-      pecas.length > 0 ? Math.max(...pecas.map((p) => p.id)) + 1 : 1;
-    const pecasAtualizadas = [...pecas, { id: novoId, ...peca }];
-    setPecas(pecasAtualizadas);
+  function handleAddPeca(peca: ItemOsPeca) {
+    setPecas((prev) => {
+      const existe = prev.some((item) => item.id === peca.id);
+
+      if (existe) {
+        return prev.map((item) => (item.id === peca.id ? peca : item));
+      }
+
+      return [...prev, peca];
+    });
   }
 
-  function handleAddMaoDeObra(item: Omit<MaoObra, "id">) {
-    const novoId =
-      maoDeObra.length > 0 ? Math.max(...maoDeObra.map((m) => m.id)) + 1 : 1;
-    const maoDeObraAtualizada = [...maoDeObra, { id: novoId, ...item }];
-    setMaoDeObra(maoDeObraAtualizada);
-  }
+  /*
+   * Chamado pelo ViewOrdemServicoModal sempre que a OS muda
+   * (peça, mão de obra, desconto). O pagamento é recarregado
+   * do backend dentro do próprio modal.
+   */
+  function handleUpdateOrdemServico(ordemAtualizada: OrdemDeServico) {
+    setOrdensServico((prev) =>
+      prev.map((ordem) =>
+        ordem.id === ordemAtualizada.id ? ordemAtualizada : ordem,
+      ),
+    );
 
-  async function handleUpdateDesconto(novoDesconto: number) {
-    if (!viewingOrdem) return;
-
-    try {
-      setSubmitError("");
-      const ordemAtualizada = await aplicarDesconto(
-        viewingOrdem.id,
-        novoDesconto,
-      );
-
-      setOrdensServico((prev) =>
-        prev.map((ordem) =>
-          ordem.id === ordemAtualizada.id ? ordemAtualizada : ordem,
-        ),
-      );
-
-      setViewingOrdem(ordemAtualizada);
-
-      onUpdatePagamentoValorTotal(
-        ordemAtualizada.id,
-        ordemAtualizada.valorComDesconto,
-      );
-    } catch (error) {
-      console.error("Erro ao aplicar desconto:", error);
-    }
-  }
-
-  function handleRegistrarPagamento(data: RegistroPagamentoFormData) {
-    if (!pagamentoDaOrdem) return;
-    onAddRegistroPagamento(
-      pagamentoDaOrdem.id,
-      data.valorPago,
-      data.meioPagamento,
+    setViewingOrdem((prev) =>
+      prev && prev.id === ordemAtualizada.id ? ordemAtualizada : prev,
     );
   }
 
   async function handleAddOrdem(data: OrdemDeServicoFormData) {
     try {
       setSubmitError("");
+
       const novaOrdem = await criarOrdemServico(data);
 
       setOrdensServico((prev) => [...prev, novaOrdem]);
 
-      onCreatePagamento(novaOrdem.id, novaOrdem.valorComDesconto);
-
       setIsModalOpen(false);
     } catch (error) {
       console.error("Erro ao criar ordem de serviço:", error);
+
       setSubmitError(
         error instanceof Error ? error.message : "Não foi possível criar a OS.",
       );
@@ -277,6 +243,7 @@ export function OrdensServico({
 
     try {
       setSubmitError("");
+
       const ordemAtualizada = await atualizarOrdemServico(
         editingOrdem.id,
         data,
@@ -292,6 +259,7 @@ export function OrdensServico({
       setIsModalOpen(false);
     } catch (error) {
       console.error("Erro ao atualizar ordem de serviço:", error);
+
       setSubmitError(
         error instanceof Error
           ? error.message
@@ -305,6 +273,7 @@ export function OrdensServico({
 
     try {
       setSubmitError("");
+
       await deletarOrdemServico(deletingOrdem.id);
 
       setOrdensServico((prev) =>
@@ -314,6 +283,7 @@ export function OrdensServico({
       setDeletingOrdem(null);
     } catch (error) {
       console.error("Erro ao excluir ordem de serviço:", error);
+
       setSubmitError(
         error instanceof Error
           ? error.message
@@ -325,22 +295,29 @@ export function OrdensServico({
   useEffect(() => {
     let ativo = true;
 
-    listarOrdensServico()
-      .then((data) => {
+    async function carregarDados() {
+      try {
+        const [ordens, pecasData] = await Promise.all([
+          listarOrdensServico(),
+          listarItemOsPecas(),
+        ]);
+
         if (!ativo) return;
 
-        setOrdensServico(data);
-      })
-      .catch((error) => {
+        setOrdensServico(ordens);
+        setPecas(pecasData);
+      } catch (error) {
         if (!ativo) return;
 
-        console.error("Erro ao carregar ordens de serviço:", error);
-      })
-      .finally(() => {
-        if (!ativo) return;
+        console.error("Erro ao carregar ordens de serviço e peças:", error);
+      } finally {
+        if (!ativo) {
+          setLoading(false);
+        }
+      }
+    }
 
-        setLoading(false);
-      });
+    carregarDados();
 
     return () => {
       ativo = false;
@@ -422,10 +399,6 @@ export function OrdensServico({
         ]
       : []),
   ];
-
-  const pagamentoDaOrdem = viewingOrdem
-    ? pagamentos.find((pagamento) => pagamento.osId === viewingOrdem.id)
-    : undefined;
 
   return (
     <div className="page">
@@ -524,14 +497,10 @@ export function OrdensServico({
         <ViewOrdemServicoModal
           usuarioLogado={usuarioLogado}
           ordemServico={viewingOrdem}
-          pagamento={pagamentoDaOrdem}
           todasAsPecas={pecas}
-          todaAMaoDeObra={maoDeObra}
           onClose={() => setViewingOrdem(null)}
           onAddPeca={handleAddPeca}
-          onAddMaoDeObra={handleAddMaoDeObra}
-          onUpdateDesconto={handleUpdateDesconto}
-          onRegistrarPagamento={handleRegistrarPagamento}
+          onUpdateOrdemServico={handleUpdateOrdemServico}
         />
       )}
     </div>

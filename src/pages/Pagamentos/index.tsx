@@ -20,8 +20,6 @@ import type { RegistroPagamentoFormData } from "../../components/PaymentRegistra
 import type { Pagamento } from "../../types/pagamento/pagamento";
 import type { RegistroPagamento } from "../../types/registroPagamento/registroPagamento";
 
-import { StatusPagamento } from "../../enums/StatusPagamento";
-
 import {
   buscarPagamentosPorOficina,
   calcularValorParaReceber,
@@ -29,6 +27,7 @@ import {
 
 import {
   criarRegistroPagamento,
+  deletarRegistroPagamento,
   listarRegistrosPorPagamento,
 } from "../../services/registroPagamentoService";
 
@@ -40,6 +39,7 @@ import {
 import "./pagamentos.style.css";
 
 import { HeaderPage } from "../../components/HeaderPage";
+import { StatusPagamento } from "../../enums/StatusPagamento";
 
 interface PagamentosProps {
   oficinaId: number;
@@ -79,6 +79,12 @@ export function Pagamentos({ oficinaId }: PagamentosProps) {
       null,
     [pagamentos, registeringPagamentoId],
   );
+
+  const paymentStatusClass: Record<string, string> = {
+    [StatusPagamento.PAGAMENTO_PENDENTE]: "payment-status-pendente",
+    [StatusPagamento.PAGO_PARCIALMENTE]: "payment-status-parcial",
+    [StatusPagamento.PAGA]: "payment-status-pago",
+  };
 
   useEffect(() => {
     async function carregarPagamentos() {
@@ -135,7 +141,7 @@ export function Pagamentos({ oficinaId }: PagamentosProps) {
   );
 
   const pagamentosPendentes = pagamentos.filter(
-    (pagamento) => pagamento.status === StatusPagamento.PAGAMENTO_PENDENTE,
+    (pagamento) => pagamento.valorPendente > 0,
   ).length;
 
   const pagamentosFiltrados = useMemo(() => {
@@ -199,6 +205,29 @@ export function Pagamentos({ oficinaId }: PagamentosProps) {
     }
   }
 
+  async function handleDeleteRegistroPagamento(registroId: number) {
+    try {
+      await deletarRegistroPagamento(registroId);
+
+      if (viewingPagamentoId) {
+        const registrosResponse =
+          await listarRegistrosPorPagamento(viewingPagamentoId);
+
+        setRegistros(registrosResponse);
+      }
+
+      await recarregarPagamentos();
+    } catch (err) {
+      console.error("Erro ao remover pagamento:", err);
+
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Não foi possível remover o pagamento.",
+      );
+    }
+  }
+
   const columns: Column<Pagamento>[] = [
     {
       key: "osId",
@@ -232,7 +261,7 @@ export function Pagamentos({ oficinaId }: PagamentosProps) {
       width: "20%",
       render: (pagamento) => (
         <span
-          className={`payment-status payment-status-${pagamento.status.toLowerCase()}`}
+          className={`payment-status ${paymentStatusClass[pagamento.status]}`}
         >
           {formatPagamentoStatus(pagamento.status)}
         </span>
@@ -313,7 +342,7 @@ export function Pagamentos({ oficinaId }: PagamentosProps) {
       </div>
 
       <SearchBar
-        placeholder="Pesquisar por OS ou pagamento"
+        placeholder="Pesquisar pelo código da OS"
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
       />
@@ -338,6 +367,7 @@ export function Pagamentos({ oficinaId }: PagamentosProps) {
             setSubmitError("");
             setRegisteringPagamentoId(viewingPagamento.id);
           }}
+          onDeletePagamento={handleDeleteRegistroPagamento}
           onClose={() => {
             setViewingPagamentoId(null);
             setRegistros([]);

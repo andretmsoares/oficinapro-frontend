@@ -16,6 +16,9 @@ export type OrdemDeServico = {
   valorComDesconto: number;
   placaVeiculo: string;
   nomeCliente: string;
+  unidadeNome: string;
+  oficinaNome: string;
+  mecanicoNome: string;
 };
 
 export type OrdemDeServicoRequest = {
