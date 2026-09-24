@@ -1,4 +1,4 @@
-import type { StatusPagamento } from "../types/pagamento/pagamento";
+import type { StatusPagamento } from "../enums/StatusPagamento";
 
 export function getPagamentoStatus(
   valorPago: number,

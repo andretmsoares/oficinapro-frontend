@@ -1,9 +1,8 @@
 import { Plus } from "lucide-react";
 
-import type { RegistroPagamento } from "../../../types/pagamento/pagamento";
-
 import "./paymentHistory.style.css";
 import { PaymentHistoryTable } from "./PaymentHistoryTable";
+import type { RegistroPagamento } from "../../../types/registroPagamento/registroPagamento";
 
 interface PaymentHistoryProps {
   registros: RegistroPagamento[];

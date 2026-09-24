@@ -26,10 +26,7 @@ import { SelectStatusModal } from "../../components/SelectStatusModal";
 import { formatCurrencyDisplay } from "../../utils/formatters";
 
 import type { OrdemDeServico } from "../../types/ordemDeServico/ordemDeServico";
-import type {
-  MeioDePagamento,
-  Pagamento,
-} from "../../types/pagamento/pagamento";
+import type { Pagamento } from "../../types/pagamento/pagamento";
 
 import { MOCK_MAO_DE_OBRA } from "../../mocks/maoDeObra";
 import type { ItemOsPeca } from "../../types/itemOsPeca/itemOsPeca";
@@ -50,6 +47,7 @@ import {
   aplicarDesconto,
 } from "../../services/ordemDeServicoService";
 import { StatusOrdemDeServico } from "../../enums/StatusOrdemDeServico";
+import type { MeioPagamento } from "../../enums/MeioPagamento";
 
 interface OrdensServicoProps {
   usuarioLogado: Usuario;
@@ -59,7 +57,7 @@ interface OrdensServicoProps {
   onAddRegistroPagamento: (
     pagamentoId: number,
     valor: number,
-    formaPagamento: MeioDePagamento,
+    formaPagamento: MeioPagamento,
   ) => void;
 }
 

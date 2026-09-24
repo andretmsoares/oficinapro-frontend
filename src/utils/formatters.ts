@@ -1,3 +1,5 @@
+import type { StatusPagamento } from "../enums/StatusPagamento";
+
 function onlyDigits(value: string): string {
   return value.replace(/\D/g, "");
 }
@@ -109,4 +111,22 @@ export function formatDate(date: string | null): string {
     dateStyle: "short",
     timeStyle: "short",
   });
+}
+
+export function formatPagamentoStatus(
+  status: StatusPagamento | string,
+): string {
+  switch (status) {
+    case "PAGA":
+      return "Pago";
+
+    case "PAGO_PARCIALMENTE":
+      return "Parcial";
+
+    case "PAGAMENTO_PENDENTE":
+      return "Pendente";
+
+    default:
+      return status;
+  }
 }

@@ -21,11 +21,7 @@ import { Usuarios } from "./pages/Usuarios";
 import { Oficinas } from "./pages/Oficinas";
 import { Unidades } from "./pages/Unidades";
 
-import type {
-  MeioDePagamento,
-  Pagamento,
-  RegistroPagamento,
-} from "./types/pagamento/pagamento";
+import type { Pagamento } from "./types/pagamento/pagamento";
 
 import type { Usuario } from "./types/usuario/usuario";
 import type { Role } from "./types/usuario/role";
@@ -39,6 +35,9 @@ import { MOCK_PAGAMENTOS } from "./mocks/pagamento";
 import { MOCK_REGISTROS_PAGAMENTO } from "./mocks/registroPagamento";
 
 import { getPagamentoStatus } from "./utils/pagamentoCalculos";
+import { StatusPagamento } from "./enums/StatusPagamento";
+import type { RegistroPagamento } from "./types/registroPagamento/registroPagamento";
+import type { MeioPagamento } from "./enums/MeioPagamento";
 
 function homeRouteFor(role: Role): string {
   if (role === "ADMIN") {
@@ -184,8 +183,10 @@ export default function App() {
       osId,
       valorTotal,
       valorPago: 0,
-      status: "PENDENTE",
+      valorPendente: valorTotal,
+      status: StatusPagamento.PAGAMENTO_PENDENTE,
       obs: "",
+      dataPagamentoTotal: null,
     };
 
     setPagamentos((prev) => [...prev, novoPagamento]);
@@ -213,7 +214,7 @@ export default function App() {
   function handleAddRegistroPagamento(
     pagamentoId: number,
     valor: number,
-    formaPagamento: MeioDePagamento,
+    meioPagamento: MeioPagamento,
   ) {
     const novoId =
       registros.length > 0
@@ -224,8 +225,8 @@ export default function App() {
       id: novoId,
       pagamentoId,
       valor,
-      formaPagamento,
-      dataPagamento: new Date().toISOString(),
+      meioPagamento,
+      data: new Date().toISOString(),
     };
 
     setRegistros((prev) => [...prev, novoRegistro]);
@@ -371,13 +372,7 @@ export default function App() {
 
             <Route
               path="/pagamentos"
-              element={
-                <Pagamentos
-                  pagamentos={pagamentos}
-                  registros={registros}
-                  onAddRegistroPagamento={handleAddRegistroPagamento}
-                />
-              }
+              element={<Pagamentos oficinaId={usuarioLogado.oficinaId ?? 0} />}
             />
 
             <Route path="/mecanicos" element={<Mecanicos />} />
