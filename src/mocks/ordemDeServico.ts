@@ -1,3 +1,4 @@
+import { StatusOrdemDeServico } from "../enums/StatusOrdemDeServico";
 import type { OrdemDeServico } from "../types/ordemDeServico/ordemDeServico";
 
 export const MOCK_ORDENS_SERVICO: OrdemDeServico[] = [
@@ -12,7 +13,7 @@ export const MOCK_ORDENS_SERVICO: OrdemDeServico[] = [
     nomeCliente: "Carlos Eduardo Silva",
     dataAbertura: "2026-09-01T08:30:00",
     dataFechamento: null,
-    status: "ABERTA",
+    status: StatusOrdemDeServico.ABERTA,
     obs: "Revisão geral do veículo.",
     valorTotal: 850,
     valorComDesconto: 800,
@@ -29,7 +30,7 @@ export const MOCK_ORDENS_SERVICO: OrdemDeServico[] = [
     nomeCliente: "Mariana Souza Santos",
     dataAbertura: "2026-09-02T10:00:00",
     dataFechamento: null,
-    status: "EM_ANDAMENTO",
+    status: StatusOrdemDeServico.ABERTA,
     obs: "Troca de óleo e filtros.",
     valorTotal: 450,
     valorComDesconto: 450,
@@ -46,7 +47,7 @@ export const MOCK_ORDENS_SERVICO: OrdemDeServico[] = [
     nomeCliente: "Roberto Alves Costa",
     dataAbertura: "2026-08-28T14:00:00",
     dataFechamento: "2026-08-30T16:30:00",
-    status: "FINALIZADA",
+    status: StatusOrdemDeServico.ABERTA,
     obs: "Substituição das pastilhas de freio.",
     valorTotal: 1200,
     valorComDesconto: 1100,
@@ -63,7 +64,7 @@ export const MOCK_ORDENS_SERVICO: OrdemDeServico[] = [
     nomeCliente: "Fernanda Lima Oliveira",
     dataAbertura: "2026-09-03T09:15:00",
     dataFechamento: null,
-    status: "AGUARDANDO_PECAS",
+    status: StatusOrdemDeServico.ABERTA,
     obs: "Aguardando chegada das peças.",
     valorTotal: 2100,
     valorComDesconto: 2000,

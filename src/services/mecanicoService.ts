@@ -1,5 +1,6 @@
 import { api } from "./api";
 import type { Mecanico, MecanicoRequest } from "../types/mecanico/mecanico";
+import type { EntityOption } from "../components/EntityForm/types";
 
 export interface MecanicoPage {
   content: Mecanico[];
@@ -9,6 +10,62 @@ export interface MecanicoPage {
   number: number;
   first: boolean;
   last: boolean;
+}
+
+export async function buscarMecanicosAutocomplete(
+  search: string,
+): Promise<EntityOption[]> {
+  const termo = search.trim();
+
+  if (!termo) {
+    return [];
+  }
+
+  try {
+    const mecanicos = await buscarMecanicosPorNome(termo);
+
+    return mecanicos.map((mecanico) => ({
+      id: mecanico.id,
+      label: mecanico.nome,
+      description: mecanico.documento
+        ? `CPF: ${mecanico.documento}`
+        : undefined,
+    }));
+  } catch {
+    try {
+      const mecanico = await buscarMecanicoPorDocumento(termo);
+
+      return [
+        {
+          id: mecanico.id,
+          label: mecanico.nome,
+          description: mecanico.documento
+            ? `CPF: ${mecanico.documento}`
+            : undefined,
+        },
+      ];
+    } catch {
+      return [];
+    }
+  }
+}
+
+export async function buscarMecanicoAutocompletePorId(
+  id: number,
+): Promise<EntityOption | null> {
+  try {
+    const mecanico = await buscarMecanicoPorId(id);
+
+    return {
+      id: mecanico.id,
+      label: mecanico.nome,
+      description: mecanico.documento
+        ? `CPF: ${mecanico.documento}`
+        : undefined,
+    };
+  } catch {
+    return null;
+  }
 }
 
 export async function listarMecanicos(

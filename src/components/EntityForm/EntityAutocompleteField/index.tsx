@@ -20,6 +20,7 @@ export function EntityAutocompleteField<T>({
     label,
     placeholder,
     fetchOptions,
+    fetchOptionById,
     minChars = 2,
     debounceMs = 400,
     noResultsText = "Nenhum resultado encontrado",
@@ -30,6 +31,7 @@ export function EntityAutocompleteField<T>({
 
   const [options, setOptions] = useState<EntityOption[]>([]);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
 
@@ -76,6 +78,50 @@ export function EntityAutocompleteField<T>({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (!fetchOptionById) {
+      return;
+    }
+
+    const id = Number(displayValue);
+
+    if (!displayValue || !Number.isInteger(id) || id <= 0) {
+      return;
+    }
+
+    let cancelled = false;
+
+    void (async () => {
+      setInitialLoading(true);
+
+      try {
+        const option = await fetchOptionById(id);
+
+        if (cancelled || !option) {
+          return;
+        }
+
+        setInputText(option.label);
+        setHasSelection(true);
+      } catch (error) {
+        if (!cancelled) {
+          console.error(
+            `Erro ao carregar entidade inicial para "${name}":`,
+            error,
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setInitialLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [displayValue, fetchOptionById, name]);
 
   function emit(raw: unknown, display: string) {
     lastEmittedRef.current = display;
@@ -161,8 +207,8 @@ export function EntityAutocompleteField<T>({
         <input
           type="text"
           placeholder={placeholder}
-          value={inputText}
-          readOnly={hasSelection}
+          value={initialLoading ? "Carregando..." : inputText}
+          readOnly={hasSelection || initialLoading}
           onChange={(e) => handleInputChange(e.target.value)}
         />
         {hasSelection && inputText !== "" && (
