@@ -1,5 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { CircleDollarSign, Clock, Eye, Printer, Wallet } from "lucide-react";
+import {
+  CircleDollarSign,
+  Clock,
+  Eye,
+  Plus,
+  Printer,
+  Wallet,
+} from "lucide-react";
 
 import { StatCard } from "../../components/StatCard";
 import { SearchBar } from "../../components/SearchBar";
@@ -7,8 +14,12 @@ import { EntityTable } from "../../components/EntityTable";
 import type { Column, EntityAction } from "../../components/EntityTable/types";
 
 import { ViewPagamentoModal } from "../../components/ViewPagamentoModal";
+import { PaymentRegistrationModal } from "../../components/PaymentRegistrationModal";
+import type { RegistroPagamentoFormData } from "../../components/PaymentRegistrationModal/registroPagamentoFields";
 
 import type { Pagamento } from "../../types/pagamento/pagamento";
+import type { RegistroPagamento } from "../../types/registroPagamento/registroPagamento";
+
 import { StatusPagamento } from "../../enums/StatusPagamento";
 
 import {
@@ -17,11 +28,17 @@ import {
 } from "../../services/pagamentoService";
 
 import {
+  criarRegistroPagamento,
+  listarRegistrosPorPagamento,
+} from "../../services/registroPagamentoService";
+
+import {
   formatCurrencyDisplay,
   formatPagamentoStatus,
 } from "../../utils/formatters";
 
 import "./pagamentos.style.css";
+
 import { HeaderPage } from "../../components/HeaderPage";
 
 interface PagamentosProps {
@@ -32,8 +49,12 @@ export function Pagamentos({ oficinaId }: PagamentosProps) {
   const [pagamentos, setPagamentos] = useState<Pagamento[]>([]);
   const [valorAReceber, setValorAReceber] = useState(0);
 
+  const [registros, setRegistros] = useState<RegistroPagamento[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const [submitError, setSubmitError] = useState("");
 
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -41,11 +62,22 @@ export function Pagamentos({ oficinaId }: PagamentosProps) {
     null,
   );
 
+  const [registeringPagamentoId, setRegisteringPagamentoId] = useState<
+    number | null
+  >(null);
+
   const viewingPagamento = useMemo(
     () =>
       pagamentos.find((pagamento) => pagamento.id === viewingPagamentoId) ??
       null,
     [pagamentos, viewingPagamentoId],
+  );
+
+  const registeringPagamento = useMemo(
+    () =>
+      pagamentos.find((pagamento) => pagamento.id === registeringPagamentoId) ??
+      null,
+    [pagamentos, registeringPagamentoId],
   );
 
   useEffect(() => {
@@ -73,6 +105,30 @@ export function Pagamentos({ oficinaId }: PagamentosProps) {
     carregarPagamentos();
   }, [oficinaId]);
 
+  useEffect(() => {
+    async function carregarRegistros() {
+      if (!viewingPagamentoId) {
+        setRegistros([]);
+        return;
+      }
+
+      try {
+        setRegistros([]);
+
+        const registrosResponse =
+          await listarRegistrosPorPagamento(viewingPagamentoId);
+
+        setRegistros(registrosResponse);
+      } catch (err) {
+        console.error("Erro ao carregar registros de pagamento:", err);
+
+        setRegistros([]);
+      }
+    }
+
+    carregarRegistros();
+  }, [viewingPagamentoId]);
+
   const totalRecebido = pagamentos.reduce(
     (total, pagamento) => total + pagamento.valorPago,
     0,
@@ -96,6 +152,52 @@ export function Pagamentos({ oficinaId }: PagamentosProps) {
       );
     });
   }, [pagamentos, searchTerm]);
+
+  async function recarregarPagamentos() {
+    try {
+      setError("");
+
+      const [pagamentosResponse, valorAReceberResponse] = await Promise.all([
+        buscarPagamentosPorOficina(oficinaId),
+        calcularValorParaReceber(oficinaId),
+      ]);
+
+      setPagamentos(pagamentosResponse);
+      setValorAReceber(valorAReceberResponse);
+    } catch (err) {
+      console.error("Erro ao recarregar pagamentos:", err);
+
+      setError("Não foi possível atualizar os pagamentos.");
+    }
+  }
+
+  async function handleSaveRegistroPagamento(data: RegistroPagamentoFormData) {
+    if (!registeringPagamentoId) {
+      return;
+    }
+
+    try {
+      setSubmitError("");
+
+      await criarRegistroPagamento({
+        pagamentoId: registeringPagamentoId,
+        valor: data.valorPago,
+        meioPagamento: data.meioPagamento,
+      });
+
+      setRegisteringPagamentoId(null);
+
+      await recarregarPagamentos();
+    } catch (err) {
+      console.error("Erro ao registrar pagamento:", err);
+
+      setSubmitError(
+        err instanceof Error
+          ? err.message
+          : "Não foi possível registrar o pagamento.",
+      );
+    }
+  }
 
   const columns: Column<Pagamento>[] = [
     {
@@ -140,10 +242,20 @@ export function Pagamentos({ oficinaId }: PagamentosProps) {
 
   const actions: EntityAction<Pagamento>[] = [
     {
+      label: "Registrar Pagamento",
+      icon: Plus,
+      variant: "edit",
+      onClick: (pagamento) => {
+        setSubmitError("");
+        setRegisteringPagamentoId(pagamento.id);
+      },
+    },
+    {
       label: "Visualizar pagamento",
       icon: Eye,
       variant: "view",
       onClick: (pagamento) => {
+        setSubmitError("");
         setViewingPagamentoId(pagamento.id);
       },
     },
@@ -220,13 +332,28 @@ export function Pagamentos({ oficinaId }: PagamentosProps) {
       {viewingPagamento && (
         <ViewPagamentoModal
           pagamento={viewingPagamento}
-          registros={[]}
+          registros={registros}
           onAddPagamento={() => {
-            console.warn(
-              "Registro de pagamento ainda não possui endpoint no backend.",
-            );
+            setViewingPagamentoId(null);
+            setSubmitError("");
+            setRegisteringPagamentoId(viewingPagamento.id);
           }}
-          onClose={() => setViewingPagamentoId(null)}
+          onClose={() => {
+            setViewingPagamentoId(null);
+            setRegistros([]);
+          }}
+        />
+      )}
+
+      {registeringPagamento && (
+        <PaymentRegistrationModal
+          pagamento={registeringPagamento}
+          onSave={handleSaveRegistroPagamento}
+          onClose={() => {
+            setRegisteringPagamentoId(null);
+            setSubmitError("");
+          }}
+          submitError={submitError}
         />
       )}
     </div>

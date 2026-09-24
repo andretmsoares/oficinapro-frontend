@@ -41,7 +41,9 @@ interface ViewOrdemServicoModalProps {
   onAddPeca: (peca: Omit<ItemOsPeca, "id">) => void;
   onAddMaoDeObra: (item: Omit<MaoDeObraOrdemServico, "id">) => void;
   onUpdateDesconto: (novoDesconto: number) => void;
-  onRegistrarPagamento: (data: RegistroPagamentoFormData) => void;
+  onRegistrarPagamento: (
+    data: RegistroPagamentoFormData,
+  ) => void | Promise<void>;
 }
 
 type PecaFlow = "action" | "create" | "relate" | null;
@@ -59,14 +61,17 @@ export function ViewOrdemServicoModal({
   onRegistrarPagamento,
 }: ViewOrdemServicoModalProps) {
   const isGerente = usuarioLogado.role == "GERENTE";
+
   const [pecaFlow, setPecaFlow] = useState<PecaFlow>(null);
   const [isMaoDeObraModalOpen, setIsMaoDeObraModalOpen] = useState(false);
   const [isDescontoModalOpen, setIsDescontoModalOpen] = useState(false);
   const [isPagamentoModalOpen, setIsPagamentoModalOpen] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const pecasDaOs = todasAsPecas.filter(
     (peca) => peca.osId === ordemServico.id,
   );
+
   const maoDeObraDaOs = todaAMaoDeObra.filter(
     (item) => item.osId === ordemServico.id,
   );
@@ -79,6 +84,7 @@ export function ViewOrdemServicoModal({
       osId: ordemServico.id,
       valorTotal: data.valorUnitario * data.quantidade,
     });
+
     setPecaFlow(null);
   }
 
@@ -91,8 +97,9 @@ export function ViewOrdemServicoModal({
       valorUnitario: peca.valorUnitario,
       quantidade: 1,
       osId: ordemServico.id,
-      valorTotal: peca.valorUnitario * 1,
+      valorTotal: peca.valorUnitario,
     });
+
     setPecaFlow(null);
   }
 
@@ -102,6 +109,7 @@ export function ViewOrdemServicoModal({
       valor: data.valor,
       osId: ordemServico.id,
     });
+
     setIsMaoDeObraModalOpen(false);
   }
 
@@ -110,9 +118,22 @@ export function ViewOrdemServicoModal({
     setIsDescontoModalOpen(false);
   }
 
-  function handleSalvarPagamento(data: RegistroPagamentoFormData) {
-    onRegistrarPagamento(data);
-    setIsPagamentoModalOpen(false);
+  async function handleSalvarPagamento(data: RegistroPagamentoFormData) {
+    try {
+      setSubmitError("");
+
+      await onRegistrarPagamento(data);
+
+      setIsPagamentoModalOpen(false);
+    } catch (err) {
+      console.error("Erro ao registrar pagamento:", err);
+
+      setSubmitError(
+        err instanceof Error
+          ? err.message
+          : "Não foi possível registrar o pagamento.",
+      );
+    }
   }
 
   return (
@@ -211,7 +232,12 @@ export function ViewOrdemServicoModal({
           <PaymentSection
             pagamento={pagamento}
             onRegistrarPagamento={
-              isGerente ? () => setIsPagamentoModalOpen(true) : undefined
+              isGerente
+                ? () => {
+                    setSubmitError("");
+                    setIsPagamentoModalOpen(true);
+                  }
+                : undefined
             }
           />
         )}
@@ -267,8 +293,12 @@ export function ViewOrdemServicoModal({
         {isPagamentoModalOpen && pagamento && (
           <PaymentRegistrationModal
             pagamento={pagamento}
-            onClose={() => setIsPagamentoModalOpen(false)}
+            onClose={() => {
+              setIsPagamentoModalOpen(false);
+              setSubmitError("");
+            }}
             onSave={handleSalvarPagamento}
+            submitError={submitError}
           />
         )}
       </div>
