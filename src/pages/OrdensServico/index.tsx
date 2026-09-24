@@ -487,8 +487,8 @@ export function OrdensServico({
               ? {
                   unidadeId: editingOrdem.unidadeId,
                   veiculoId: editingOrdem.veiculoId,
-                  clienteId: editingOrdem.clienteId,
-                  mecanicoId: editingOrdem.mecanicoId,
+                  clienteId: editingOrdem.clienteId ?? undefined,
+                  mecanicoId: editingOrdem.mecanicoId ?? undefined,
                   obs: editingOrdem.obs,
                 }
               : undefined
