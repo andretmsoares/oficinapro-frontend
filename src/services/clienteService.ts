@@ -15,7 +15,7 @@ export interface ClientePage {
 export async function buscarClientesAutocomplete(
   search: string,
 ): Promise<EntityOption[]> {
-  const termo = search.trim();
+  const termo = search.trim().toUpperCase();
 
   if (!termo) {
     return [];

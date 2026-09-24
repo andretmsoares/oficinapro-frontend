@@ -5,7 +5,7 @@ import type { EntityOption } from "../components/EntityForm/types";
 export async function buscarUnidadesAutocomplete(
   search: string,
 ): Promise<EntityOption[]> {
-  const termo = search.trim().toLowerCase();
+  const termo = search.trim().toUpperCase();
 
   if (!termo) {
     return [];

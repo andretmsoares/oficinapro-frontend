@@ -15,7 +15,7 @@ export interface MecanicoPage {
 export async function buscarMecanicosAutocomplete(
   search: string,
 ): Promise<EntityOption[]> {
-  const termo = search.trim();
+  const termo = search.trim().toUpperCase();
 
   if (!termo) {
     return [];

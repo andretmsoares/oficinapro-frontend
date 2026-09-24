@@ -22,7 +22,7 @@ export interface VeiculoPage {
 export async function buscarVeiculosAutocomplete(
   search: string,
 ): Promise<EntityOption[]> {
-  const termo = search.trim().toLowerCase();
+  const termo = search.trim().toUpperCase();
 
   if (!termo) {
     return [];
@@ -32,9 +32,9 @@ export async function buscarVeiculosAutocomplete(
 
   return pagina.content
     .filter((veiculo) => {
-      const placa = veiculo.placa.toLowerCase();
-      const marca = veiculo.marca.toLowerCase();
-      const modelo = veiculo.modelo.toLowerCase();
+      const placa = veiculo.placa.toUpperCase();
+      const marca = veiculo.marca.toUpperCase();
+      const modelo = veiculo.modelo.toUpperCase();
 
       return (
         placa.includes(termo) || marca.includes(termo) || modelo.includes(termo)
