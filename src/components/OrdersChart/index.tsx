@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   CartesianGrid,
   Line,
@@ -9,32 +9,52 @@ import {
   YAxis,
 } from "recharts";
 
+import { listarFluxoMensalOS } from "../../services/ordemDeServicoService";
+import type { FluxoMensalOS } from "../../types/ordemDeServico/ordemDeServico";
+
 import "./ordersChart.style.css";
 
-interface FluxoMensalOS {
-  day: number;
-  abertas: number;
-  finalizadas: number;
-}
-
-const MOCK_FLUXO_MENSUAL: FluxoMensalOS[] = [
-  { day: 1, abertas: 3, finalizadas: 2 },
-  { day: 3, abertas: 5, finalizadas: 4 },
-  { day: 6, abertas: 2, finalizadas: 3 },
-  { day: 9, abertas: 8, finalizadas: 5 },
-  { day: 12, abertas: 6, finalizadas: 7 },
-  { day: 15, abertas: 9, finalizadas: 6 },
-  { day: 18, abertas: 4, finalizadas: 8 },
-  { day: 21, abertas: 7, finalizadas: 5 },
-  { day: 24, abertas: 10, finalizadas: 9 },
-  { day: 27, abertas: 5, finalizadas: 7 },
-  { day: 30, abertas: 4, finalizadas: 6 },
-];
-
 export function OrdersChart() {
-  const [data] = useState<FluxoMensalOS[]>(MOCK_FLUXO_MENSUAL);
-  const [loading] = useState(false);
-  const [error] = useState(false);
+  const [data, setData] = useState<FluxoMensalOS[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    let ativo = true;
+
+    async function carregarFluxoMensal() {
+      try {
+        setLoading(true);
+        setError(false);
+
+        const hoje = new Date();
+        const mes = hoje.getMonth() + 1;
+        const ano = hoje.getFullYear();
+
+        const fluxo = await listarFluxoMensalOS(mes, ano);
+
+        console.log("Fluxo mensal recebido:", fluxo);
+
+        if (ativo) {
+          setData(fluxo);
+        }
+      } catch {
+        if (ativo) {
+          setError(true);
+        }
+      } finally {
+        if (ativo) {
+          setLoading(false);
+        }
+      }
+    }
+
+    carregarFluxoMensal();
+
+    return () => {
+      ativo = false;
+    };
+  }, []);
 
   return (
     <div className="chart-card">
@@ -62,13 +82,21 @@ export function OrdersChart() {
           <div className="chart-message">
             Não foi possível carregar os dados.
           </div>
+        ) : data.length === 0 ? (
+          <div className="chart-message">
+            Nenhum dado disponível para este mês.
+          </div>
         ) : (
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={data}>
               <CartesianGrid strokeDasharray="3 3" />
+
               <XAxis dataKey="day" />
+
               <YAxis allowDecimals={false} />
+
               <Tooltip />
+
               <Line
                 type="monotone"
                 dataKey="abertas"
@@ -77,6 +105,7 @@ export function OrdersChart() {
                 dot={false}
                 name="OS abertas"
               />
+
               <Line
                 type="monotone"
                 dataKey="finalizadas"

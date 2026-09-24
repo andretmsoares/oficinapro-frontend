@@ -39,7 +39,7 @@ export type AtribuirClienteRequest = {
 };
 
 export type FluxoMensalOS = {
-  dia: number;
+  day: number;
   abertas: number;
   finalizadas: number;
 };

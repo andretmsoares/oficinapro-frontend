@@ -85,17 +85,22 @@
   color: #2563eb;
 }
 
-.status-em_andamento {
-  background-color: #fff7ed;
-  color: #ea580c;
+.status-diagnostico {
+  background-color: #eff6ff;
+  color: #481dac;
 }
 
-.status-aguardando_pecas {
+.status-aguardando_pecas,
+.status-em_execucao,
+.status-em_andamento,
+.status-aguardando_aprovacao {
   background-color: #fffbeb;
   color: #d97706;
 }
 
-.status-finalizada {
+.status-finalizada,
+.status-entregue,
+.status-fechada {
   background-color: #ecfdf5;
   color: #059669;
 }
