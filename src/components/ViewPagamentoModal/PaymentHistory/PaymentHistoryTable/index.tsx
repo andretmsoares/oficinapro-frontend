@@ -1,5 +1,4 @@
-import type { RegistroPagamento } from "../../../../types/pagamento/pagamento";
-
+import type { RegistroPagamento } from "../../../../types/registroPagamento/registroPagamento";
 import { formatCurrencyDisplay } from "../../../../utils/formatters";
 
 import "./paymentHistoryTable.style.css";
@@ -30,9 +29,9 @@ export function PaymentHistoryTable({ registros }: PaymentHistoryTableProps) {
           ) : (
             registros.map((registro) => (
               <tr key={registro.id}>
-                <td>{formatDate(registro.dataPagamento)}</td>
+                <td>{formatDate(registro.data)}</td>
 
-                <td>{formatMeioPagamento(registro.formaPagamento)}</td>
+                <td>{formatMeioPagamento(registro.meioPagamento)}</td>
 
                 <td className="payment-table-value">
                   {formatCurrencyDisplay(registro.valor)}

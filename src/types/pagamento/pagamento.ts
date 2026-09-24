@@ -1,21 +1,14 @@
-export type StatusPagamento = "PENDENTE" | "PARCIAL" | "PAGO";
-
-export type MeioDePagamento =
-  "DINHEIRO" | "PIX" | "CARTAO_CREDITO" | "CARTAO_DEBITO" | "CHEQUE";
-
+import type { StatusPagamento } from "../../enums/StatusPagamento";
 export interface Pagamento {
   id: number;
   osId: number;
   valorTotal: number;
   valorPago: number;
+  valorPendente: number;
   status: StatusPagamento;
+  dataPagamentoTotal: string | null;
   obs: string;
 }
-
-export interface RegistroPagamento {
-  id: number;
-  pagamentoId: number;
-  valor: number;
-  formaPagamento: string;
-  dataPagamento: string;
+export interface PagamentoUpdateRequest {
+  obs: string;
 }

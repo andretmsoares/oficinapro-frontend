@@ -1,10 +1,10 @@
 import { defineFields } from "../EntityForm/types";
 import { formatCurrencyDisplay } from "../../utils/formatters";
-import type { MeioDePagamento } from "../../types/pagamento/pagamento";
+import type { MeioPagamento } from "../../enums/MeioPagamento";
 
 export type RegistroPagamentoFormData = {
   valorPago: number;
-  meioPagamento: MeioDePagamento;
+  meioPagamento: MeioPagamento;
 };
 
 export function createRegistroPagamentoFields(saldoRestante: number) {

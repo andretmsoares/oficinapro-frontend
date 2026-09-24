@@ -1,5 +1,4 @@
 import type { Pagamento } from "../../types/pagamento/pagamento";
-import type { RegistroPagamento } from "../../types/pagamento/pagamento";
 
 import { PaymentModalHeader } from "./PaymentModalHeader";
 import { PaymentSummary } from "./PaymentSummary";
@@ -9,6 +8,7 @@ import { PaymentObservation } from "./PaymentObservation";
 import { PaymentModalFooter } from "./PaymentModalFooter";
 
 import "./viewPagamentoModal.style.css";
+import type { RegistroPagamento } from "../../types/registroPagamento/registroPagamento";
 
 interface ViewPagamentoModalProps {
   pagamento: Pagamento;

@@ -1,5 +1,12 @@
-import { useMemo, useState } from "react";
-import { CircleDollarSign, Clock, Eye, Printer, Wallet } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import {
+  CircleDollarSign,
+  Clock,
+  Eye,
+  Plus,
+  Printer,
+  Wallet,
+} from "lucide-react";
 
 import { StatCard } from "../../components/StatCard";
 import { SearchBar } from "../../components/SearchBar";
@@ -10,112 +17,219 @@ import { ViewPagamentoModal } from "../../components/ViewPagamentoModal";
 import { PaymentRegistrationModal } from "../../components/PaymentRegistrationModal";
 import type { RegistroPagamentoFormData } from "../../components/PaymentRegistrationModal/registroPagamentoFields";
 
-import type {
-  Pagamento,
-  RegistroPagamento,
-  MeioDePagamento,
-} from "../../types/pagamento/pagamento";
+import type { Pagamento } from "../../types/pagamento/pagamento";
+import type { RegistroPagamento } from "../../types/registroPagamento/registroPagamento";
 
-import { formatCurrencyDisplay } from "../../utils/formatters";
+import { StatusPagamento } from "../../enums/StatusPagamento";
+
+import {
+  buscarPagamentosPorOficina,
+  calcularValorParaReceber,
+} from "../../services/pagamentoService";
+
+import {
+  criarRegistroPagamento,
+  listarRegistrosPorPagamento,
+} from "../../services/registroPagamentoService";
+
+import {
+  formatCurrencyDisplay,
+  formatPagamentoStatus,
+} from "../../utils/formatters";
 
 import "./pagamentos.style.css";
-import { MOCK_ORDENS_SERVICO } from "../../mocks/ordemDeServico";
+
 import { HeaderPage } from "../../components/HeaderPage";
 
 interface PagamentosProps {
-  pagamentos: Pagamento[];
-  registros: RegistroPagamento[];
-  onAddRegistroPagamento: (
-    pagamentoId: number,
-    valor: number,
-    formaPagamento: MeioDePagamento,
-  ) => void;
+  oficinaId: number;
 }
 
-export function Pagamentos({
-  pagamentos,
-  registros,
-  onAddRegistroPagamento,
-}: PagamentosProps) {
+export function Pagamentos({ oficinaId }: PagamentosProps) {
+  const [pagamentos, setPagamentos] = useState<Pagamento[]>([]);
+  const [valorAReceber, setValorAReceber] = useState(0);
+
+  const [registros, setRegistros] = useState<RegistroPagamento[]>([]);
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const [submitError, setSubmitError] = useState("");
+
   const [searchTerm, setSearchTerm] = useState("");
+
   const [viewingPagamentoId, setViewingPagamentoId] = useState<number | null>(
     null,
   );
-  const [isRegistroModalOpen, setIsRegistroModalOpen] = useState(false);
+
+  const [registeringPagamentoId, setRegisteringPagamentoId] = useState<
+    number | null
+  >(null);
 
   const viewingPagamento = useMemo(
-    () => pagamentos.find((p) => p.id === viewingPagamentoId) ?? null,
+    () =>
+      pagamentos.find((pagamento) => pagamento.id === viewingPagamentoId) ??
+      null,
     [pagamentos, viewingPagamentoId],
   );
 
-  const totalRecebido = pagamentos.reduce((total, p) => total + p.valorPago, 0);
+  const registeringPagamento = useMemo(
+    () =>
+      pagamentos.find((pagamento) => pagamento.id === registeringPagamentoId) ??
+      null,
+    [pagamentos, registeringPagamentoId],
+  );
 
-  const totalAReceber = pagamentos.reduce(
-    (total, p) => total + Math.max(p.valorTotal - p.valorPago, 0),
+  useEffect(() => {
+    async function carregarPagamentos() {
+      try {
+        setLoading(true);
+        setError("");
+
+        const [pagamentosResponse, valorAReceberResponse] = await Promise.all([
+          buscarPagamentosPorOficina(oficinaId),
+          calcularValorParaReceber(oficinaId),
+        ]);
+
+        setPagamentos(pagamentosResponse);
+        setValorAReceber(valorAReceberResponse);
+      } catch (err) {
+        console.error("Erro ao carregar pagamentos:", err);
+
+        setError("Não foi possível carregar os pagamentos.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    carregarPagamentos();
+  }, [oficinaId]);
+
+  useEffect(() => {
+    async function carregarRegistros() {
+      if (!viewingPagamentoId) {
+        setRegistros([]);
+        return;
+      }
+
+      try {
+        setRegistros([]);
+
+        const registrosResponse =
+          await listarRegistrosPorPagamento(viewingPagamentoId);
+
+        setRegistros(registrosResponse);
+      } catch (err) {
+        console.error("Erro ao carregar registros de pagamento:", err);
+
+        setRegistros([]);
+      }
+    }
+
+    carregarRegistros();
+  }, [viewingPagamentoId]);
+
+  const totalRecebido = pagamentos.reduce(
+    (total, pagamento) => total + pagamento.valorPago,
     0,
   );
 
   const pagamentosPendentes = pagamentos.filter(
-    (p) => p.valorPago === 0,
+    (pagamento) => pagamento.status === StatusPagamento.PAGAMENTO_PENDENTE,
   ).length;
 
-  function handleAddRegistro(data: RegistroPagamentoFormData) {
-    if (!viewingPagamento) return;
-    onAddRegistroPagamento(
-      viewingPagamento.id,
-      data.valorPago,
-      data.meioPagamento,
-    );
-    setIsRegistroModalOpen(false);
+  const pagamentosFiltrados = useMemo(() => {
+    const termo = searchTerm.trim().toLowerCase();
+
+    if (!termo) {
+      return pagamentos;
+    }
+
+    return pagamentos.filter((pagamento) => {
+      return (
+        pagamento.osId.toString().includes(termo) ||
+        pagamento.id.toString().includes(termo)
+      );
+    });
+  }, [pagamentos, searchTerm]);
+
+  async function recarregarPagamentos() {
+    try {
+      setError("");
+
+      const [pagamentosResponse, valorAReceberResponse] = await Promise.all([
+        buscarPagamentosPorOficina(oficinaId),
+        calcularValorParaReceber(oficinaId),
+      ]);
+
+      setPagamentos(pagamentosResponse);
+      setValorAReceber(valorAReceberResponse);
+    } catch (err) {
+      console.error("Erro ao recarregar pagamentos:", err);
+
+      setError("Não foi possível atualizar os pagamentos.");
+    }
+  }
+
+  async function handleSaveRegistroPagamento(data: RegistroPagamentoFormData) {
+    if (!registeringPagamentoId) {
+      return;
+    }
+
+    try {
+      setSubmitError("");
+
+      await criarRegistroPagamento({
+        pagamentoId: registeringPagamentoId,
+        valor: data.valorPago,
+        meioPagamento: data.meioPagamento,
+      });
+
+      setRegisteringPagamentoId(null);
+
+      await recarregarPagamentos();
+    } catch (err) {
+      console.error("Erro ao registrar pagamento:", err);
+
+      setSubmitError(
+        err instanceof Error
+          ? err.message
+          : "Não foi possível registrar o pagamento.",
+      );
+    }
   }
 
   const columns: Column<Pagamento>[] = [
     {
       key: "osId",
       header: "OS",
-      width: "10%",
+      width: "15%",
       render: (pagamento) => (
         <strong>#{pagamento.osId.toString().padStart(4, "0")}</strong>
       ),
     },
     {
-      key: "id",
-      header: "Pagamento",
-      width: "10%",
-      render: (pagamento) => (
-        <span>#{pagamento.id.toString().padStart(4, "0")}</span>
-      ),
-    },
-    {
-      key: "cliente",
-      header: "Cliente",
-      width: "22%",
-      render: (pagamento) => (
-        <strong className="payment-client-name">
-          {getClienteNome(pagamento.osId)}
-        </strong>
-      ),
-    },
-    {
       key: "valorTotal",
       header: "Valor OS",
-      width: "17%",
+      width: "20%",
       render: (pagamento) => formatCurrencyDisplay(pagamento.valorTotal),
     },
     {
       key: "valorPago",
       header: "Recebido",
-      width: "17%",
-      render: (pagamento) => (
-        <span className="payment-received">
-          {formatCurrencyDisplay(pagamento.valorPago)}
-        </span>
-      ),
+      width: "20%",
+      render: (pagamento) => formatCurrencyDisplay(pagamento.valorPago),
+    },
+    {
+      key: "valorPendente",
+      header: "A Receber",
+      width: "20%",
+      render: (pagamento) => formatCurrencyDisplay(pagamento.valorPendente),
     },
     {
       key: "status",
       header: "Status",
-      width: "16%",
+      width: "20%",
       render: (pagamento) => (
         <span
           className={`payment-status payment-status-${pagamento.status.toLowerCase()}`}
@@ -128,16 +242,30 @@ export function Pagamentos({
 
   const actions: EntityAction<Pagamento>[] = [
     {
+      label: "Registrar Pagamento",
+      icon: Plus,
+      variant: "edit",
+      onClick: (pagamento) => {
+        setSubmitError("");
+        setRegisteringPagamentoId(pagamento.id);
+      },
+    },
+    {
       label: "Visualizar pagamento",
       icon: Eye,
       variant: "view",
-      onClick: (pagamento) => setViewingPagamentoId(pagamento.id),
+      onClick: (pagamento) => {
+        setSubmitError("");
+        setViewingPagamentoId(pagamento.id);
+      },
     },
     {
       label: "Imprimir pagamento",
       icon: Printer,
       variant: "print",
-      onClick: (pagamento) => handlePrintPagamento(pagamento.id),
+      onClick: (pagamento) => {
+        handlePrintPagamento(pagamento.id);
+      },
     },
   ];
 
@@ -148,6 +276,12 @@ export function Pagamentos({
         subtitle="Gerencie os pagamentos das ordens de serviço"
       />
 
+      {error && (
+        <div className="page-error">
+          <p>{error}</p>
+        </div>
+      )}
+
       <div className="payments-stats">
         <StatCard
           title="Total Recebido"
@@ -155,18 +289,21 @@ export function Pagamentos({
           description="Total já recebido"
           icon={CircleDollarSign}
         />
+
         <StatCard
           title="A Receber"
-          value={formatCurrencyDisplay(totalAReceber)}
+          value={formatCurrencyDisplay(valorAReceber)}
           description="Valor pendente"
           icon={Wallet}
         />
+
         <StatCard
           title="Pagamentos"
           value={pagamentos.length.toString()}
           description="Total de pagamentos"
           icon={CircleDollarSign}
         />
+
         <StatCard
           title="Pendentes"
           value={pagamentosPendentes.toString()}
@@ -182,63 +319,49 @@ export function Pagamentos({
       />
 
       <EntityTable
-        data={pagamentos}
+        data={pagamentosFiltrados}
         columns={columns}
         actions={actions}
+        loading={loading}
         getRowKey={(pagamento) => pagamento.id}
-        searchTerm={searchTerm}
-        searchFn={(pagamento, term) => {
-          const cliente = getClienteNome(pagamento.osId);
-          return (
-            pagamento.osId.toString().includes(term) ||
-            pagamento.id.toString().includes(term) ||
-            cliente.toLowerCase().includes(term.toLowerCase())
-          );
-        }}
+        searchTerm=""
+        searchFn={() => true}
         emptyMessage="Nenhum pagamento cadastrado"
       />
 
       {viewingPagamento && (
         <ViewPagamentoModal
           pagamento={viewingPagamento}
-          registros={registros.filter(
-            (r) => r.pagamentoId === viewingPagamento.id,
-          )}
-          onAddPagamento={() => setIsRegistroModalOpen(true)}
-          onClose={() => setViewingPagamentoId(null)}
+          registros={registros}
+          onAddPagamento={() => {
+            setViewingPagamentoId(null);
+            setSubmitError("");
+            setRegisteringPagamentoId(viewingPagamento.id);
+          }}
+          onClose={() => {
+            setViewingPagamentoId(null);
+            setRegistros([]);
+          }}
         />
       )}
 
-      {isRegistroModalOpen && viewingPagamento && (
+      {registeringPagamento && (
         <PaymentRegistrationModal
-          pagamento={viewingPagamento}
-          onSave={handleAddRegistro}
-          onClose={() => setIsRegistroModalOpen(false)}
+          pagamento={registeringPagamento}
+          onSave={handleSaveRegistroPagamento}
+          onClose={() => {
+            setRegisteringPagamentoId(null);
+            setSubmitError("");
+          }}
+          submitError={submitError}
         />
       )}
     </div>
   );
 }
 
-function formatPagamentoStatus(status: string): string {
-  switch (status) {
-    case "PAGO":
-      return "Pago";
-    case "PARCIAL":
-      return "Parcial";
-    case "PENDENTE":
-      return "Pendente";
-    default:
-      return status;
-  }
-}
-
-function getClienteNome(osId: number): string {
-  const ordem = MOCK_ORDENS_SERVICO.find((os) => os.id === osId);
-  return ordem?.nomeCliente ?? "Cliente não encontrado";
-}
-
 function handlePrintPagamento(pagamentoId: number) {
   console.log("Imprimir pagamento:", pagamentoId);
+
   // TODO: implementar impressão do comprovante
 }
