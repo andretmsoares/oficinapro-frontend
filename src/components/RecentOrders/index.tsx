@@ -1,12 +1,53 @@
-import { useState } from "react";
-import { type OrdemDeServico } from "../../types/ordemDeServico/ordemDeServico";
+import { useEffect, useState } from "react";
+
+import { listarOrdensServico } from "../../services/ordemDeServicoService";
+import type { OrdemDeServico } from "../../types/ordemDeServico/ordemDeServico";
 
 import "./recentOrders.style.css";
-import { MOCK_ORDENS_SERVICO } from "../../mocks/ordemDeServico";
 
 export function RecentOrders() {
-  const [orders] = useState<OrdemDeServico[]>(MOCK_ORDENS_SERVICO);
-  const [loading] = useState(false);
+  const [orders, setOrders] = useState<OrdemDeServico[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    let ativo = true;
+
+    async function carregarOrdens() {
+      try {
+        setLoading(true);
+        setError(false);
+
+        const ordens = await listarOrdensServico();
+
+        if (ativo) {
+          const ordensRecentes = [...ordens]
+            .sort(
+              (a, b) =>
+                new Date(b.dataAbertura).getTime() -
+                new Date(a.dataAbertura).getTime(),
+            )
+            .slice(0, 5);
+
+          setOrders(ordensRecentes);
+        }
+      } catch {
+        if (ativo) {
+          setError(true);
+        }
+      } finally {
+        if (ativo) {
+          setLoading(false);
+        }
+      }
+    }
+
+    carregarOrdens();
+
+    return () => {
+      ativo = false;
+    };
+  }, []);
 
   return (
     <div className="recent-orders">
@@ -18,6 +59,8 @@ export function RecentOrders() {
       <div className="order-list">
         {loading ? (
           <p>Carregando ordens...</p>
+        ) : error ? (
+          <p>Não foi possível carregar as ordens.</p>
         ) : orders.length === 0 ? (
           <p>Nenhuma ordem de serviço encontrada.</p>
         ) : (
@@ -26,7 +69,7 @@ export function RecentOrders() {
               <div>
                 <strong>#{order.id.toString().padStart(5, "0")}</strong>
                 <span>{order.placaVeiculo}</span>
-                <small>{order.nomeCliente}</small>
+                <small>{order.nomeCliente || "Cliente não informado"}</small>
               </div>
 
               <span className="status">{order.status}</span>

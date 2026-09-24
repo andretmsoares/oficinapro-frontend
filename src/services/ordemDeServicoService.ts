@@ -5,6 +5,7 @@ import type {
   AtribuirMecanicoRequest,
   OrdemDeServico,
   OrdemDeServicoRequest,
+  FluxoMensalOS,
 } from "../types/ordemDeServico/ordemDeServico";
 import type { StatusOrdemDeServico } from "../enums/StatusOrdemDeServico";
 
@@ -109,4 +110,13 @@ export async function listarOrdensPorStatus(
   status: StatusOrdemDeServico,
 ): Promise<OrdemDeServico[]> {
   return api<OrdemDeServico[]>(`/ordens-servico/status/${status}`);
+}
+
+export async function listarFluxoMensalOS(
+  mes: number,
+  ano: number,
+): Promise<FluxoMensalOS[]> {
+  return api<FluxoMensalOS[]>(
+    `/ordens-servico/fluxo-mensal?mes=${mes}&ano=${ano}`,
+  );
 }

@@ -203,7 +203,7 @@ export function Pagamentos({ oficinaId }: PagamentosProps) {
     {
       key: "osId",
       header: "OS",
-      width: "15%",
+      width: "13%",
       render: (pagamento) => (
         <strong>#{pagamento.osId.toString().padStart(4, "0")}</strong>
       ),
@@ -211,13 +211,13 @@ export function Pagamentos({ oficinaId }: PagamentosProps) {
     {
       key: "valorTotal",
       header: "Valor OS",
-      width: "20%",
+      width: "18%",
       render: (pagamento) => formatCurrencyDisplay(pagamento.valorTotal),
     },
     {
       key: "valorPago",
       header: "Recebido",
-      width: "20%",
+      width: "18%",
       render: (pagamento) => formatCurrencyDisplay(pagamento.valorPago),
     },
     {

@@ -13,14 +13,16 @@ export async function buscarUnidadesAutocomplete(
 
   const unidades = await listarUnidades();
 
-  return unidades
-    .filter((unidade) => unidade.nome.toLowerCase().includes(termo))
+  const resultado = unidades
+    .filter((unidade) => unidade.nome.toUpperCase().includes(termo))
     .slice(0, 10)
     .map((unidade) => ({
       id: unidade.id,
       label: unidade.nome,
-      description: unidade.endereco ? unidade.endereco : undefined,
+      description: unidade.endereco || undefined,
     }));
+
+  return resultado;
 }
 
 export async function buscarUnidadeAutocompletePorId(
