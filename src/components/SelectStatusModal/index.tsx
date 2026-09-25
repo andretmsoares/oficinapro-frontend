@@ -17,35 +17,48 @@ interface SelectStatusModalProps {
 
 export function SelectStatusModal({
   title = "Atualizar Status",
-  currentStatus,
   statuses,
   onSave,
   onClose,
 }: SelectStatusModalProps) {
-  const [selectedStatus, setSelectedStatus] = useState(currentStatus);
+  const [selectedStatus, setSelectedStatus] = useState(
+    statuses[0]?.value ?? "",
+  );
+
+  const hasOptions = statuses.length > 0;
 
   return (
     <div className="form">
       <div className="form-content">
         <h2>{title}</h2>
 
-        <div className="input-create-entity">
-          <select
-            value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
-          >
-            {statuses.map((status) => (
-              <option key={status.value} value={status.value}>
-                {status.label}
-              </option>
-            ))}
-          </select>
-        </div>
+        {hasOptions ? (
+          <>
+            <div className="input-create-entity">
+              <select
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+              >
+                {statuses.map((status) => (
+                  <option key={status.value} value={status.value}>
+                    {status.label}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-        <ButtonsForm
-          onClose={onClose}
-          onSave={() => onSave(selectedStatus)}
-        />
+            <ButtonsForm
+              onClose={onClose}
+              onSave={() => onSave(selectedStatus)}
+            />
+          </>
+        ) : (
+          <div className="status-no-options">
+            <p>Não existem transições de status disponíveis.</p>
+
+            <ButtonsForm onClose={onClose} onSave={() => undefined} />
+          </div>
+        )}
       </div>
     </div>
   );

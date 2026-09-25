@@ -67,52 +67,53 @@ function formatStatusOrdemServico(status: StatusOrdemDeServico): string {
   return labels[status];
 }
 
-const statusOptions = [
-  {
-    label: "Aberta",
-    value: StatusOrdemDeServico.ABERTA,
-  },
-  {
-    label: "Diagnóstico",
-    value: StatusOrdemDeServico.DIAGNOSTICO,
-  },
-  {
-    label: "Aguardando aprovação",
-    value: StatusOrdemDeServico.AGUARDANDO_APROVACAO,
-  },
-  {
-    label: "Aguardando peças",
-    value: StatusOrdemDeServico.AGUARDANDO_PECAS,
-  },
-  {
-    label: "Em execução",
-    value: StatusOrdemDeServico.EM_EXECUCAO,
-  },
-  {
-    label: "Finalizada",
-    value: StatusOrdemDeServico.FINALIZADA,
-  },
-  {
-    label: "Entregue",
-    value: StatusOrdemDeServico.ENTREGUE,
-  },
-  {
-    label: "Fechada",
-    value: StatusOrdemDeServico.FECHADA,
-  },
-  {
-    label: "Cancelada",
-    value: StatusOrdemDeServico.CANCELADA,
-  },
-];
+function getStatusPermitidos(
+  statusAtual: StatusOrdemDeServico,
+): StatusOrdemDeServico[] {
+  switch (statusAtual) {
+    case StatusOrdemDeServico.ABERTA:
+      return [StatusOrdemDeServico.DIAGNOSTICO, StatusOrdemDeServico.CANCELADA];
+
+    case StatusOrdemDeServico.DIAGNOSTICO:
+      return [
+        StatusOrdemDeServico.AGUARDANDO_APROVACAO,
+        StatusOrdemDeServico.CANCELADA,
+      ];
+
+    case StatusOrdemDeServico.AGUARDANDO_APROVACAO:
+      return [
+        StatusOrdemDeServico.AGUARDANDO_PECAS,
+        StatusOrdemDeServico.CANCELADA,
+      ];
+
+    case StatusOrdemDeServico.AGUARDANDO_PECAS:
+      return [StatusOrdemDeServico.EM_EXECUCAO, StatusOrdemDeServico.CANCELADA];
+
+    case StatusOrdemDeServico.EM_EXECUCAO:
+      return [StatusOrdemDeServico.FINALIZADA, StatusOrdemDeServico.CANCELADA];
+
+    case StatusOrdemDeServico.FINALIZADA:
+      return [StatusOrdemDeServico.ENTREGUE, StatusOrdemDeServico.ABERTA];
+
+    case StatusOrdemDeServico.ENTREGUE:
+      return [StatusOrdemDeServico.FECHADA, StatusOrdemDeServico.ABERTA];
+
+    case StatusOrdemDeServico.FECHADA:
+      return [StatusOrdemDeServico.ABERTA];
+
+    case StatusOrdemDeServico.CANCELADA:
+      return [];
+
+    default:
+      return [];
+  }
+}
 
 export function OrdensServico({ usuarioLogado }: OrdensServicoProps) {
   const isGerente = usuarioLogado.role === "GERENTE";
 
   const [ordensServico, setOrdensServico] = useState<OrdemDeServico[]>([]);
-
   const [loading, setLoading] = useState(true);
-
   const [pecas, setPecas] = useState<ItemOsPeca[]>([]);
 
   const [searchParams] = useSearchParams();
@@ -194,6 +195,12 @@ export function OrdensServico({ usuarioLogado }: OrdensServicoProps) {
       setSelectingStatusOrdem(null);
     } catch (error) {
       console.error("Erro ao atualizar status da OS:", error);
+
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível atualizar o status da OS.",
+      );
     }
   }
 
@@ -217,11 +224,6 @@ export function OrdensServico({ usuarioLogado }: OrdensServicoProps) {
     );
   }
 
-  /*
-   * Chamado pelo ViewOrdemServicoModal sempre que a OS muda
-   * (peça, mão de obra, desconto). O pagamento é recarregado
-   * do backend dentro do próprio modal.
-   */
   function handleUpdateOrdemServico(ordemAtualizada: OrdemDeServico) {
     setOrdensServico((prev) =>
       prev.map((ordem) =>
@@ -325,7 +327,7 @@ export function OrdensServico({ usuarioLogado }: OrdensServicoProps) {
 
         console.error("Erro ao carregar ordens de serviço e peças:", error);
       } finally {
-        if (!ativo) {
+        if (ativo) {
           setLoading(false);
         }
       }
@@ -414,6 +416,16 @@ export function OrdensServico({ usuarioLogado }: OrdensServicoProps) {
       : []),
   ];
 
+  const statusOptions: {
+    label: string;
+    value: StatusOrdemDeServico;
+  }[] = selectingStatusOrdem
+    ? getStatusPermitidos(selectingStatusOrdem.status).map((status) => ({
+        value: status,
+        label: formatStatusOrdemServico(status),
+      }))
+    : [];
+
   return (
     <div className="page">
       {isGerente ? (
@@ -493,7 +505,10 @@ export function OrdensServico({ usuarioLogado }: OrdensServicoProps) {
           currentStatus={selectingStatusOrdem.status}
           statuses={statusOptions}
           onSave={handleConfirmStatus}
-          onClose={() => setSelectingStatusOrdem(null)}
+          onClose={() => {
+            setSelectingStatusOrdem(null);
+            setSubmitError("");
+          }}
         />
       )}
 
