@@ -120,3 +120,39 @@ export async function listarFluxoMensalOS(
     `/ordens-servico/fluxo-mensal?mes=${mes}&ano=${ano}`,
   );
 }
+
+export function getStatusPermitidos(
+  statusAtual: StatusOrdemDeServico,
+): StatusOrdemDeServico[] {
+  switch (statusAtual) {
+    case "ABERTA":
+      return ["DIAGNOSTICO", "CANCELADA"];
+
+    case "DIAGNOSTICO":
+      return ["AGUARDANDO_APROVACAO", "CANCELADA"];
+
+    case "AGUARDANDO_APROVACAO":
+      return ["AGUARDANDO_PECAS", "CANCELADA"];
+
+    case "AGUARDANDO_PECAS":
+      return ["EM_EXECUCAO", "CANCELADA"];
+
+    case "EM_EXECUCAO":
+      return ["FINALIZADA", "CANCELADA"];
+
+    case "FINALIZADA":
+      return ["ENTREGUE", "ABERTA"];
+
+    case "ENTREGUE":
+      return ["FECHADA", "ABERTA"];
+
+    case "FECHADA":
+      return ["ABERTA"];
+
+    case "CANCELADA":
+      return [];
+
+    default:
+      return [];
+  }
+}

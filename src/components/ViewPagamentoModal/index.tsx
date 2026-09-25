@@ -15,6 +15,7 @@ interface ViewPagamentoModalProps {
   registros: RegistroPagamento[];
   onAddPagamento: () => void;
   onClose: () => void;
+  onDeletePagamento: (registroId: number) => void;
 }
 
 export function ViewPagamentoModal({
@@ -22,6 +23,7 @@ export function ViewPagamentoModal({
   registros,
   onAddPagamento,
   onClose,
+  onDeletePagamento,
 }: ViewPagamentoModalProps) {
   const valorRestante = Math.max(pagamento.valorTotal - pagamento.valorPago, 0);
 
@@ -42,6 +44,7 @@ export function ViewPagamentoModal({
           registros={registros}
           valorRestante={valorRestante}
           onAddPagamento={onAddPagamento}
+          onDeletePagamento={onDeletePagamento}
         />
 
         <PaymentObservation observation={pagamento.obs} />

@@ -7,7 +7,7 @@ import {
 interface PecaCreateModalProps {
   osId: number;
   onClose: () => void;
-  onSave: (data: ItemOsPecaFormData) => void;
+  onSave: (data: ItemOsPecaFormData) => void | Promise<void>;
 }
 
 export function PecaCreateModal({

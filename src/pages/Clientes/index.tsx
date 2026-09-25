@@ -20,6 +20,7 @@ import {
   deletarCliente,
   listarClientes,
 } from "../../services/clienteService";
+import { useNavigate } from "react-router-dom";
 
 interface ClientesProps {
   usuarioLogado: Usuario;
@@ -34,9 +35,18 @@ export function Clientes({ usuarioLogado }: ClientesProps) {
   const [editingCliente, setEditingCliente] = useState<Cliente | null>(null);
   const [deletingCliente, setDeletingCliente] = useState<Cliente | null>(null);
   const [submitError, setSubmitError] = useState("");
+  const navigate = useNavigate();
 
   function handleViewOrders(clienteId: number) {
-    console.log("Visualizar Ordens de Serviço do cliente:", clienteId);
+    const cliente = clientes.find((c) => c.id === clienteId);
+
+    if (!cliente) {
+      return;
+    }
+
+    const busca = cliente.nome.trim();
+
+    navigate(`/ordens-servico?cliente=${encodeURIComponent(busca)}`);
   }
 
   function handleEdit(id: number) {

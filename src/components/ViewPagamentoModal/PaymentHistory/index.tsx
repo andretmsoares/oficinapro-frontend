@@ -8,12 +8,14 @@ interface PaymentHistoryProps {
   registros: RegistroPagamento[];
   valorRestante: number;
   onAddPagamento: () => void;
+  onDeletePagamento: (registroId: number) => void;
 }
 
 export function PaymentHistory({
   registros,
   valorRestante,
   onAddPagamento,
+  onDeletePagamento,
 }: PaymentHistoryProps) {
   return (
     <section className="payment-history">
@@ -36,7 +38,10 @@ export function PaymentHistory({
         )}
       </div>
 
-      <PaymentHistoryTable registros={registros} />
+      <PaymentHistoryTable
+        registros={registros}
+        onDeletePagamento={onDeletePagamento}
+      />
     </section>
   );
 }

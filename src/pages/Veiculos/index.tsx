@@ -27,6 +27,7 @@ import {
 import { formatPlate } from "../../utils/formatters";
 
 import "./veiculos.style.css";
+import { useNavigate } from "react-router-dom";
 
 interface VeiculoProps {
   usuarioLogado: Usuario;
@@ -48,6 +49,8 @@ export function Veiculos({ usuarioLogado }: VeiculoProps) {
 
   const [submitError, setSubmitError] = useState("");
 
+  const navigate = useNavigate();
+
   function fecharModal() {
     setEditingVeiculo(null);
     setIsModalOpen(false);
@@ -61,6 +64,7 @@ export function Veiculos({ usuarioLogado }: VeiculoProps) {
         marca: data.marca,
         modelo: data.modelo,
         ano: data.ano,
+        cor: data.cor,
       };
 
       const novoVeiculo = await criarVeiculo(request);
@@ -78,8 +82,16 @@ export function Veiculos({ usuarioLogado }: VeiculoProps) {
     }
   }
 
-  function handleViewOrders(id: number) {
-    console.log("Visualizar ordens de serviço do veículo:", id);
+  function handleViewOrders(veiculoId: number) {
+    const veiculo = veiculos.find((v) => v.id === veiculoId);
+
+    if (!veiculo) {
+      return;
+    }
+
+    const busca = veiculo.placa.trim();
+
+    navigate(`/ordens-servico?veiculo=${encodeURIComponent(busca)}`);
   }
 
   function handleEdit(id: number) {
@@ -101,6 +113,7 @@ export function Veiculos({ usuarioLogado }: VeiculoProps) {
         marca: data.marca,
         modelo: data.modelo,
         ano: data.ano,
+        cor: data.cor,
       };
 
       const veiculoAtualizado = await atualizarVeiculo(
@@ -186,17 +199,22 @@ export function Veiculos({ usuarioLogado }: VeiculoProps) {
     {
       key: "marca",
       header: "Marca",
-      width: "20%",
+      width: "15%",
     },
     {
       key: "modelo",
       header: "Modelo",
-      width: "25%",
+      width: "20%",
+    },
+    {
+      key: "cor",
+      header: "Cor",
+      width: "20%",
     },
     {
       key: "ano",
       header: "Ano",
-      width: "15",
+      width: "10",
     },
   ];
 

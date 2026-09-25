@@ -16,6 +16,9 @@ export type OrdemDeServico = {
   valorComDesconto: number;
   placaVeiculo: string;
   nomeCliente: string;
+  unidadeNome: string;
+  oficinaNome: string;
+  mecanicoNome: string;
 };
 
 export type OrdemDeServicoRequest = {
@@ -42,4 +45,16 @@ export type FluxoMensalOS = {
   day: number;
   abertas: number;
   finalizadas: number;
+};
+
+export const STATUS_ORDEM_LABELS: Record<string, string> = {
+  ABERTA: "Aberta",
+  DIAGNOSTICO: "Diagnóstico",
+  AGUARDANDO_APROVACAO: "Aguardando Aprovação",
+  AGUARDANDO_PECAS: "Aguardando Peças",
+  EM_EXECUCAO: "Em Execução",
+  FINALIZADA: "Finalizada",
+  ENTREGUE: "Entregue",
+  FECHADA: "Fechada",
+  CANCELADA: "Cancelada",
 };

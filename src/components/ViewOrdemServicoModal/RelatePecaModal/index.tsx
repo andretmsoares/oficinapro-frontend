@@ -12,13 +12,12 @@ interface RelatePecaModalProps {
   todasAsPecas: ItemOsPeca[];
   pecasDaOsAtual: ItemOsPeca[];
   onClose: () => void;
-  onSelecionar: (peca: { nome: string; valorUnitario: number }) => void;
+  onSelecionar: (peca: ItemOsPeca) => void | Promise<void>;
 }
 
 export function RelatePecaModal({
   osId,
   todasAsPecas,
-  pecasDaOsAtual,
   onClose,
   onSelecionar,
 }: RelatePecaModalProps) {
@@ -30,15 +29,16 @@ export function RelatePecaModal({
     peca.nome.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
-  function isPecaJaRelacionada(nome: string): boolean {
-    return pecasDaOsAtual.some(
-      (peca) => peca.nome.toLowerCase() === nome.toLowerCase(),
-    );
+  function isPecaJaRelacionada(peca: ItemOsPeca): boolean {
+    return peca.osId !== null;
   }
 
-  function handleSelectPeca(peca: ItemOsPeca) {
-    if (isPecaJaRelacionada(peca.nome)) return;
-    onSelecionar({ nome: peca.nome, valorUnitario: peca.valorUnitario });
+  async function handleSelectPeca(peca: ItemOsPeca) {
+    if (isPecaJaRelacionada(peca)) {
+      return;
+    }
+
+    await onSelecionar(peca);
   }
 
   return (
@@ -47,6 +47,7 @@ export function RelatePecaModal({
         <header className="relate-peca-header">
           <div>
             <h2>Relacionar peça</h2>
+
             <span>
               Selecione uma peça já cadastrada para a OS #
               {osId.toString().padStart(4, "0")}
@@ -71,7 +72,7 @@ export function RelatePecaModal({
             <div className="relate-peca-empty">Nenhuma peça encontrada.</div>
           ) : (
             pecasFiltradas.map((peca) => {
-              const jaRelacionada = isPecaJaRelacionada(peca.nome);
+              const jaRelacionada = isPecaJaRelacionada(peca);
 
               return (
                 <button
@@ -83,6 +84,7 @@ export function RelatePecaModal({
                 >
                   <div>
                     <strong>{peca.nome}</strong>
+
                     <span>
                       Valor unitário:{" "}
                       {formatCurrencyDisplay(peca.valorUnitario)}
@@ -104,8 +106,10 @@ export function RelatePecaModal({
 
 function dedupeByNome(pecas: ItemOsPeca[]): ItemOsPeca[] {
   const map = new Map<string, ItemOsPeca>();
+
   for (const peca of pecas) {
     map.set(peca.nome.toLowerCase(), peca);
   }
+
   return Array.from(map.values());
 }

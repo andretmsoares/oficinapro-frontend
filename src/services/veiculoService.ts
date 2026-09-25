@@ -7,6 +7,7 @@ export interface VeiculoRequest {
   marca: string;
   modelo: string;
   ano: number;
+  cor: string;
 }
 
 export interface VeiculoPage {

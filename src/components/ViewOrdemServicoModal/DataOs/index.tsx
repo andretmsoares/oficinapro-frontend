@@ -37,7 +37,7 @@ export function DataOS({ ordemServico }: DataOSProps) {
         <InfoItem
           icon={Building2}
           label="Oficina"
-          value={`Oficina #${ordemServico.oficinaId}`}
+          value={`${ordemServico.oficinaNome}`}
         />
 
         <InfoItem
@@ -45,7 +45,7 @@ export function DataOS({ ordemServico }: DataOSProps) {
           label="Unidade"
           value={
             ordemServico.unidadeId
-              ? `Unidade #${ordemServico.unidadeId}`
+              ? `${ordemServico.unidadeNome}`
               : "Não informado"
           }
         />
@@ -74,7 +74,7 @@ export function DataOS({ ordemServico }: DataOSProps) {
         <InfoItem
           icon={HardHat}
           label="Mecânico responsável"
-          value={`Mecânico #${ordemServico.mecanicoId}`}
+          value={`${ordemServico.mecanicoNome}`}
         />
 
         <InfoItem
