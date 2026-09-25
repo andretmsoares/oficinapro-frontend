@@ -27,6 +27,7 @@ import {
 import { formatPlate } from "../../utils/formatters";
 
 import "./veiculos.style.css";
+import { useNavigate } from "react-router-dom";
 
 interface VeiculoProps {
   usuarioLogado: Usuario;
@@ -47,6 +48,8 @@ export function Veiculos({ usuarioLogado }: VeiculoProps) {
   const [deletingVeiculo, setDeletingVeiculo] = useState<Veiculo | null>(null);
 
   const [submitError, setSubmitError] = useState("");
+
+  const navigate = useNavigate();
 
   function fecharModal() {
     setEditingVeiculo(null);
@@ -79,8 +82,16 @@ export function Veiculos({ usuarioLogado }: VeiculoProps) {
     }
   }
 
-  function handleViewOrders(id: number) {
-    console.log("Visualizar ordens de serviço do veículo:", id);
+  function handleViewOrders(veiculoId: number) {
+    const veiculo = veiculos.find((v) => v.id === veiculoId);
+
+    if (!veiculo) {
+      return;
+    }
+
+    const busca = veiculo.placa.trim();
+
+    navigate(`/ordens-servico?veiculo=${encodeURIComponent(busca)}`);
   }
 
   function handleEdit(id: number) {

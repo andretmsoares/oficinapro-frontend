@@ -45,6 +45,7 @@ import {
 import { listarItemOsPecas } from "../../services/itemOsPecaService";
 
 import { StatusOrdemDeServico } from "../../enums/StatusOrdemDeServico";
+import { useSearchParams } from "react-router-dom";
 
 interface OrdensServicoProps {
   usuarioLogado: Usuario;
@@ -114,7 +115,12 @@ export function OrdensServico({ usuarioLogado }: OrdensServicoProps) {
 
   const [pecas, setPecas] = useState<ItemOsPeca[]>([]);
 
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchParams] = useSearchParams();
+
+  const clienteBusca = searchParams.get("cliente") ?? "";
+  const veiculoBusca = searchParams.get("veiculo") ?? "";
+
+  const [searchTerm, setSearchTerm] = useState(clienteBusca || veiculoBusca);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
