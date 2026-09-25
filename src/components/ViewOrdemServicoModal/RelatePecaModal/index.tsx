@@ -18,7 +18,6 @@ interface RelatePecaModalProps {
 export function RelatePecaModal({
   osId,
   todasAsPecas,
-  pecasDaOsAtual,
   onClose,
   onSelecionar,
 }: RelatePecaModalProps) {
@@ -30,14 +29,12 @@ export function RelatePecaModal({
     peca.nome.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
-  function isPecaJaRelacionada(nome: string): boolean {
-    return pecasDaOsAtual.some(
-      (peca) => peca.nome.toLowerCase() === nome.toLowerCase(),
-    );
+  function isPecaJaRelacionada(peca: ItemOsPeca): boolean {
+    return peca.osId !== null;
   }
 
   async function handleSelectPeca(peca: ItemOsPeca) {
-    if (isPecaJaRelacionada(peca.nome)) {
+    if (isPecaJaRelacionada(peca)) {
       return;
     }
 
@@ -75,7 +72,7 @@ export function RelatePecaModal({
             <div className="relate-peca-empty">Nenhuma peça encontrada.</div>
           ) : (
             pecasFiltradas.map((peca) => {
-              const jaRelacionada = isPecaJaRelacionada(peca.nome);
+              const jaRelacionada = isPecaJaRelacionada(peca);
 
               return (
                 <button

@@ -69,6 +69,7 @@ interface ViewOrdemServicoModalProps {
   onClose: () => void;
 
   onAddPeca: (peca: ItemOsPeca) => void;
+  onUpdatePeca: (peca: ItemOsPeca) => void;
 
   onUpdateOrdemServico: (ordemAtualizada: OrdemDeServico) => void;
 }
@@ -81,6 +82,7 @@ export function ViewOrdemServicoModal({
   todasAsPecas,
   onClose,
   onAddPeca,
+  onUpdatePeca,
   onUpdateOrdemServico,
 }: ViewOrdemServicoModalProps) {
   const isGerente = usuarioLogado.role === "GERENTE";
@@ -359,6 +361,7 @@ export function ViewOrdemServicoModal({
       });
 
       onAddPeca(pecaVinculada);
+      onUpdatePeca(pecaVinculada);
 
       await atualizarDadosOrdemServico();
 
@@ -386,6 +389,12 @@ export function ViewOrdemServicoModal({
         prev.filter((peca) => peca.id !== desvinculandoPeca.id),
       );
 
+      const pecaAtualizada: ItemOsPeca = {
+        ...desvinculandoPeca,
+        osId: null,
+      };
+
+      onUpdatePeca(pecaAtualizada);
       setDesvinculandoPeca(null);
 
       await atualizarDadosOrdemServico();

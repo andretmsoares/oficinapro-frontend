@@ -203,6 +203,14 @@ export function OrdensServico({ usuarioLogado }: OrdensServicoProps) {
     });
   }
 
+  function handleUpdatePeca(pecaAtualizada: ItemOsPeca) {
+    setPecas((prev) =>
+      prev.map((peca) =>
+        peca.id === pecaAtualizada.id ? pecaAtualizada : peca,
+      ),
+    );
+  }
+
   /*
    * Chamado pelo ViewOrdemServicoModal sempre que a OS muda
    * (peça, mão de obra, desconto). O pagamento é recarregado
@@ -500,6 +508,7 @@ export function OrdensServico({ usuarioLogado }: OrdensServicoProps) {
           todasAsPecas={pecas}
           onClose={() => setViewingOrdem(null)}
           onAddPeca={handleAddPeca}
+          onUpdatePeca={handleUpdatePeca}
           onUpdateOrdemServico={handleUpdateOrdemServico}
         />
       )}
