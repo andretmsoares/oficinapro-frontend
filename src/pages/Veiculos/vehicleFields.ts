@@ -5,6 +5,7 @@ export type VeiculoFormData = {
   marca: string;
   modelo: string;
   ano: number;
+  cor: string;
 };
 
 export const vehicleFields = defineFields<VeiculoFormData>([
@@ -26,6 +27,13 @@ export const vehicleFields = defineFields<VeiculoFormData>([
     name: "modelo",
     label: "Modelo",
     placeholder: "Digite o modelo do veículo",
+    type: "text",
+    required: true,
+  },
+  {
+    name: "cor",
+    label: "Cor",
+    placeholder: "Digite a cor do veículo",
     type: "text",
     required: true,
   },

@@ -61,6 +61,7 @@ export function Veiculos({ usuarioLogado }: VeiculoProps) {
         marca: data.marca,
         modelo: data.modelo,
         ano: data.ano,
+        cor: data.cor,
       };
 
       const novoVeiculo = await criarVeiculo(request);
@@ -101,6 +102,7 @@ export function Veiculos({ usuarioLogado }: VeiculoProps) {
         marca: data.marca,
         modelo: data.modelo,
         ano: data.ano,
+        cor: data.cor,
       };
 
       const veiculoAtualizado = await atualizarVeiculo(
@@ -186,17 +188,22 @@ export function Veiculos({ usuarioLogado }: VeiculoProps) {
     {
       key: "marca",
       header: "Marca",
-      width: "20%",
+      width: "15%",
     },
     {
       key: "modelo",
       header: "Modelo",
-      width: "25%",
+      width: "20%",
+    },
+    {
+      key: "cor",
+      header: "Cor",
+      width: "20%",
     },
     {
       key: "ano",
       header: "Ano",
-      width: "15",
+      width: "10",
     },
   ];
 
