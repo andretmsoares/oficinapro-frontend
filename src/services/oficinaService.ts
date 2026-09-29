@@ -19,10 +19,6 @@ export interface OficinaPage {
   last: boolean;
 }
 
-export async function listarOficinas(): Promise<Oficina[]> {
-  return api<Oficina[]>("/oficinas");
-}
-
 /**
  * Remove separadores de CNPJ (. - /) do termo de busca, sem afetar buscas
  * por nome. O CNPJ é armazenado sem formatação no backend, então
@@ -36,7 +32,7 @@ function sanitizeSearchTerm(value: string): string {
 export async function buscarOficinas(
   search: string,
   page = 0,
-  size = 10,
+  size = 20,
 ): Promise<OficinaPage> {
   const termo = sanitizeSearchTerm(search);
   const params = new URLSearchParams({

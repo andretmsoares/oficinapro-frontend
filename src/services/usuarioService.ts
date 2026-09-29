@@ -40,11 +40,19 @@ export interface UsuarioMeUpdateRequest {
   password?: string;
 }
 
-export async function listarUsuarios(
+export async function buscarUsuariosPaginado(
+  termo: string,
   page = 0,
-  size = 500,
+  size = 20,
 ): Promise<UsuarioPage> {
-  return api<UsuarioPage>(`/usuarios?page=${page}&size=${size}&sort=nome,asc`);
+  const params = new URLSearchParams({
+    q: termo.trim(),
+    page: String(page),
+    size: String(size),
+    sort: "nome,asc",
+  });
+
+  return api<UsuarioPage>(`/usuarios/buscar?${params.toString()}`);
 }
 
 export async function buscarUsuarioPorId(id: number): Promise<Usuario> {

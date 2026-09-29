@@ -62,8 +62,18 @@ export async function buscarVeiculoPorId(id: number): Promise<Veiculo> {
   return api<Veiculo>(`/veiculos/${id}`);
 }
 
-export async function listarVeiculos(): Promise<VeiculoPage> {
-  return api<VeiculoPage>("/veiculos?size=500");
+export async function buscarVeiculosPaginado(
+  termo: string,
+  page = 0,
+  size = 20,
+): Promise<VeiculoPage> {
+  const params = new URLSearchParams({
+    q: termo.trim(),
+    page: String(page),
+    size: String(size),
+  });
+
+  return api<VeiculoPage>(`/veiculos/buscar?${params.toString()}`);
 }
 
 export async function criarVeiculo(data: VeiculoRequest): Promise<Veiculo> {

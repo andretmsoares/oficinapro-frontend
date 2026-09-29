@@ -13,6 +13,7 @@ import { StatCard } from "../../components/StatCard";
 import { HeaderPageWithButton } from "../../components/HeaderPageWithButton";
 import { SearchBar } from "../../components/SearchBar";
 import { EntityTable } from "../../components/EntityTable";
+import { Pagination } from "../../components/Pagination";
 import type { Column, EntityAction } from "../../components/EntityTable/types";
 import { EntityForm } from "../../components/EntityForm";
 import { ConfirmDeleteEntity } from "../../components/ConfirmDeleteEntity";
@@ -22,10 +23,11 @@ import { ROLE_LABELS } from "../../types/usuario/role";
 import { formatDocument, formatPhone } from "../../utils/formatters";
 import { createUsuarioFields, type UsuarioFormData } from "./usuarioFields";
 import {
-  listarUsuarios,
+  buscarUsuariosPaginado,
   criarUsuario,
   deletarUsuario,
 } from "../../services/usuarioService";
+import { useServerSearch } from "../../hooks/useServerSearch";
 import { buscarOficinaPorId } from "../../services/oficinaService";
 
 interface UsuariosProps {
@@ -36,8 +38,18 @@ export function Usuarios({ usuarioLogado }: UsuariosProps) {
   const isAdmin = usuarioLogado.role === "ADMIN";
   const oficinaId = usuarioLogado.oficinaId;
 
-  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
+  const {
+    items: usuarios,
+    loading,
+    searchTerm,
+    buscando,
+    page,
+    totalPages,
+    totalElements,
+    setPage,
+    handleSearch,
+    reload,
+  } = useServerSearch<Usuario>(buscarUsuariosPaginado);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewingUsuario, setViewingUsuario] = useState<Usuario | null>(null);
   const [deletingUsuario, setDeletingUsuario] = useState<Usuario | null>(null);
@@ -79,24 +91,12 @@ export function Usuarios({ usuarioLogado }: UsuariosProps) {
     if (!deletingUsuario) return;
     try {
       await deletarUsuario(deletingUsuario.id);
-      setUsuarios((prev) => prev.filter((u) => u.id !== deletingUsuario.id));
+      reload();
       setDeletingUsuario(null);
     } catch (err) {
       console.error("Erro ao excluir usuário:", err);
     }
   }
-
-  useEffect(() => {
-    async function carregarUsuarios() {
-      try {
-        const response = await listarUsuarios(0, 100);
-        setUsuarios(response.content);
-      } catch (err) {
-        console.error("Erro ao carregar usuários:", err);
-      }
-    }
-    carregarUsuarios();
-  }, []);
 
   useEffect(() => {
     const idsFaltantes = Array.from(
@@ -135,7 +135,7 @@ export function Usuarios({ usuarioLogado }: UsuariosProps) {
             : (data.oficinaId ?? null)
           : usuarioLogado.oficinaId;
 
-      const novoUsuario = await criarUsuario({
+      await criarUsuario({
         nome: data.nome,
         documento: data.documento,
         telefone: data.telefone,
@@ -145,7 +145,7 @@ export function Usuarios({ usuarioLogado }: UsuariosProps) {
         oficinaId,
       });
 
-      setUsuarios((prev) => [...prev, novoUsuario]);
+      reload();
       setIsModalOpen(false);
     } catch (err) {
       console.error("Erro ao criar usuário:", err);
@@ -229,15 +229,15 @@ export function Usuarios({ usuarioLogado }: UsuariosProps) {
 
       <StatCard
         title="Usuários Cadastrados"
-        value={usuarios.length.toString()}
-        description="Total de usuários"
+        value={totalElements.toString()}
+        description={buscando ? "Encontrados na busca" : "Total de usuários"}
         icon={Users}
       />
 
       <SearchBar
-        placeholder="Pesquisar por nome, documento, telefone ou oficina"
+        placeholder="Pesquisar por nome, username, documento ou telefone"
         searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
+        setSearchTerm={handleSearch}
       />
 
       <EntityTable
@@ -245,14 +245,19 @@ export function Usuarios({ usuarioLogado }: UsuariosProps) {
         columns={columns}
         actions={actions}
         getRowKey={(u) => u.id}
-        searchTerm={searchTerm}
-        searchFn={(usuario, term) =>
-          usuario.nome.toLowerCase().includes(term) ||
-          usuario.documento.includes(term) ||
-          usuario.telefone.includes(term) ||
-          getOficinaNome(usuario.oficinaId).toLowerCase().includes(term)
+        loading={loading}
+        emptyMessage={
+          buscando
+            ? "Nenhum usuário encontrado para a busca"
+            : "Nenhum usuário cadastrado"
         }
-        emptyMessage="Nenhum usuário cadastrado"
+      />
+
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        totalElements={totalElements}
+        onPageChange={setPage}
       />
 
       {isModalOpen && (

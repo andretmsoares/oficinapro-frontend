@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Users, NotepadText, Pencil, Phone, Trash2 } from "lucide-react";
 import { StatCard } from "../../components/StatCard";
 import { HeaderPageWithButton } from "../../components/HeaderPageWithButton";
@@ -21,40 +21,32 @@ import {
   criarCliente,
   deletarCliente,
 } from "../../services/clienteService";
+import { useServerSearch } from "../../hooks/useServerSearch";
 import { useNavigate } from "react-router-dom";
 
 interface ClientesProps {
   usuarioLogado: Usuario;
 }
 
-const PAGE_SIZE = 20;
-const SEARCH_DEBOUNCE_MS = 300;
-
 export function Clientes({ usuarioLogado }: ClientesProps) {
   const isGerente = usuarioLogado.role === "GERENTE";
-  const [clientes, setClientes] = useState<Cliente[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [page, setPage] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
-  const [totalElements, setTotalElements] = useState(0);
-  const [reloadKey, setReloadKey] = useState(0);
+  const {
+    items: clientes,
+    loading,
+    searchTerm,
+    buscando,
+    page,
+    totalPages,
+    totalElements,
+    setPage,
+    handleSearch,
+    reload: recarregar,
+  } = useServerSearch<Cliente>(buscarClientesPaginado);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCliente, setEditingCliente] = useState<Cliente | null>(null);
   const [deletingCliente, setDeletingCliente] = useState<Cliente | null>(null);
   const [submitError, setSubmitError] = useState("");
   const navigate = useNavigate();
-
-  const buscando = searchTerm.trim() !== "";
-
-  function recarregar() {
-    setReloadKey((key) => key + 1);
-  }
-
-  function handleSearch(term: string) {
-    setSearchTerm(term);
-    setPage(0);
-  }
 
   function handleViewOrders(clienteId: number) {
     const cliente = clientes.find((c) => c.id === clienteId);
@@ -142,45 +134,6 @@ export function Clientes({ usuarioLogado }: ClientesProps) {
       );
     }
   }
-
-  useEffect(() => {
-    let ativo = true;
-
-    // Sem termo carrega na hora; com termo espera o usuário parar de digitar.
-    const timeout = setTimeout(
-      async () => {
-        try {
-          const response = await buscarClientesPaginado(
-            searchTerm,
-            page,
-            PAGE_SIZE,
-          );
-
-          if (!ativo) return;
-
-          // Excluiu o último item da última página: volta uma página.
-          if (response.content.length === 0 && page > 0) {
-            setPage(page - 1);
-            return;
-          }
-
-          setClientes(response.content);
-          setTotalPages(response.totalPages);
-          setTotalElements(response.totalElements);
-        } catch (err) {
-          console.error("Erro ao carregar clientes", err);
-        } finally {
-          if (ativo) setLoading(false);
-        }
-      },
-      searchTerm.trim() ? SEARCH_DEBOUNCE_MS : 0,
-    );
-
-    return () => {
-      ativo = false;
-      clearTimeout(timeout);
-    };
-  }, [searchTerm, page, reloadKey]);
 
   const columns: Column<Cliente>[] = [
     {

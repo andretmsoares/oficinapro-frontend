@@ -68,11 +68,19 @@ export async function buscarMecanicoAutocompletePorId(
   }
 }
 
-export async function listarMecanicos(
+export async function buscarMecanicosPaginado(
+  termo: string,
   page = 0,
-  size = 500,
+  size = 20,
 ): Promise<MecanicoPage> {
-  return api<MecanicoPage>(`/mecanicos?page=${page}&size=${size}&sort=nome`);
+  const params = new URLSearchParams({
+    q: termo.trim(),
+    page: String(page),
+    size: String(size),
+    sort: "nome",
+  });
+
+  return api<MecanicoPage>(`/mecanicos/buscar?${params.toString()}`);
 }
 
 export async function buscarMecanicoPorId(id: number): Promise<Mecanico> {
