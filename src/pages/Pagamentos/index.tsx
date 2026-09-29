@@ -10,6 +10,7 @@ import {
 
 import { StatCard } from "../../components/StatCard";
 import { SearchBar } from "../../components/SearchBar";
+import { StatusFilter } from "../../components/StatusFilter";
 import { EntityTable } from "../../components/EntityTable";
 import type { Column, EntityAction } from "../../components/EntityTable/types";
 
@@ -43,6 +44,12 @@ import "./pagamentos.style.css";
 import { HeaderPage } from "../../components/HeaderPage";
 import { StatusPagamento } from "../../enums/StatusPagamento";
 
+const STATUS_FILTER_OPTIONS: { value: StatusPagamento; label: string }[] = [
+  { value: StatusPagamento.PAGAMENTO_PENDENTE, label: "Pendente" },
+  { value: StatusPagamento.PAGO_PARCIALMENTE, label: "Pago parcialmente" },
+  { value: StatusPagamento.PAGA, label: "Paga" },
+];
+
 interface PagamentosProps {
   oficinaId: number;
 }
@@ -59,6 +66,8 @@ export function Pagamentos({ oficinaId }: PagamentosProps) {
   const [submitError, setSubmitError] = useState("");
 
   const [searchTerm, setSearchTerm] = useState("");
+
+  const [statusFilter, setStatusFilter] = useState<StatusPagamento | "">("");
 
   const [viewingPagamentoId, setViewingPagamentoId] = useState<number | null>(
     null,
@@ -149,17 +158,18 @@ export function Pagamentos({ oficinaId }: PagamentosProps) {
   const pagamentosFiltrados = useMemo(() => {
     const termo = searchTerm.trim().toLowerCase();
 
-    if (!termo) {
-      return pagamentos;
-    }
-
     return pagamentos.filter((pagamento) => {
+      if (statusFilter && pagamento.status !== statusFilter) {
+        return false;
+      }
+
       return (
+        !termo ||
         pagamento.osId.toString().includes(termo) ||
         pagamento.id.toString().includes(termo)
       );
     });
-  }, [pagamentos, searchTerm]);
+  }, [pagamentos, searchTerm, statusFilter]);
 
   async function recarregarPagamentos() {
     try {
@@ -343,11 +353,20 @@ export function Pagamentos({ oficinaId }: PagamentosProps) {
         />
       </div>
 
-      <SearchBar
-        placeholder="Pesquisar pelo código da OS"
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-      />
+      <div className="list-filters">
+        <SearchBar
+          placeholder="Pesquisar pelo código da OS"
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+        />
+
+        <StatusFilter
+          label="Filtrar por status"
+          value={statusFilter}
+          options={STATUS_FILTER_OPTIONS}
+          onChange={setStatusFilter}
+        />
+      </div>
 
       <EntityTable
         data={pagamentosFiltrados}
@@ -357,7 +376,11 @@ export function Pagamentos({ oficinaId }: PagamentosProps) {
         getRowKey={(pagamento) => pagamento.id}
         searchTerm=""
         searchFn={() => true}
-        emptyMessage="Nenhum pagamento cadastrado"
+        emptyMessage={
+          statusFilter || searchTerm.trim()
+            ? "Nenhum pagamento encontrado para o filtro selecionado"
+            : "Nenhum pagamento cadastrado"
+        }
       />
 
       {viewingPagamento && (
