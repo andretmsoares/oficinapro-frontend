@@ -122,14 +122,47 @@ export async function listarFluxoMensalOS(
 }
 
 export async function imprimirOrdemServico(id: number): Promise<void> {
-  const pdf = await baixarPdfOrdemServico(id);
-  const url = URL.createObjectURL(pdf);
+  // A janela precisa ser aberta de forma síncrona, dentro do gesto de clique do
+  // usuário. Se abrirmos depois do "await" do fetch, o navegador ainda cria a
+  // aba, mas trata a navegação posterior como não confiável e bloqueia o
+  // carregamento — resultado: aba aberta com tela em branco.
+  const janela = window.open("", "_blank");
 
-  window.open(url, "_blank");
+  try {
+    const pdf = await baixarPdfOrdemServico(id);
+    const url = URL.createObjectURL(pdf);
 
-  setTimeout(() => {
-    URL.revokeObjectURL(url);
-  }, 60_000);
+    if (janela) {
+      janela.location.href = url;
+    }
+
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+    }, 60_000);
+  } catch (error) {
+    janela?.close();
+    throw error;
+  }
+}
+
+export async function imprimirComprovantePagamento(id: number): Promise<void> {
+  const janela = window.open("", "_blank");
+
+  try {
+    const pdf = await baixarComprovantePagamento(id);
+    const url = URL.createObjectURL(pdf);
+
+    if (janela) {
+      janela.location.href = url;
+    }
+
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+    }, 60_000);
+  } catch (error) {
+    janela?.close();
+    throw error;
+  }
 }
 
 export async function baixarPdfOrdemServico(id: number): Promise<Blob> {
@@ -142,6 +175,24 @@ export async function baixarPdfOrdemServico(id: number): Promise<Blob> {
 
   if (!response.ok) {
     throw new Error("Não foi possível gerar o PDF da ordem de serviço.");
+  }
+
+  return response.blob();
+}
+
+export async function baixarComprovantePagamento(id: number): Promise<Blob> {
+  const response = await fetch(
+    `/api/ordens-servico/${id}/comprovante-pagamento`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      },
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error("Não foi possível gerar o comprovante de pagamento.");
   }
 
   return response.blob();

@@ -25,6 +25,8 @@ import {
   calcularValorParaReceber,
 } from "../../services/pagamentoService";
 
+import { imprimirComprovantePagamento } from "../../services/ordemDeServicoService";
+
 import {
   criarRegistroPagamento,
   deletarRegistroPagamento,
@@ -289,11 +291,11 @@ export function Pagamentos({ oficinaId }: PagamentosProps) {
       },
     },
     {
-      label: "Imprimir pagamento",
+      label: "Imprimir comprovante de pagamento",
       icon: Printer,
       variant: "print",
       onClick: (pagamento) => {
-        handlePrintPagamento(pagamento.id);
+        handlePrintPagamento(pagamento.osId);
       },
     },
   ];
@@ -390,8 +392,10 @@ export function Pagamentos({ oficinaId }: PagamentosProps) {
   );
 }
 
-function handlePrintPagamento(pagamentoId: number) {
-  console.log("Imprimir pagamento:", pagamentoId);
-
-  // TODO: implementar impressão do comprovante
+function handlePrintPagamento(osId: number) {
+  try {
+    imprimirComprovantePagamento(osId);
+  } catch (error) {
+    console.error("Erro ao imprimir comprovante de pagamento:", error);
+  }
 }
