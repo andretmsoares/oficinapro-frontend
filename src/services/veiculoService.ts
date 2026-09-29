@@ -23,30 +23,23 @@ export interface VeiculoPage {
 export async function buscarVeiculosAutocomplete(
   search: string,
 ): Promise<EntityOption[]> {
-  const termo = search.trim().toUpperCase();
+  const termo = search.trim();
 
   if (!termo) {
     return [];
   }
 
-  const pagina = await listarVeiculos();
+  const params = new URLSearchParams({ q: termo, size: "10" });
 
-  return pagina.content
-    .filter((veiculo) => {
-      const placa = veiculo.placa.toUpperCase();
-      const marca = veiculo.marca.toUpperCase();
-      const modelo = veiculo.modelo.toUpperCase();
+  const pagina = await api<VeiculoPage>(
+    `/veiculos/buscar?${params.toString()}`,
+  );
 
-      return (
-        placa.includes(termo) || marca.includes(termo) || modelo.includes(termo)
-      );
-    })
-    .slice(0, 10)
-    .map((veiculo) => ({
-      id: veiculo.id,
-      label: veiculo.placa,
-      description: `${veiculo.marca} ${veiculo.modelo} - ${veiculo.ano}`,
-    }));
+  return pagina.content.map((veiculo) => ({
+    id: veiculo.id,
+    label: veiculo.placa,
+    description: `${veiculo.marca} ${veiculo.modelo} - ${veiculo.ano}`,
+  }));
 }
 
 export async function buscarVeiculoAutocompletePorId(

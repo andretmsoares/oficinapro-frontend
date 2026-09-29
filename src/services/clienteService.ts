@@ -71,6 +71,21 @@ export async function listarClientes(
   return api<ClientePage>(`/clientes?page=${page}&size=${size}&sort=nome`);
 }
 
+export async function buscarClientesPaginado(
+  termo: string,
+  page = 0,
+  size = 20,
+): Promise<ClientePage> {
+  const params = new URLSearchParams({
+    q: termo.trim(),
+    page: String(page),
+    size: String(size),
+    sort: "nome",
+  });
+
+  return api<ClientePage>(`/clientes/buscar?${params.toString()}`);
+}
+
 export async function buscarClientePorId(id: number): Promise<Cliente> {
   return api<Cliente>(`/clientes/${id}`);
 }
