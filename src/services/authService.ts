@@ -18,6 +18,14 @@ export async function login(credentials: LoginRequest): Promise<LoginResponse> {
       throw new Error("Usuário ou senha inválidos.");
     }
 
+    if (response.status === 423 || response.status === 429) {
+      const body = await response.json().catch(() => null);
+      throw new Error(
+        body?.message ??
+          "Login bloqueado por excesso de tentativas. Fale com o administrador do sistema.",
+      );
+    }
+
     throw new Error("Não foi possível realizar o login.");
   }
 

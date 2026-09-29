@@ -8,6 +8,7 @@ import {
   Phone,
   ShieldCheck,
   Building2,
+  LockOpen,
 } from "lucide-react";
 import { StatCard } from "../../components/StatCard";
 import { HeaderPageWithButton } from "../../components/HeaderPageWithButton";
@@ -26,6 +27,7 @@ import {
   buscarUsuariosPaginado,
   criarUsuario,
   deletarUsuario,
+  desbloquearUsuario,
 } from "../../services/usuarioService";
 import { useServerSearch } from "../../hooks/useServerSearch";
 import { buscarOficinaPorId } from "../../services/oficinaService";
@@ -58,6 +60,7 @@ export function Usuarios({ usuarioLogado }: UsuariosProps) {
   // completa) só para os IDs que aparecem nos usuários já carregados.
   const [oficinaNomes, setOficinaNomes] = useState<Record<number, string>>({});
   const [submitError, setSubmitError] = useState("");
+  const [actionError, setActionError] = useState("");
 
   const roleOptions = isAdmin
     ? [
@@ -95,6 +98,21 @@ export function Usuarios({ usuarioLogado }: UsuariosProps) {
       setDeletingUsuario(null);
     } catch (err) {
       console.error("Erro ao excluir usuário:", err);
+    }
+  }
+
+  async function handleDesbloquear(usuario: Usuario) {
+    try {
+      setActionError("");
+      await desbloquearUsuario(usuario.id);
+      reload();
+    } catch (err) {
+      console.error("Erro ao desbloquear usuário:", err);
+      setActionError(
+        err instanceof Error
+          ? err.message
+          : "Não foi possível desbloquear o usuário.",
+      );
     }
   }
 
@@ -162,7 +180,7 @@ export function Usuarios({ usuarioLogado }: UsuariosProps) {
     {
       key: "nome",
       header: "Nome",
-      width: "22%",
+      width: "20%",
       render: (u) => <strong className="user-name">{u.nome}</strong>,
     },
     {
@@ -180,12 +198,23 @@ export function Usuarios({ usuarioLogado }: UsuariosProps) {
     {
       key: "role",
       header: "Role",
-      width: "20%",
+      width: "14%",
       render: (u) => (
         <span className={`role-badge role-${u.role.toLowerCase()}`}>
           {ROLE_LABELS[u.role]}
         </span>
       ),
+    },
+    {
+      key: "bloqueado",
+      header: "Acesso",
+      width: "12%",
+      render: (u) =>
+        u.bloqueado ? (
+          <span style={{ color: "#b91c1c", fontWeight: 600 }}>Bloqueado</span>
+        ) : (
+          "Liberado"
+        ),
     },
     ...(isAdmin
       ? [
@@ -205,6 +234,13 @@ export function Usuarios({ usuarioLogado }: UsuariosProps) {
       icon: Eye,
       variant: "view",
       onClick: (u) => handleView(u.id),
+    },
+    {
+      label: "Desbloquear login",
+      icon: LockOpen,
+      variant: "edit",
+      onClick: (u) => handleDesbloquear(u),
+      hidden: (u) => !u.bloqueado,
     },
     {
       label: "Remover usuário",
@@ -239,6 +275,12 @@ export function Usuarios({ usuarioLogado }: UsuariosProps) {
         searchTerm={searchTerm}
         setSearchTerm={handleSearch}
       />
+
+      {actionError && (
+        <p role="alert" style={{ color: "#b91c1c" }}>
+          {actionError}
+        </p>
+      )}
 
       <EntityTable
         data={usuarios}

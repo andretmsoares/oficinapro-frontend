@@ -82,6 +82,12 @@ export async function deletarUsuario(id: number): Promise<void> {
   });
 }
 
+export async function desbloquearUsuario(id: number): Promise<void> {
+  await api<void>(`/usuarios/${id}/desbloquear`, {
+    method: "PATCH",
+  });
+}
+
 export async function atualizarUsuarioLogado(
   data: UsuarioMeUpdateRequest,
 ): Promise<Usuario> {
