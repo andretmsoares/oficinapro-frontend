@@ -420,7 +420,7 @@ export function OrdensServico({ usuarioLogado }: OrdensServicoProps) {
     {
       key: "placaVeiculo",
       header: "Veículo",
-      width: "14%",
+      width: "10%",
       render: (os) => (
         <strong className="os-vehicle">{formatPlate(os.placaVeiculo)}</strong>
       ),
@@ -428,13 +428,13 @@ export function OrdensServico({ usuarioLogado }: OrdensServicoProps) {
     {
       key: "nomeCliente",
       header: "Cliente",
-      width: "28%",
+      width: "25%",
       render: (os) => <strong className="os-client">{os.nomeCliente}</strong>,
     },
     {
       key: "status",
       header: "Status",
-      width: "18%",
+      width: "10%",
       render: (os) => (
         <span className={`status-badge status-${os.status.toLowerCase()}`}>
           {formatStatusOrdemServico(os.status)}
