@@ -40,6 +40,7 @@ import {
   atualizarOrdemServico,
   deletarOrdemServico,
   atualizarStatusOrdemServico,
+  imprimirOrdemServico,
 } from "../../services/ordemDeServicoService";
 
 import { listarItemOsPecas } from "../../services/itemOsPecaService";
@@ -155,8 +156,12 @@ export function OrdensServico({ usuarioLogado }: OrdensServicoProps) {
     setIsModalOpen(true);
   }
 
-  function handlePrint(id: number) {
-    console.log("Imprimir Ordem de Serviço:", id);
+  function handleImprimir(id: number) {
+    try {
+      imprimirOrdemServico(id);
+    } catch (error) {
+      console.error("Erro ao imprimir OS:", error);
+    }
   }
 
   function handleDelete(id: number) {
@@ -396,7 +401,7 @@ export function OrdensServico({ usuarioLogado }: OrdensServicoProps) {
       label: "Imprimir ordem de serviço",
       icon: Printer,
       variant: "print",
-      onClick: (os) => handlePrint(os.id),
+      onClick: (os) => handleImprimir(os.id),
     },
     ...(isGerente
       ? [

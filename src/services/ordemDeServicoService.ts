@@ -121,6 +121,32 @@ export async function listarFluxoMensalOS(
   );
 }
 
+export async function imprimirOrdemServico(id: number): Promise<void> {
+  const pdf = await baixarPdfOrdemServico(id);
+  const url = URL.createObjectURL(pdf);
+
+  window.open(url, "_blank");
+
+  setTimeout(() => {
+    URL.revokeObjectURL(url);
+  }, 60_000);
+}
+
+export async function baixarPdfOrdemServico(id: number): Promise<Blob> {
+  const response = await fetch(`/api/ordens-servico/${id}/pdf`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Não foi possível gerar o PDF da ordem de serviço.");
+  }
+
+  return response.blob();
+}
+
 export function getStatusPermitidos(
   statusAtual: StatusOrdemDeServico,
 ): StatusOrdemDeServico[] {
