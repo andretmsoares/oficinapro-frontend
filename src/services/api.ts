@@ -34,7 +34,10 @@ export async function api<T>(
 
   const headers = new Headers(options.headers);
 
-  headers.set("Content-Type", "application/json");
+  // Em FormData (upload) o navegador define o Content-Type com o boundary; forçar JSON quebra.
+  if (!(options.body instanceof FormData)) {
+    headers.set("Content-Type", "application/json");
+  }
 
   if (token) {
     headers.set("Authorization", `Bearer ${token}`);

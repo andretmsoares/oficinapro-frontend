@@ -5,6 +5,7 @@ import {
   Pencil,
   Phone,
   IdCard,
+  Image as ImageIcon,
   Power,
   PowerOff,
 } from "lucide-react";
@@ -17,6 +18,7 @@ import { Pagination } from "../../components/Pagination";
 import type { Column, EntityAction } from "../../components/EntityTable/types";
 import { EntityForm } from "../../components/EntityForm";
 import { EntityViewModal } from "../../components/EntityViewModal";
+import { OficinaLogoModal } from "../../components/OficinaLogoModal";
 import {
   buscarOficinas,
   criarOficina,
@@ -48,6 +50,7 @@ export function Oficinas() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingOficina, setEditingOficina] = useState<Oficina | null>(null);
   const [viewingOficina, setViewingOficina] = useState<Oficina | null>(null);
+  const [logoOficina, setLogoOficina] = useState<Oficina | null>(null);
   const [submitError, setSubmitError] = useState("");
 
   function handleView(id: number) {
@@ -176,6 +179,12 @@ export function Oficinas() {
       onClick: (o) => handleEdit(o.id),
     },
     {
+      label: "Logo da oficina",
+      icon: ImageIcon,
+      variant: "default",
+      onClick: (o) => setLogoOficina(o),
+    },
+    {
       label: "Desativar oficina",
       icon: PowerOff,
       variant: "delete",
@@ -254,6 +263,13 @@ export function Oficinas() {
             setEditingOficina(null);
             setIsModalOpen(false);
           }}
+        />
+      )}
+
+      {logoOficina && (
+        <OficinaLogoModal
+          oficina={logoOficina}
+          onClose={() => setLogoOficina(null)}
         />
       )}
 

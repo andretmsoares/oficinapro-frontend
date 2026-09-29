@@ -1,4 +1,4 @@
-import { api } from "./api";
+import { api, API_URL } from "./api";
 import type { Oficina } from "../types/oficina/oficina";
 import type { EntityOption } from "../components/EntityForm/types";
 import { formatDocument } from "../utils/formatters";
@@ -80,6 +80,35 @@ export async function atualizarOficina(
 export async function ativarOficina(id: number): Promise<void> {
   await api<void>(`/oficinas/${id}/ativar`, {
     method: "PATCH",
+  });
+}
+
+export async function buscarLogoOficina(id: number): Promise<Blob | null> {
+  const token = localStorage.getItem("accessToken");
+
+  const response = await fetch(`${API_URL}/oficinas/${id}/logo`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+
+  if (response.status === 404) return null;
+  if (!response.ok) throw new Error("Não foi possível carregar a logo.");
+
+  return response.blob();
+}
+
+export async function enviarLogoOficina(id: number, arquivo: File): Promise<void> {
+  const formData = new FormData();
+  formData.append("arquivo", arquivo);
+
+  await api<void>(`/oficinas/${id}/logo`, {
+    method: "PUT",
+    body: formData,
+  });
+}
+
+export async function removerLogoOficina(id: number): Promise<void> {
+  await api<void>(`/oficinas/${id}/logo`, {
+    method: "DELETE",
   });
 }
 
