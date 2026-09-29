@@ -3,7 +3,6 @@ import {
   Building2,
   Eye,
   Pencil,
-  Trash2,
   Phone,
   IdCard,
   Power,
@@ -16,13 +15,11 @@ import { SearchBar } from "../../components/SearchBar";
 import { EntityTable } from "../../components/EntityTable";
 import type { Column, EntityAction } from "../../components/EntityTable/types";
 import { EntityForm } from "../../components/EntityForm";
-import { ConfirmDeleteEntity } from "../../components/ConfirmDeleteEntity";
 import { EntityViewModal } from "../../components/EntityViewModal";
 import {
   listarOficinas,
   criarOficina,
   atualizarOficina,
-  deletarOficina,
   ativarOficina,
   desativarOficina,
 } from "../../services/oficinaService";
@@ -41,7 +38,6 @@ export function Oficinas() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingOficina, setEditingOficina] = useState<Oficina | null>(null);
   const [viewingOficina, setViewingOficina] = useState<Oficina | null>(null);
-  const [deletingOficina, setDeletingOficina] = useState<Oficina | null>(null);
   const [submitError, setSubmitError] = useState("");
 
   function handleView(id: number) {
@@ -55,34 +51,6 @@ export function Oficinas() {
     if (!oficina) return;
     setEditingOficina(oficina);
     setIsModalOpen(true);
-  }
-
-  function handleDelete(id: number) {
-    const oficina = oficinas.find((o) => o.id === id);
-    if (!oficina) return;
-    setDeletingOficina(oficina);
-  }
-
-  async function handleConfirmDelete() {
-    if (!deletingOficina) return;
-
-    try {
-      setSubmitError("");
-      await deletarOficina(deletingOficina.id);
-
-      setOficinas((prev) =>
-        prev.filter((oficina) => oficina.id !== deletingOficina.id),
-      );
-
-      setDeletingOficina(null);
-    } catch (error) {
-      console.error("Erro ao excluir oficina:", error);
-      setSubmitError(
-        error instanceof Error
-          ? error.message
-          : "Não foi possível excluir a oficina.",
-      );
-    }
   }
 
   async function handleAddOficina(data: OficinaFormData) {
@@ -110,7 +78,7 @@ export function Oficinas() {
       setSubmitError(
         err instanceof Error
           ? err.message
-          : "Não foi possível excluir a oficina.",
+          : "Não foi possível criar a oficina.",
       );
     }
   }
@@ -143,7 +111,7 @@ export function Oficinas() {
       setSubmitError(
         err instanceof Error
           ? err.message
-          : "Não foi possível excluir a oficina.",
+          : "Não foi possível atualizar a oficina.",
       );
     }
   }
@@ -179,7 +147,7 @@ export function Oficinas() {
 
         const oficinasComEstatisticas = oficinasResponse.map((oficina) => {
           const estatistica = estatisticas.porOficina.find(
-            (item) => item.oficinaId === oficina.id,
+            (item) => item.id === oficina.id,
           );
 
           return {
@@ -216,7 +184,7 @@ export function Oficinas() {
       key: "telefone",
       header: "Telefone",
       width: "18%",
-      render: (o) => formatDocument(o.telefone).display,
+      render: (o) => formatPhone(o.telefone),
     },
     {
       key: "ativo",
@@ -252,20 +220,14 @@ export function Oficinas() {
       icon: PowerOff,
       variant: "delete",
       onClick: (o) => handleToggleStatus(o),
-      hidden: (o) => o.ativo,
+      hidden: (o) => !o.ativo,
     },
     {
       label: "Ativar oficina",
       icon: Power,
       variant: "edit",
       onClick: (o) => handleToggleStatus(o),
-      hidden: (o) => !o.ativo,
-    },
-    {
-      label: "Remover oficina",
-      icon: Trash2,
-      variant: "delete",
-      onClick: (o) => handleDelete(o.id),
+      hidden: (o) => o.ativo,
     },
   ];
 
@@ -343,16 +305,6 @@ export function Oficinas() {
               value: formatPhone(viewingOficina.telefone),
             },
           ]}
-        />
-      )}
-
-      {deletingOficina && (
-        <ConfirmDeleteEntity
-          text="Oficina"
-          entity="a oficina"
-          entityName={deletingOficina.nome}
-          onConfirm={handleConfirmDelete}
-          onCancel={() => setDeletingOficina(null)}
         />
       )}
     </div>

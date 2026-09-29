@@ -81,12 +81,6 @@ export async function atualizarOficina(
   });
 }
 
-export async function deletarOficina(id: number): Promise<void> {
-  await api<void>(`/oficinas/${id}`, {
-    method: "DELETE",
-  });
-}
-
 export async function ativarOficina(id: number): Promise<void> {
   await api<void>(`/oficinas/${id}/ativar`, {
     method: "PATCH",

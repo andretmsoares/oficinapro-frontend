@@ -15,13 +15,14 @@ Interface web do OficinaPro. React 19 + TypeScript + Vite.
 
 ```bash
 npm install
+cp .env-example .env   # define VITE_API_URL (backend, ex.: http://localhost:8080/api)
 npm run dev
 ```
 
 http://localhost:5173
 
-Não é necessário subir o backend nem configurar variáveis de ambiente — não há `.env`
-neste momento, porque não há chamada de API.
+É necessário ter o backend no ar e a variável `VITE_API_URL` definida no `.env` (copie de
+`.env-example`); sem ela as requisições vão para `undefined/...`.
 
 ### Scripts
 

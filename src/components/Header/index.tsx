@@ -52,6 +52,12 @@ export function Header({
         password: data.novaSenha?.trim() || undefined,
       });
 
+      if (usuarioAtualizado.username !== usuarioLogado.username) {
+        // O username é o subject do JWT: o token atual deixa de valer.
+        onLogout();
+        return;
+      }
+
       onUpdateUsuarioLogado(usuarioAtualizado);
       setIsEditModalOpen(false);
     } catch (err) {

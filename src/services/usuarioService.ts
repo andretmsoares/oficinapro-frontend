@@ -42,7 +42,7 @@ export interface UsuarioMeUpdateRequest {
 
 export async function listarUsuarios(
   page = 0,
-  size = 20,
+  size = 500,
 ): Promise<UsuarioPage> {
   return api<UsuarioPage>(`/usuarios?page=${page}&size=${size}&sort=nome,asc`);
 }

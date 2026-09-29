@@ -70,7 +70,7 @@ export async function buscarMecanicoAutocompletePorId(
 
 export async function listarMecanicos(
   page = 0,
-  size = 20,
+  size = 500,
 ): Promise<MecanicoPage> {
   return api<MecanicoPage>(`/mecanicos?page=${page}&size=${size}&sort=nome`);
 }

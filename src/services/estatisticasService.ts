@@ -1,8 +1,11 @@
 import { api } from "./api";
 
 export interface EstatisticasOficina {
-  oficinaId: number;
-  nomeOficina: string;
+  id: number;
+  nome: string;
+  cnpj: string;
+  telefone: string | null;
+  ativo: boolean;
   clientes: number;
   mecanicos: number;
   veiculos: number;

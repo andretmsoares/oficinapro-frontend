@@ -1,18 +1,8 @@
 import type { Usuario } from "../types/usuario/usuario";
+import type { LoginRequest, LoginResponse } from "../types/auth/auth";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-export interface LoginRequest {
-  username: string;
-  password: string;
-}
-
-export interface LoginResponse {
-  accessToken: string;
-  tokenType: string;
-  expiresIn: number;
-  usuario: Usuario;
-}
 
 export async function login(credentials: LoginRequest): Promise<LoginResponse> {
   const response = await fetch(`${API_URL}/auth/login`, {

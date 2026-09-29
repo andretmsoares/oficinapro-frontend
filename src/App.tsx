@@ -28,6 +28,7 @@ import {
   buscarUsuarioLogado,
   login as loginService,
 } from "./services/authService";
+import { UNAUTHORIZED_EVENT } from "./services/api";
 
 function homeRouteFor(role: Role): string {
   if (role === "ADMIN") {
@@ -112,6 +113,23 @@ export default function App() {
     }
 
     restoreSession();
+  }, []);
+
+  /* =========================================================
+     SESSAO EXPIRADA (401 em qualquer requisição autenticada)
+     ========================================================= */
+
+  useEffect(() => {
+    function handleUnauthorized() {
+      setUsuarioLogado(null);
+      setIsAuthenticated(false);
+    }
+
+    window.addEventListener(UNAUTHORIZED_EVENT, handleUnauthorized);
+
+    return () => {
+      window.removeEventListener(UNAUTHORIZED_EVENT, handleUnauthorized);
+    };
   }, []);
 
   /* =========================================================

@@ -70,7 +70,7 @@ export async function buscarVeiculoPorId(id: number): Promise<Veiculo> {
 }
 
 export async function listarVeiculos(): Promise<VeiculoPage> {
-  return api<VeiculoPage>("/veiculos");
+  return api<VeiculoPage>("/veiculos?size=500");
 }
 
 export async function criarVeiculo(data: VeiculoRequest): Promise<Veiculo> {

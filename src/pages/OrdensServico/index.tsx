@@ -74,6 +74,13 @@ const STATUS_FILTER_OPTIONS = Object.values(StatusOrdemDeServico).map(
   (status) => ({ value: status, label: formatStatusOrdemServico(status) }),
 );
 
+// O backend nega estes destinos ao MECANICO (403); a UI nem os oferece.
+const STATUS_SOMENTE_GERENTE: StatusOrdemDeServico[] = [
+  StatusOrdemDeServico.FINALIZADA,
+  StatusOrdemDeServico.ENTREGUE,
+  StatusOrdemDeServico.CANCELADA,
+];
+
 function getStatusPermitidos(
   statusAtual: StatusOrdemDeServico,
 ): StatusOrdemDeServico[] {
@@ -495,10 +502,14 @@ export function OrdensServico({ usuarioLogado }: OrdensServicoProps) {
     label: string;
     value: StatusOrdemDeServico;
   }[] = selectingStatusOrdem
-    ? getStatusPermitidos(selectingStatusOrdem.status).map((status) => ({
-        value: status,
-        label: formatStatusOrdemServico(status),
-      }))
+    ? getStatusPermitidos(selectingStatusOrdem.status)
+        .filter(
+          (status) => isGerente || !STATUS_SOMENTE_GERENTE.includes(status),
+        )
+        .map((status) => ({
+          value: status,
+          label: formatStatusOrdemServico(status),
+        }))
     : [];
 
   return (

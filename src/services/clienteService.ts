@@ -66,7 +66,7 @@ export async function buscarClienteAutocompletePorId(
 
 export async function listarClientes(
   page = 0,
-  size = 20,
+  size = 500,
 ): Promise<ClientePage> {
   return api<ClientePage>(`/clientes?page=${page}&size=${size}&sort=nome`);
 }
