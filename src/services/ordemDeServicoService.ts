@@ -122,47 +122,29 @@ export async function listarFluxoMensalOS(
 }
 
 export async function imprimirOrdemServico(id: number): Promise<void> {
-  // A janela precisa ser aberta de forma síncrona, dentro do gesto de clique do
-  // usuário. Se abrirmos depois do "await" do fetch, o navegador ainda cria a
-  // aba, mas trata a navegação posterior como não confiável e bloqueia o
-  // carregamento — resultado: aba aberta com tela em branco.
-  const janela = window.open("", "_blank");
-
-  try {
-    const pdf = await baixarPdfOrdemServico(id);
-    const url = URL.createObjectURL(pdf);
-
-    if (janela) {
-      janela.location.href = url;
-    }
-
-    setTimeout(() => {
-      URL.revokeObjectURL(url);
-    }, 60_000);
-  } catch (error) {
-    janela?.close();
-    throw error;
-  }
+  const pdf = await baixarPdfOrdemServico(id);
+  baixarArquivo(pdf, `ordem-servico-${id}.pdf`);
 }
 
 export async function imprimirComprovantePagamento(id: number): Promise<void> {
-  const janela = window.open("", "_blank");
+  const pdf = await baixarComprovantePagamento(id);
+  baixarArquivo(pdf, `comprovante-pagamento-os-${id}.pdf`);
+}
 
-  try {
-    const pdf = await baixarComprovantePagamento(id);
-    const url = URL.createObjectURL(pdf);
+/** Dispara o download do blob no navegador, sem abrir nenhuma aba/página nova. */
+function baixarArquivo(blob: Blob, nomeArquivo: string): void {
+  const url = URL.createObjectURL(blob);
 
-    if (janela) {
-      janela.location.href = url;
-    }
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = nomeArquivo;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 
-    setTimeout(() => {
-      URL.revokeObjectURL(url);
-    }, 60_000);
-  } catch (error) {
-    janela?.close();
-    throw error;
-  }
+  setTimeout(() => {
+    URL.revokeObjectURL(url);
+  }, 60_000);
 }
 
 export async function baixarPdfOrdemServico(id: number): Promise<Blob> {
