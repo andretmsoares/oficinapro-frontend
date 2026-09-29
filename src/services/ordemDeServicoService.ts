@@ -1,4 +1,4 @@
-import { api } from "./api";
+import { api, API_URL } from "./api";
 import type {
   AtualizarStatusOSRequest,
   AtribuirClienteRequest,
@@ -148,7 +148,7 @@ function baixarArquivo(blob: Blob, nomeArquivo: string): void {
 }
 
 export async function baixarPdfOrdemServico(id: number): Promise<Blob> {
-  const response = await fetch(`/api/ordens-servico/${id}/pdf`, {
+  const response = await fetch(`${API_URL}/ordens-servico/${id}/pdf`, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
@@ -164,7 +164,7 @@ export async function baixarPdfOrdemServico(id: number): Promise<Blob> {
 
 export async function baixarComprovantePagamento(id: number): Promise<Blob> {
   const response = await fetch(
-    `/api/ordens-servico/${id}/comprovante-pagamento`,
+    `${API_URL}/ordens-servico/${id}/comprovante-pagamento`,
     {
       method: "GET",
       headers: {
