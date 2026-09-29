@@ -1,4 +1,4 @@
-import { api } from "./api";
+import { api, API_URL } from "./api";
 import type {
   AtualizarStatusOSRequest,
   AtribuirClienteRequest,
@@ -119,6 +119,65 @@ export async function listarFluxoMensalOS(
   return api<FluxoMensalOS[]>(
     `/ordens-servico/fluxo-mensal?mes=${mes}&ano=${ano}`,
   );
+}
+
+export async function imprimirOrdemServico(id: number): Promise<void> {
+  const pdf = await baixarPdfOrdemServico(id);
+  baixarArquivo(pdf, `ordem-servico-${id}.pdf`);
+}
+
+export async function imprimirComprovantePagamento(id: number): Promise<void> {
+  const pdf = await baixarComprovantePagamento(id);
+  baixarArquivo(pdf, `comprovante-pagamento-os-${id}.pdf`);
+}
+
+/** Dispara o download do blob no navegador, sem abrir nenhuma aba/página nova. */
+function baixarArquivo(blob: Blob, nomeArquivo: string): void {
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = nomeArquivo;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  setTimeout(() => {
+    URL.revokeObjectURL(url);
+  }, 60_000);
+}
+
+export async function baixarPdfOrdemServico(id: number): Promise<Blob> {
+  const response = await fetch(`${API_URL}/ordens-servico/${id}/pdf`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Não foi possível gerar o PDF da ordem de serviço.");
+  }
+
+  return response.blob();
+}
+
+export async function baixarComprovantePagamento(id: number): Promise<Blob> {
+  const response = await fetch(
+    `${API_URL}/ordens-servico/${id}/comprovante-pagamento`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      },
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error("Não foi possível gerar o comprovante de pagamento.");
+  }
+
+  return response.blob();
 }
 
 export function getStatusPermitidos(
