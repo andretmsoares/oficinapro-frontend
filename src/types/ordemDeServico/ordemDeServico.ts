@@ -18,7 +18,7 @@ export type OrdemDeServico = {
   nomeCliente: string;
   unidadeNome: string;
   oficinaNome: string;
-  mecanicoNome: string;
+  mecanico: string;
 };
 
 export type OrdemDeServicoRequest = {

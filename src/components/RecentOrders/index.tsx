@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import { listarOrdensServico } from "../../services/ordemDeServicoService";
 import type { OrdemDeServico } from "../../types/ordemDeServico/ordemDeServico";
+import { useNavigate } from "react-router-dom";
 
 import "./recentOrders.style.css";
 
@@ -9,6 +10,7 @@ export function RecentOrders() {
   const [orders, setOrders] = useState<OrdemDeServico[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     let ativo = true;
@@ -53,7 +55,7 @@ export function RecentOrders() {
     <div className="recent-orders">
       <div className="section-header">
         <h3>Ordens recentes</h3>
-        <button>Ver todas</button>
+        <button onClick={() => navigate("/ordens-servico")}>Ver todas</button>
       </div>
 
       <div className="order-list">
