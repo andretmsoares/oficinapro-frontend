@@ -55,7 +55,7 @@ export function RecentOrders() {
     <div className="recent-orders">
       <div className="section-header">
         <h3>Ordens recentes</h3>
-        <button onClick={() => navigate("/ordens-servico")}>Ver todas</button>
+        <button onClick={() => navigate(`/ordens-servico`)}>Ver todas</button>
       </div>
 
       <div className="order-list">
