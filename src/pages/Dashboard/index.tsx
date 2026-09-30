@@ -30,10 +30,12 @@ export function Dashboard({ usuarioLogado }: DashboardProps) {
   const isGerente = usuarioLogado.role === "GERENTE";
 
   const [data, setData] = useState<DashboardData>(INITIAL_DATA);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(isGerente);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!isGerente) return;
+
     async function carregarDashboard() {
       try {
         setLoading(true);
@@ -52,7 +54,7 @@ export function Dashboard({ usuarioLogado }: DashboardProps) {
     }
 
     carregarDashboard();
-  }, []);
+  }, [isGerente]);
 
   const aReceberFormatado = formatCurrencyDisplay(data.aReceber);
 
@@ -106,37 +108,37 @@ export function Dashboard({ usuarioLogado }: DashboardProps) {
 
       {error && <div className="dashboard-error">{error}</div>}
 
-      <section className="stats-grid">
-        <StatCard
-          title="Ordens abertas"
-          value={data.ordensAbertas.toString()}
-          description="Neste momento"
-          icon={ClipboardList}
-        />
+      {isGerente && (
+        <section className="stats-grid">
+          <StatCard
+            title="Ordens abertas"
+            value={data.ordensAbertas.toString()}
+            description="Neste momento"
+            icon={ClipboardList}
+          />
 
-        <StatCard
-          title="Veículos Cadastrados"
-          value={data.veiculosCadastrados.toString()}
-          description="Neste momento"
-          icon={Car}
-        />
+          <StatCard
+            title="Veículos Cadastrados"
+            value={data.veiculosCadastrados.toString()}
+            description="Neste momento"
+            icon={Car}
+          />
 
-        <StatCard
-          title="Clientes Cadastrados"
-          value={data.clientesCadastrados.toString()}
-          description="Neste momento"
-          icon={Users}
-        />
+          <StatCard
+            title="Clientes Cadastrados"
+            value={data.clientesCadastrados.toString()}
+            description="Neste momento"
+            icon={Users}
+          />
 
-        {isGerente && (
           <StatCard
             title="A receber"
             value={aReceberFormatado}
             description={`${data.pagamentosPendentes} pagamentos pendentes`}
             icon={CreditCard}
           />
-        )}
-      </section>
+        </section>
+      )}
 
       <section className="dashboard-grid">
         <OrdersChart />

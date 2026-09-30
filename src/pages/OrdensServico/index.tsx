@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Eye,
   Pencil,
@@ -11,6 +11,7 @@ import {
 import { StatCard } from "../../components/StatCard";
 import { HeaderPageWithButton } from "../../components/HeaderPageWithButton";
 import { SearchBar } from "../../components/SearchBar";
+import { StatusFilter } from "../../components/StatusFilter";
 import { EntityTable } from "../../components/EntityTable";
 import type { Column, EntityAction } from "../../components/EntityTable/types";
 
@@ -44,6 +45,7 @@ import {
 } from "../../services/ordemDeServicoService";
 
 import { listarItemOsPecas } from "../../services/itemOsPecaService";
+import { buscarPagamentosPorOficina } from "../../services/pagamentoService";
 
 import { StatusOrdemDeServico } from "../../enums/StatusOrdemDeServico";
 import { useSearchParams } from "react-router-dom";
@@ -67,6 +69,17 @@ function formatStatusOrdemServico(status: StatusOrdemDeServico): string {
 
   return labels[status];
 }
+
+const STATUS_FILTER_OPTIONS = Object.values(StatusOrdemDeServico).map(
+  (status) => ({ value: status, label: formatStatusOrdemServico(status) }),
+);
+
+// O backend nega estes destinos ao MECANICO (403); a UI nem os oferece.
+const STATUS_SOMENTE_GERENTE: StatusOrdemDeServico[] = [
+  StatusOrdemDeServico.FINALIZADA,
+  StatusOrdemDeServico.ENTREGUE,
+  StatusOrdemDeServico.CANCELADA,
+];
 
 function getStatusPermitidos(
   statusAtual: StatusOrdemDeServico,
@@ -123,6 +136,15 @@ export function OrdensServico({ usuarioLogado }: OrdensServicoProps) {
   const veiculoBusca = searchParams.get("veiculo") ?? "";
 
   const [searchTerm, setSearchTerm] = useState(clienteBusca || veiculoBusca);
+
+  const [statusFilter, setStatusFilter] = useState<StatusOrdemDeServico | "">(
+    "",
+  );
+
+  // osId -> valorPendente, exatamente como calculado pelo backend (Pagamento).
+  const [valoresPendentes, setValoresPendentes] = useState<
+    Record<number, number>
+  >({});
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -229,7 +251,30 @@ export function OrdensServico({ usuarioLogado }: OrdensServicoProps) {
     );
   }
 
+  async function recarregarValoresPendentes() {
+    if (usuarioLogado.oficinaId === null) return;
+
+    try {
+      const pagamentos = await buscarPagamentosPorOficina(
+        usuarioLogado.oficinaId,
+      );
+
+      setValoresPendentes(
+        Object.fromEntries(
+          pagamentos.map((pagamento) => [
+            pagamento.osId,
+            pagamento.valorPendente,
+          ]),
+        ),
+      );
+    } catch (error) {
+      console.error("Erro ao carregar valores pendentes das OS:", error);
+    }
+  }
+
   function handleUpdateOrdemServico(ordemAtualizada: OrdemDeServico) {
+    recarregarValoresPendentes();
+
     setOrdensServico((prev) =>
       prev.map((ordem) =>
         ordem.id === ordemAtualizada.id ? ordemAtualizada : ordem,
@@ -248,6 +293,7 @@ export function OrdensServico({ usuarioLogado }: OrdensServicoProps) {
       const novaOrdem = await criarOrdemServico(data);
 
       setOrdensServico((prev) => [...prev, novaOrdem]);
+      recarregarValoresPendentes();
 
       setIsModalOpen(false);
     } catch (error) {
@@ -318,15 +364,26 @@ export function OrdensServico({ usuarioLogado }: OrdensServicoProps) {
 
     async function carregarDados() {
       try {
-        const [ordens, pecasData] = await Promise.all([
+        const [ordens, pecasData, pagamentos] = await Promise.all([
           listarOrdensServico(),
           listarItemOsPecas(),
+          usuarioLogado.oficinaId === null
+            ? Promise.resolve([])
+            : buscarPagamentosPorOficina(usuarioLogado.oficinaId),
         ]);
 
         if (!ativo) return;
 
         setOrdensServico(ordens);
         setPecas(pecasData);
+        setValoresPendentes(
+          Object.fromEntries(
+            pagamentos.map((pagamento) => [
+              pagamento.osId,
+              pagamento.valorPendente,
+            ]),
+          ),
+        );
       } catch (error) {
         if (!ativo) return;
 
@@ -343,7 +400,15 @@ export function OrdensServico({ usuarioLogado }: OrdensServicoProps) {
     return () => {
       ativo = false;
     };
-  }, []);
+  }, [usuarioLogado.oficinaId]);
+
+  const ordensFiltradas = useMemo(
+    () =>
+      statusFilter
+        ? ordensServico.filter((os) => os.status === statusFilter)
+        : ordensServico,
+    [ordensServico, statusFilter],
+  );
 
   const columns: Column<OrdemDeServico>[] = [
     {
@@ -355,7 +420,7 @@ export function OrdensServico({ usuarioLogado }: OrdensServicoProps) {
     {
       key: "placaVeiculo",
       header: "Veículo",
-      width: "14%",
+      width: "10%",
       render: (os) => (
         <strong className="os-vehicle">{formatPlate(os.placaVeiculo)}</strong>
       ),
@@ -363,13 +428,13 @@ export function OrdensServico({ usuarioLogado }: OrdensServicoProps) {
     {
       key: "nomeCliente",
       header: "Cliente",
-      width: "28%",
+      width: "25%",
       render: (os) => <strong className="os-client">{os.nomeCliente}</strong>,
     },
     {
       key: "status",
       header: "Status",
-      width: "18%",
+      width: "10%",
       render: (os) => (
         <span className={`status-badge status-${os.status.toLowerCase()}`}>
           {formatStatusOrdemServico(os.status)}
@@ -381,6 +446,18 @@ export function OrdensServico({ usuarioLogado }: OrdensServicoProps) {
       header: "Valor Total",
       width: "15%",
       render: (os) => formatCurrencyDisplay(os.valorTotal),
+    },
+    {
+      key: "valorPendente",
+      header: "Valor Pendente",
+      width: "15%",
+      render: (os) => {
+        const pendente = valoresPendentes[os.id];
+
+        return pendente === undefined
+          ? "—"
+          : formatCurrencyDisplay(Math.max(pendente, 0));
+      },
     },
   ];
 
@@ -425,10 +502,14 @@ export function OrdensServico({ usuarioLogado }: OrdensServicoProps) {
     label: string;
     value: StatusOrdemDeServico;
   }[] = selectingStatusOrdem
-    ? getStatusPermitidos(selectingStatusOrdem.status).map((status) => ({
-        value: status,
-        label: formatStatusOrdemServico(status),
-      }))
+    ? getStatusPermitidos(selectingStatusOrdem.status)
+        .filter(
+          (status) => isGerente || !STATUS_SOMENTE_GERENTE.includes(status),
+        )
+        .map((status) => ({
+          value: status,
+          label: formatStatusOrdemServico(status),
+        }))
     : [];
 
   return (
@@ -457,21 +538,34 @@ export function OrdensServico({ usuarioLogado }: OrdensServicoProps) {
         icon={ClipboardList}
       />
 
-      <SearchBar
-        placeholder="Pesquisar por veículo, cliente ou status"
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-      />
+      <div className="list-filters">
+        <SearchBar
+          placeholder="Pesquisar por veículo, cliente ou status"
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+        />
+
+        <StatusFilter
+          label="Filtrar por status"
+          value={statusFilter}
+          options={STATUS_FILTER_OPTIONS}
+          onChange={setStatusFilter}
+        />
+      </div>
 
       <EntityTable
-        data={ordensServico}
+        data={ordensFiltradas}
         columns={columns}
         actions={actions}
         loading={loading}
         getRowKey={(os) => os.id}
         searchTerm={searchTerm}
         searchFields={["placaVeiculo", "nomeCliente", "status"]}
-        emptyMessage="Nenhuma ordem de serviço cadastrada"
+        emptyMessage={
+          statusFilter
+            ? "Nenhuma ordem de serviço com este status"
+            : "Nenhuma ordem de serviço cadastrada"
+        }
       />
 
       {isModalOpen && (

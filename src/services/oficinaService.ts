@@ -1,4 +1,4 @@
-import { api } from "./api";
+import { api, API_URL } from "./api";
 import type { Oficina } from "../types/oficina/oficina";
 import type { EntityOption } from "../components/EntityForm/types";
 import { formatDocument } from "../utils/formatters";
@@ -19,10 +19,6 @@ export interface OficinaPage {
   last: boolean;
 }
 
-export async function listarOficinas(): Promise<Oficina[]> {
-  return api<Oficina[]>("/oficinas");
-}
-
 /**
  * Remove separadores de CNPJ (. - /) do termo de busca, sem afetar buscas
  * por nome. O CNPJ é armazenado sem formatação no backend, então
@@ -36,7 +32,7 @@ function sanitizeSearchTerm(value: string): string {
 export async function buscarOficinas(
   search: string,
   page = 0,
-  size = 10,
+  size = 20,
 ): Promise<OficinaPage> {
   const termo = sanitizeSearchTerm(search);
   const params = new URLSearchParams({
@@ -81,15 +77,38 @@ export async function atualizarOficina(
   });
 }
 
-export async function deletarOficina(id: number): Promise<void> {
-  await api<void>(`/oficinas/${id}`, {
-    method: "DELETE",
-  });
-}
-
 export async function ativarOficina(id: number): Promise<void> {
   await api<void>(`/oficinas/${id}/ativar`, {
     method: "PATCH",
+  });
+}
+
+export async function buscarLogoOficina(id: number): Promise<Blob | null> {
+  const token = localStorage.getItem("accessToken");
+
+  const response = await fetch(`${API_URL}/oficinas/${id}/logo`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+
+  if (response.status === 404) return null;
+  if (!response.ok) throw new Error("Não foi possível carregar a logo.");
+
+  return response.blob();
+}
+
+export async function enviarLogoOficina(id: number, arquivo: File): Promise<void> {
+  const formData = new FormData();
+  formData.append("arquivo", arquivo);
+
+  await api<void>(`/oficinas/${id}/logo`, {
+    method: "PUT",
+    body: formData,
+  });
+}
+
+export async function removerLogoOficina(id: number): Promise<void> {
+  await api<void>(`/oficinas/${id}/logo`, {
+    method: "DELETE",
   });
 }
 

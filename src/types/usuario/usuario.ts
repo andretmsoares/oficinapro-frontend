@@ -8,4 +8,5 @@ export interface Usuario {
   oficinaId: number | null;
   username: string;
   role: Role;
+  bloqueado: boolean;
 }

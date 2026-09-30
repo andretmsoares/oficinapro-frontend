@@ -1,0 +1,48 @@
+.list-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.list-filters .search-input-wrapper {
+  flex: 1 1 280px;
+}
+
+.status-filter-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+.status-filter-wrapper .status-filter-icon {
+  position: absolute;
+  left: 1rem;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.status-filter-wrapper select {
+  min-width: 220px;
+  padding: 0.75rem 1rem 0.75rem 2.75rem;
+  font-size: 0.95rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background-color: #ffffff;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.status-filter-wrapper select:focus {
+  border-color: #0f172a;
+  box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.1);
+}
+
+@media (max-width: 600px) {
+  .status-filter-wrapper,
+  .status-filter-wrapper select {
+    width: 100%;
+  }
+}

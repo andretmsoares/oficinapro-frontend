@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { EntityTable } from "../../components/EntityTable";
+import { Pagination } from "../../components/Pagination";
 import { HeaderPageWithButton } from "../../components/HeaderPageWithButton";
 import { SearchBar } from "../../components/SearchBar";
 import { StatCard } from "../../components/StatCard";
@@ -7,8 +8,9 @@ import {
   atualizarMecanico,
   criarMecanico,
   deletarMecanico,
-  listarMecanicos,
+  buscarMecanicosPaginado,
 } from "../../services/mecanicoService";
+import { useServerSearch } from "../../hooks/useServerSearch";
 import "./mecanicos.style.css";
 import type { Mecanico } from "../../types/mecanico/mecanico";
 import { mecanicoFields, type MecanicoFormData } from "./mecanicosFields";
@@ -23,9 +25,18 @@ import { EntityForm } from "../../components/EntityForm";
 import { ConfirmDeleteEntity } from "../../components/ConfirmDeleteEntity";
 
 export function Mecanicos() {
-  const [mecanicos, setMecanicos] = useState<Mecanico[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
+  const {
+    items: mecanicos,
+    loading,
+    searchTerm,
+    buscando,
+    page,
+    totalPages,
+    totalElements,
+    setPage,
+    handleSearch,
+    reload,
+  } = useServerSearch<Mecanico>(buscarMecanicosPaginado);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMecanico, setEditingMecanico] = useState<Mecanico | null>(null);
   const [deletingMecanico, setDeletingMecanico] = useState<Mecanico | null>(
@@ -53,11 +64,11 @@ export function Mecanicos() {
   async function handleAddMecanico(data: MecanicoFormData) {
     try {
       setSubmitError("");
-      const mecanico = await criarMecanico({
+      await criarMecanico({
         ...data,
       });
 
-      setMecanicos((prev) => [...prev, mecanico]);
+      reload();
       setIsModalOpen(false);
     } catch (error) {
       console.error("Erro ao criar mecânico:", error);
@@ -74,15 +85,11 @@ export function Mecanicos() {
 
     try {
       setSubmitError("");
-      const mecanicoAtualizado = await atualizarMecanico(editingMecanico.id, {
+      await atualizarMecanico(editingMecanico.id, {
         ...data,
       });
 
-      setMecanicos((prev) =>
-        prev.map((mecanico) =>
-          mecanico.id === mecanicoAtualizado.id ? mecanicoAtualizado : mecanico,
-        ),
-      );
+      reload();
 
       setEditingMecanico(null);
       setIsModalOpen(false);
@@ -103,9 +110,7 @@ export function Mecanicos() {
       setSubmitError("");
       await deletarMecanico(deletingMecanico.id);
 
-      setMecanicos((prev) =>
-        prev.filter((mecanico) => mecanico.id !== deletingMecanico.id),
-      );
+      reload();
 
       setDeletingMecanico(null);
     } catch (error) {
@@ -117,22 +122,6 @@ export function Mecanicos() {
       );
     }
   }
-
-  useEffect(() => {
-    async function carregarMecanicos() {
-      try {
-        const response = await listarMecanicos();
-
-        setMecanicos(response.content);
-      } catch (error) {
-        console.error("Erro ao carregar mecânicos:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    carregarMecanicos();
-  }, []);
 
   const columns: Column<Mecanico>[] = [
     {
@@ -206,15 +195,17 @@ export function Mecanicos() {
 
       <StatCard
         title="Mecânicos Cadastrados"
-        value={mecanicos.length.toString()}
-        description="Total na base de dados"
+        value={totalElements.toString()}
+        description={
+          buscando ? "Encontrados na busca" : "Total na base de dados"
+        }
         icon={Wrench}
       />
 
       <SearchBar
         placeholder="Pesquisar Mecânicos (nome, CPF ou telefone)"
         searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
+        setSearchTerm={handleSearch}
       />
 
       <EntityTable
@@ -222,10 +213,19 @@ export function Mecanicos() {
         columns={columns}
         actions={actions}
         getRowKey={(c) => c.id}
-        searchTerm={searchTerm}
-        searchFields={["nome", "documento", "telefone"]}
-        emptyMessage="Nenhum mecanico cadastrado"
+        emptyMessage={
+          buscando
+            ? "Nenhum mecânico encontrado para a busca"
+            : "Nenhum mecânico cadastrado"
+        }
         loading={loading}
+      />
+
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        totalElements={totalElements}
+        onPageChange={setPage}
       />
 
       {isModalOpen && (

@@ -1,18 +1,8 @@
 import type { Usuario } from "../types/usuario/usuario";
+import type { LoginRequest, LoginResponse } from "../types/auth/auth";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-export interface LoginRequest {
-  username: string;
-  password: string;
-}
-
-export interface LoginResponse {
-  accessToken: string;
-  tokenType: string;
-  expiresIn: number;
-  usuario: Usuario;
-}
 
 export async function login(credentials: LoginRequest): Promise<LoginResponse> {
   const response = await fetch(`${API_URL}/auth/login`, {
@@ -26,6 +16,14 @@ export async function login(credentials: LoginRequest): Promise<LoginResponse> {
   if (!response.ok) {
     if (response.status === 401) {
       throw new Error("Usuário ou senha inválidos.");
+    }
+
+    if (response.status === 423 || response.status === 429) {
+      const body = await response.json().catch(() => null);
+      throw new Error(
+        body?.message ??
+          "Login bloqueado por excesso de tentativas. Fale com o administrador do sistema.",
+      );
     }
 
     throw new Error("Não foi possível realizar o login.");

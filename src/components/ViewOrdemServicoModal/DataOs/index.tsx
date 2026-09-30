@@ -74,7 +74,7 @@ export function DataOS({ ordemServico }: DataOSProps) {
         <InfoItem
           icon={HardHat}
           label="Mecânico responsável"
-          value={`${ordemServico.mecanicoNome}`}
+          value={`${ordemServico.mecanico}`}
         />
 
         <InfoItem

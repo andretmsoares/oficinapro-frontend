@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Car, Pencil, Trash2, NotepadText } from "lucide-react";
 
 import { StatCard } from "../../components/StatCard";
@@ -6,6 +6,7 @@ import { HeaderPageWithButton } from "../../components/HeaderPageWithButton";
 import { HeaderPage } from "../../components/HeaderPage";
 import { SearchBar } from "../../components/SearchBar";
 import { EntityTable } from "../../components/EntityTable";
+import { Pagination } from "../../components/Pagination";
 import type { Column, EntityAction } from "../../components/EntityTable/types";
 
 import { EntityForm } from "../../components/EntityForm";
@@ -20,9 +21,10 @@ import {
   criarVeiculo,
   atualizarVeiculo,
   deletarVeiculo,
-  listarVeiculos,
+  buscarVeiculosPaginado,
   type VeiculoRequest,
 } from "../../services/veiculoService";
+import { useServerSearch } from "../../hooks/useServerSearch";
 
 import { formatPlate } from "../../utils/formatters";
 
@@ -36,10 +38,18 @@ interface VeiculoProps {
 export function Veiculos({ usuarioLogado }: VeiculoProps) {
   const isGerente = usuarioLogado.role === "GERENTE";
 
-  const [veiculos, setVeiculos] = useState<Veiculo[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const [searchTerm, setSearchTerm] = useState("");
+  const {
+    items: veiculos,
+    loading,
+    searchTerm,
+    buscando,
+    page,
+    totalPages,
+    totalElements,
+    setPage,
+    handleSearch,
+    reload,
+  } = useServerSearch<Veiculo>(buscarVeiculosPaginado);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -67,9 +77,9 @@ export function Veiculos({ usuarioLogado }: VeiculoProps) {
         cor: data.cor,
       };
 
-      const novoVeiculo = await criarVeiculo(request);
+      await criarVeiculo(request);
 
-      setVeiculos((prev) => [...prev, novoVeiculo]);
+      reload();
 
       fecharModal();
     } catch (error) {
@@ -116,16 +126,9 @@ export function Veiculos({ usuarioLogado }: VeiculoProps) {
         cor: data.cor,
       };
 
-      const veiculoAtualizado = await atualizarVeiculo(
-        editingVeiculo.id,
-        request,
-      );
+      await atualizarVeiculo(editingVeiculo.id, request);
 
-      setVeiculos((prev) =>
-        prev.map((veiculo) =>
-          veiculo.id === editingVeiculo.id ? veiculoAtualizado : veiculo,
-        ),
-      );
+      reload();
 
       fecharModal();
     } catch (error) {
@@ -153,9 +156,7 @@ export function Veiculos({ usuarioLogado }: VeiculoProps) {
       setSubmitError("");
       await deletarVeiculo(deletingVeiculo.id);
 
-      setVeiculos((prev) =>
-        prev.filter((veiculo) => veiculo.id !== deletingVeiculo.id),
-      );
+      reload();
 
       setDeletingVeiculo(null);
     } catch (error) {
@@ -167,21 +168,6 @@ export function Veiculos({ usuarioLogado }: VeiculoProps) {
       );
     }
   }
-
-  useEffect(() => {
-    async function carregarVeiculos() {
-      try {
-        const data = await listarVeiculos();
-        setVeiculos(data.content);
-      } catch (error) {
-        console.error("Erro ao carregar veículos:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    carregarVeiculos();
-  }, []);
 
   const columns: Column<Veiculo>[] = [
     {
@@ -265,8 +251,10 @@ export function Veiculos({ usuarioLogado }: VeiculoProps) {
       <div className="vehicles-stats">
         <StatCard
           title="Total de Veículos"
-          value={veiculos.length}
-          description="Total na base de dados"
+          value={totalElements}
+          description={
+            buscando ? "Encontrados na busca" : "Total na base de dados"
+          }
           icon={Car}
         />
       </div>
@@ -274,7 +262,7 @@ export function Veiculos({ usuarioLogado }: VeiculoProps) {
       <div className="vehicles-toolbar">
         <SearchBar
           searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
+          setSearchTerm={handleSearch}
           placeholder="Buscar veículo por Modelo, Placa ou Marca"
         />
       </div>
@@ -284,10 +272,19 @@ export function Veiculos({ usuarioLogado }: VeiculoProps) {
         columns={columns}
         actions={actions}
         getRowKey={(veiculo) => veiculo.id}
-        searchTerm={searchTerm}
-        searchFields={["placa", "marca", "modelo", "ano"]}
         loading={loading}
-        emptyMessage="Nenhum veículo cadastrado"
+        emptyMessage={
+          buscando
+            ? "Nenhum veículo encontrado para a busca"
+            : "Nenhum veículo cadastrado"
+        }
+      />
+
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        totalElements={totalElements}
+        onPageChange={setPage}
       />
 
       {isModalOpen && isGerente && (

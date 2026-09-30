@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Building2,
   Eye,
   Pencil,
-  Trash2,
   Phone,
   IdCard,
+  Image as ImageIcon,
   Power,
   PowerOff,
 } from "lucide-react";
@@ -14,20 +14,20 @@ import { StatCard } from "../../components/StatCard";
 import { HeaderPageWithButton } from "../../components/HeaderPageWithButton";
 import { SearchBar } from "../../components/SearchBar";
 import { EntityTable } from "../../components/EntityTable";
+import { Pagination } from "../../components/Pagination";
 import type { Column, EntityAction } from "../../components/EntityTable/types";
 import { EntityForm } from "../../components/EntityForm";
-import { ConfirmDeleteEntity } from "../../components/ConfirmDeleteEntity";
 import { EntityViewModal } from "../../components/EntityViewModal";
+import { OficinaLogoModal } from "../../components/OficinaLogoModal";
 import {
-  listarOficinas,
+  buscarOficinas,
   criarOficina,
   atualizarOficina,
-  deletarOficina,
   ativarOficina,
   desativarOficina,
 } from "../../services/oficinaService";
 
-import { buscarEstatisticasSistema } from "../../services/estatisticasService";
+import { useServerSearch } from "../../hooks/useServerSearch";
 import type { Oficina } from "../../types/oficina/oficina";
 import { formatDocument, formatPhone } from "../../utils/formatters";
 
@@ -36,12 +36,21 @@ import { oficinaFields, type OficinaFormData } from "./oficinasFields";
 import "./oficinas.style.css";
 
 export function Oficinas() {
-  const [oficinas, setOficinas] = useState<Oficina[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
+  const {
+    items: oficinas,
+    searchTerm,
+    buscando,
+    page,
+    totalPages,
+    totalElements,
+    setPage,
+    handleSearch,
+    reload,
+  } = useServerSearch<Oficina>(buscarOficinas);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingOficina, setEditingOficina] = useState<Oficina | null>(null);
   const [viewingOficina, setViewingOficina] = useState<Oficina | null>(null);
-  const [deletingOficina, setDeletingOficina] = useState<Oficina | null>(null);
+  const [logoOficina, setLogoOficina] = useState<Oficina | null>(null);
   const [submitError, setSubmitError] = useState("");
 
   function handleView(id: number) {
@@ -57,52 +66,16 @@ export function Oficinas() {
     setIsModalOpen(true);
   }
 
-  function handleDelete(id: number) {
-    const oficina = oficinas.find((o) => o.id === id);
-    if (!oficina) return;
-    setDeletingOficina(oficina);
-  }
-
-  async function handleConfirmDelete() {
-    if (!deletingOficina) return;
-
-    try {
-      setSubmitError("");
-      await deletarOficina(deletingOficina.id);
-
-      setOficinas((prev) =>
-        prev.filter((oficina) => oficina.id !== deletingOficina.id),
-      );
-
-      setDeletingOficina(null);
-    } catch (error) {
-      console.error("Erro ao excluir oficina:", error);
-      setSubmitError(
-        error instanceof Error
-          ? error.message
-          : "Não foi possível excluir a oficina.",
-      );
-    }
-  }
-
   async function handleAddOficina(data: OficinaFormData) {
     try {
       setSubmitError("");
-      const novaOficina = await criarOficina({
+      await criarOficina({
         nome: data.nome,
         cnpj: data.cnpj,
         telefone: data.telefone,
       });
 
-      setOficinas((prev) => [
-        ...prev,
-        {
-          ...novaOficina,
-          totalClientes: 0,
-          totalVeiculos: 0,
-          totalOrdensServico: 0,
-        },
-      ]);
+      reload();
 
       setIsModalOpen(false);
     } catch (err) {
@@ -110,7 +83,7 @@ export function Oficinas() {
       setSubmitError(
         err instanceof Error
           ? err.message
-          : "Não foi possível excluir a oficina.",
+          : "Não foi possível criar a oficina.",
       );
     }
   }
@@ -120,21 +93,13 @@ export function Oficinas() {
 
     try {
       setSubmitError("");
-      const oficinaAtualizada = await atualizarOficina(editingOficina.id, {
+      await atualizarOficina(editingOficina.id, {
         nome: data.nome,
         cnpj: data.cnpj,
         telefone: data.telefone,
       });
 
-      setOficinas((prev) =>
-        prev.map((oficina) =>
-          oficina.id === editingOficina.id
-            ? {
-                ...oficinaAtualizada,
-              }
-            : oficina,
-        ),
-      );
+      reload();
 
       setEditingOficina(null);
       setIsModalOpen(false);
@@ -143,7 +108,7 @@ export function Oficinas() {
       setSubmitError(
         err instanceof Error
           ? err.message
-          : "Não foi possível excluir a oficina.",
+          : "Não foi possível atualizar a oficina.",
       );
     }
   }
@@ -156,11 +121,7 @@ export function Oficinas() {
         await ativarOficina(oficina.id);
       }
 
-      setOficinas((prev) =>
-        prev.map((item) =>
-          item.id === oficina.id ? { ...item, ativo: !item.ativo } : item,
-        ),
-      );
+      reload();
     } catch (err) {
       console.error(
         `Erro ao ${oficina.ativo ? "desativar" : "ativar"} oficina:`,
@@ -168,36 +129,6 @@ export function Oficinas() {
       );
     }
   }
-
-  useEffect(() => {
-    async function carregarOficinas() {
-      try {
-        const [oficinasResponse, estatisticas] = await Promise.all([
-          listarOficinas(),
-          buscarEstatisticasSistema(),
-        ]);
-
-        const oficinasComEstatisticas = oficinasResponse.map((oficina) => {
-          const estatistica = estatisticas.porOficina.find(
-            (item) => item.oficinaId === oficina.id,
-          );
-
-          return {
-            ...oficina,
-            totalClientes: estatistica?.clientes ?? 0,
-            totalVeiculos: estatistica?.veiculos ?? 0,
-            totalOrdensServico: estatistica?.ordensDeServico ?? 0,
-          };
-        });
-
-        setOficinas(oficinasComEstatisticas);
-      } catch (err) {
-        console.error("Erro ao carregar oficinas:", err);
-      }
-    }
-
-    carregarOficinas();
-  }, []);
 
   const columns: Column<Oficina>[] = [
     {
@@ -216,7 +147,7 @@ export function Oficinas() {
       key: "telefone",
       header: "Telefone",
       width: "18%",
-      render: (o) => formatDocument(o.telefone).display,
+      render: (o) => formatPhone(o.telefone),
     },
     {
       key: "ativo",
@@ -248,24 +179,24 @@ export function Oficinas() {
       onClick: (o) => handleEdit(o.id),
     },
     {
+      label: "Logo da oficina",
+      icon: ImageIcon,
+      variant: "default",
+      onClick: (o) => setLogoOficina(o),
+    },
+    {
       label: "Desativar oficina",
       icon: PowerOff,
       variant: "delete",
       onClick: (o) => handleToggleStatus(o),
-      hidden: (o) => o.ativo,
+      hidden: (o) => !o.ativo,
     },
     {
       label: "Ativar oficina",
       icon: Power,
       variant: "edit",
       onClick: (o) => handleToggleStatus(o),
-      hidden: (o) => !o.ativo,
-    },
-    {
-      label: "Remover oficina",
-      icon: Trash2,
-      variant: "delete",
-      onClick: (o) => handleDelete(o.id),
+      hidden: (o) => o.ativo,
     },
   ];
 
@@ -283,15 +214,15 @@ export function Oficinas() {
 
       <StatCard
         title="Oficinas Cadastradas"
-        value={oficinas.length.toString()}
-        description="Total de oficinas"
+        value={totalElements.toString()}
+        description={buscando ? "Encontradas na busca" : "Total de oficinas"}
         icon={Building2}
       />
 
       <SearchBar
         placeholder="Pesquisar por nome ou CNPJ"
         searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
+        setSearchTerm={handleSearch}
       />
 
       <EntityTable
@@ -299,9 +230,18 @@ export function Oficinas() {
         columns={columns}
         actions={actions}
         getRowKey={(o) => o.id}
-        searchTerm={searchTerm}
-        searchFields={["nome", "cnpj"]}
-        emptyMessage="Nenhuma oficina cadastrada"
+        emptyMessage={
+          buscando
+            ? "Nenhuma oficina encontrada para a busca"
+            : "Nenhuma oficina cadastrada"
+        }
+      />
+
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        totalElements={totalElements}
+        onPageChange={setPage}
       />
 
       {isModalOpen && (
@@ -326,6 +266,13 @@ export function Oficinas() {
         />
       )}
 
+      {logoOficina && (
+        <OficinaLogoModal
+          oficina={logoOficina}
+          onClose={() => setLogoOficina(null)}
+        />
+      )}
+
       {viewingOficina && (
         <EntityViewModal
           title={viewingOficina.nome}
@@ -343,16 +290,6 @@ export function Oficinas() {
               value: formatPhone(viewingOficina.telefone),
             },
           ]}
-        />
-      )}
-
-      {deletingOficina && (
-        <ConfirmDeleteEntity
-          text="Oficina"
-          entity="a oficina"
-          entityName={deletingOficina.nome}
-          onConfirm={handleConfirmDelete}
-          onCancel={() => setDeletingOficina(null)}
         />
       )}
     </div>
