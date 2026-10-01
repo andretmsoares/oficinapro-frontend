@@ -1,0 +1,10 @@
+services:
+  frontend:
+    image: ${DOCKER_USERNAME}/oficinapro-frontend:latest
+    container_name: oficinapro-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+
+# docker compose -f compose.prod.yml up -d
+# VITE_API_URL e embutido no build da imagem (ver docker-ci.yml), nao em runtime.

@@ -1,0 +1,19 @@
+services:
+  frontend:
+    image: node:22-bookworm-slim
+    container_name: oficinapro-frontend
+    working_dir: /app
+    volumes:
+      - .:/app
+      - frontend_node_modules:/app/node_modules
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:8080/api}
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    ports:
+      - "3000:5173"
+
+volumes:
+  frontend_node_modules:
+
+# docker compose -f compose.dev.yml up
+# O backend (oficinapro-backend) deve estar rodando e acessivel em VITE_API_URL.
