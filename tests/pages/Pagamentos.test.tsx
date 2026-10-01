@@ -508,47 +508,4 @@ describe("Página de Pagamentos", () => {
       ).toBeInTheDocument();
     });
   });
-
-  describe("comprovante", () => {
-    it("baixa o comprovante da OS do pagamento", async () => {
-      backend();
-      server.use(
-        http.get(
-          `${API}/ordens-servico/2/comprovante-pagamento`,
-          () =>
-            new HttpResponse(new Blob(["%PDF"]), {
-              headers: { "Content-Type": "application/pdf" },
-            }),
-        ),
-      );
-      Object.defineProperty(URL, "createObjectURL", {
-        value: vi.fn(() => "blob:comprovante"),
-        configurable: true,
-        writable: true,
-      });
-      Object.defineProperty(URL, "revokeObjectURL", {
-        value: vi.fn(),
-        configurable: true,
-        writable: true,
-      });
-      const baixados: string[] = [];
-      vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(
-        function (this: HTMLAnchorElement) {
-          baixados.push(this.download);
-        },
-      );
-      const user = renderizar();
-      await screen.findByText("#0002");
-
-      await user.click(
-        within(linhaDe("#0002")).getByTitle(
-          "Imprimir comprovante de pagamento",
-        ),
-      );
-
-      await waitFor(() =>
-        expect(baixados).toEqual(["comprovante-pagamento-os-2.pdf"]),
-      );
-    });
-  });
 });

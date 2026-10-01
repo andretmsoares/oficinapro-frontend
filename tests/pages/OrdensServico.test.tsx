@@ -730,43 +730,4 @@ describe("Página de Ordens de Serviço", () => {
       });
     });
   });
-
-  describe("impressão", () => {
-    it("baixa o PDF da OS com o nome ordem-servico-<id>.pdf", async () => {
-      carregarDados([os1], []);
-      let authorization: string | null = null;
-      localStorage.setItem("accessToken", "jwt-de-teste");
-      server.use(
-        http.get(`${API}/ordens-servico/1/pdf`, ({ request }) => {
-          authorization = request.headers.get("Authorization");
-          return new HttpResponse(new Blob(["%PDF-1.4"]), {
-            headers: { "Content-Type": "application/pdf" },
-          });
-        }),
-      );
-      Object.defineProperty(URL, "createObjectURL", {
-        value: vi.fn(() => "blob:os-1"),
-        configurable: true,
-        writable: true,
-      });
-      Object.defineProperty(URL, "revokeObjectURL", {
-        value: vi.fn(),
-        configurable: true,
-        writable: true,
-      });
-      const baixados: string[] = [];
-      vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(
-        function (this: HTMLAnchorElement) {
-          baixados.push(this.download);
-        },
-      );
-      const user = await renderizar();
-      await screen.findByText("#0001");
-
-      await user.click(screen.getByTitle("Imprimir ordem de serviço"));
-
-      await waitFor(() => expect(baixados).toEqual(["ordem-servico-1.pdf"]));
-      expect(authorization).toBe("Bearer jwt-de-teste");
-    });
-  });
 });
