@@ -41,6 +41,70 @@ docker build --build-arg VITE_API_URL=http://localhost:8080/api -t oficinapro-fr
 
 `compose.prod.yml` sobe a imagem publicada (`$DOCKER_USERNAME/oficinapro-frontend:latest`).
 
+### Rodar tudo local com Docker (backend + frontend)
+
+Dois repositórios irmãos (`oficinapro-backend/` e `oficinapro-frontend/`, na mesma pasta).
+
+```bash
+# 1) Backend: Postgres local + API em http://localhost:8080
+cd ../oficinapro-backend
+cp .env-example .env        # ajuste JWT_SECRET (>= 32 chars) e ADMIN_USERNAME/ADMIN_PASSWORD
+docker compose --env-file .env -f infra/docker/compose.dev.yml up -d
+# a 1ª subida baixa dependências do Gradle e leva alguns minutos; acompanhe com:
+docker logs -f oficinapro-app          # pronto quando http://localhost:8080/actuator/health = 200
+
+# 2) Frontend: Vite em http://localhost:3000 (hot reload)
+cd ../oficinapro-frontend
+docker compose -f compose.dev.yml up -d
+```
+
+- Entre em http://localhost:3000 com o `ADMIN_USERNAME`/`ADMIN_PASSWORD` do `.env` do backend
+  (o ADMIN é criado na 1ª subida). Para ver as telas da oficina (dashboard, clientes, OS…),
+  crie uma oficina e um usuário `GERENTE` pelo próprio ADMIN.
+- O CORS do backend precisa incluir a origem do front: `OFICINAPRO_CORS_ALLOWED_ORIGINS`
+  (`http://localhost:3000` por padrão; adicione `http://localhost:5173` se usar `npm run dev`).
+- Parar: `docker compose -f compose.dev.yml down` (front) e
+  `docker compose --env-file .env -f infra/docker/compose.dev.yml down` (back; o volume do
+  banco é mantido).
+- **Nunca** use o `.env.prod` (Neon/produção) para testes locais.
+
+### Rodar em produção (Cloudflare)
+
+Arquitetura: **frontend na Vercel** (domínio próprio), **backend em Docker atrás de um
+Cloudflare Tunnel** (nenhuma porta publicada no host), banco no **Neon** e arquivos
+(logos) no **Cloudflare R2**.
+
+**Backend (Cloudflare Tunnel)** — no repositório `oficinapro-backend`:
+
+1. No painel Cloudflare Zero Trust, crie um túnel e um _Public Hostname_
+   (ex.: `api.appoficinapro.com.br`) apontando para `http://app:8080`.
+2. Crie o `.env.prod` (não commitar) com `DOCKER_USERNAME`, `IMAGE_TAG`, `TUNNEL_TOKEN`,
+   `JWT_SECRET`, `SPRING_DATASOURCE_URL`/`POSTGRES_*` (Neon, conexão direta, sem `-pooler`),
+   `ADMIN_*`, `R2_*` e `OFICINAPRO_CORS_ALLOWED_ORIGINS` (domínios do front, em https).
+3. Suba:
+
+```bash
+docker compose -f infra/docker/compose.tunnel.yml --env-file .env.prod up -d
+```
+
+**Frontend (Vercel)**:
+
+1. Configure a variável `VITE_API_URL=https://api.appoficinapro.com.br/api` no projeto
+   (ela é embutida no **build**, não lida em runtime).
+2. O `vercel.json` já define o fallback de SPA e os headers de segurança. A CSP só permite
+   `connect-src https://api.appoficinapro.com.br`: se a URL da API mudar, atualize-a lá.
+
+**Frontend em Docker (alternativa à Vercel)** — imagem nginx com a API embutida no build:
+
+```bash
+docker build --build-arg VITE_API_URL=https://api.appoficinapro.com.br/api -t oficinapro-frontend .
+# ou, com a imagem publicada pelo CI:
+docker compose -f compose.prod.yml up -d    # expõe 127.0.0.1:3000; coloque um proxy/túnel com TLS na frente
+```
+
+Detalhes de segurança e operação (segredos, banco, Cloudflare, auditoria):
+[`docs/security.md` do backend](https://github.com/andretmsoares/oficinapro-backend/blob/develop/docs/security.md).
+
 ### Scripts
 
 | Comando                         | O que faz                                               |
