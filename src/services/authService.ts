@@ -3,7 +3,6 @@ import type { LoginRequest, LoginResponse } from "../types/auth/auth";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-
 export async function login(credentials: LoginRequest): Promise<LoginResponse> {
   const response = await fetch(`${API_URL}/auth/login`, {
     method: "POST",
@@ -30,6 +29,23 @@ export async function login(credentials: LoginRequest): Promise<LoginResponse> {
   }
 
   return response.json();
+}
+
+/**
+ * Revoga no servidor todos os tokens do usuário. É "melhor esforço": quem chama já limpou a
+ * sessão local, então uma falha de rede aqui não pode impedir a saída.
+ */
+export async function logout(token: string): Promise<void> {
+  try {
+    await fetch(`${API_URL}/auth/logout`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  } catch {
+    // Sem rede ou servidor fora: o token expira sozinho em até 8h.
+  }
 }
 
 export async function buscarUsuarioLogado(token: string): Promise<Usuario> {
