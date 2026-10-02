@@ -20,8 +20,40 @@ export async function listarItemOsPecaPorOs(
   return api<ItemOsPeca[]>(`/itens-os-peca/os/${osId}`);
 }
 
-export async function listarItemOsPecas(): Promise<ItemOsPeca[]> {
-  return api<ItemOsPeca[]>("/itens-os-peca");
+export interface ItemOsPecaPage {
+  content: ItemOsPeca[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  first: boolean;
+  last: boolean;
+}
+
+/**
+ * Uma página das peças da oficina. A busca (nome ou parte do número da OS) roda no servidor sobre
+ * TODAS as peças. `avulsas` restringe às peças sem OS (as que podem ser vinculadas).
+ */
+export async function listarItemOsPecasPaginado(
+  termo: string,
+  page = 0,
+  size = 20,
+  avulsas = false,
+): Promise<ItemOsPecaPage> {
+  const params = new URLSearchParams({
+    page: String(page),
+    size: String(size),
+  });
+
+  if (termo.trim()) {
+    params.set("q", termo.trim());
+  }
+
+  if (avulsas) {
+    params.set("avulsas", "true");
+  }
+
+  return api<ItemOsPecaPage>(`/itens-os-peca?${params.toString()}`);
 }
 
 export async function buscarItemOsPecaPorId(id: number): Promise<ItemOsPeca> {

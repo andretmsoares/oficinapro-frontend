@@ -16,10 +16,11 @@ const SEARCH_DEBOUNCE_MS = 300;
  */
 export function useServerSearch<T>(
   fetchPage: (termo: string, page: number) => Promise<PageResponse<T>>,
+  initialTerm = "",
 ) {
   const [items, setItems] = useState<T[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(initialTerm);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
