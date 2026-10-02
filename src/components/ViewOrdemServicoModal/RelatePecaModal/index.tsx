@@ -100,12 +100,14 @@ export function RelatePecaModal({
           )}
         </div>
 
-        <Pagination
-          page={page}
-          totalPages={totalPages}
-          totalElements={totalElements}
-          onPageChange={setPage}
-        />
+        <div className="relate-peca-pagination">
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            totalElements={totalElements}
+            onPageChange={setPage}
+          />
+        </div>
       </div>
     </div>
   );
