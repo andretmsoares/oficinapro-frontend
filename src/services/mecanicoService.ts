@@ -96,7 +96,11 @@ export async function buscarMecanicosPorNome(
 export async function buscarMecanicoPorDocumento(
   documento: string,
 ): Promise<Mecanico> {
-  return api<Mecanico>(`/mecanicos/documento/${encodeURIComponent(documento)}`);
+  // POST com o documento no corpo: CPF na URL ficaria em logs de acesso e proxies.
+  return api<Mecanico>("/mecanicos/documento/buscar", {
+    method: "POST",
+    body: JSON.stringify({ documento }),
+  });
 }
 
 export async function criarMecanico(data: MecanicoRequest): Promise<Mecanico> {

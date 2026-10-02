@@ -1,6 +1,10 @@
 import { http, HttpResponse } from "msw";
 
-import { buscarUsuarioLogado, login } from "../../src/services/authService";
+import {
+  buscarUsuarioLogado,
+  login,
+  logout,
+} from "../../src/services/authService";
 import { server } from "../mocks/server";
 import { API, gerente } from "../mocks/factories";
 
@@ -122,5 +126,41 @@ describe("buscarUsuarioLogado", () => {
     await expect(buscarUsuarioLogado("ruim")).rejects.toThrow(
       "Sessão inválida ou expirada.",
     );
+  });
+});
+
+describe("logout", () => {
+  it("chama POST /auth/logout com o Bearer para revogar os tokens no servidor", async () => {
+    let metodo = "";
+    let autorizacao: string | null = null;
+    server.use(
+      http.post(`${API}/auth/logout`, ({ request }) => {
+        metodo = request.method;
+        autorizacao = request.headers.get("Authorization");
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
+
+    await logout("jwt-abc");
+
+    expect(metodo).toBe("POST");
+    expect(autorizacao).toBe("Bearer jwt-abc");
+  });
+
+  it("falha de rede não impede a saída (melhor esforço)", async () => {
+    server.use(http.post(`${API}/auth/logout`, () => HttpResponse.error()));
+
+    await expect(logout("jwt-abc")).resolves.toBeUndefined();
+  });
+
+  it("resposta de erro do servidor também não lança", async () => {
+    server.use(
+      http.post(
+        `${API}/auth/logout`,
+        () => new HttpResponse(null, { status: 401 }),
+      ),
+    );
+
+    await expect(logout("jwt-velho")).resolves.toBeUndefined();
   });
 });

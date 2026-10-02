@@ -121,7 +121,60 @@ describe("Header", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("nova senha informada é enviada; em branco não vai no payload", async () => {
+  it("nova senha exige a senha atual, é enviada com ela e força um novo login", async () => {
+    const corpos: Record<string, unknown>[] = [];
+    server.use(
+      http.put(`${API}/usuarios/me`, async ({ request }) => {
+        corpos.push((await request.json()) as Record<string, unknown>);
+        return HttpResponse.json(gerente());
+      }),
+    );
+    const { user, onLogout, onUpdateUsuarioLogado } = renderizar();
+    await abrirEdicao(user);
+
+    await user.type(
+      screen.getByPlaceholderText(/Mín\. 8 caracteres/),
+      "outraSenha123",
+    );
+    await user.type(
+      screen.getByPlaceholderText(/Obrigatória para trocar/),
+      "senhaAtual456",
+    );
+    await user.click(screen.getByRole("button", { name: "Salvar" }));
+
+    await waitFor(() => expect(corpos).toHaveLength(1));
+    expect(corpos[0].password).toBe("outraSenha123");
+    expect(corpos[0].senhaAtual).toBe("senhaAtual456");
+    // Trocar a senha revoga todos os tokens no servidor: é preciso entrar de novo.
+    await waitFor(() => expect(onLogout).toHaveBeenCalledTimes(1));
+    expect(onUpdateUsuarioLogado).not.toHaveBeenCalled();
+  });
+
+  it("nova senha sem a senha atual não é enviada e mostra o motivo", async () => {
+    let puts = 0;
+    server.use(
+      http.put(`${API}/usuarios/me`, () => {
+        puts++;
+        return HttpResponse.json(gerente());
+      }),
+    );
+    const { user, onLogout } = renderizar();
+    await abrirEdicao(user);
+
+    await user.type(
+      screen.getByPlaceholderText(/Mín\. 8 caracteres/),
+      "outraSenha123",
+    );
+    await user.click(screen.getByRole("button", { name: "Salvar" }));
+
+    expect(
+      await screen.findByText(/Informe a senha atual/),
+    ).toBeInTheDocument();
+    expect(puts).toBe(0);
+    expect(onLogout).not.toHaveBeenCalled();
+  });
+
+  it("nova senha em branco não vai no payload nem exige a senha atual", async () => {
     const corpos: Record<string, unknown>[] = [];
     server.use(
       http.put(`${API}/usuarios/me`, async ({ request }) => {
@@ -132,21 +185,20 @@ describe("Header", () => {
     const { user } = renderizar();
     await abrirEdicao(user);
 
-    await user.type(
-      screen.getByPlaceholderText(/Nova senha \(deixe em branco/),
-      "outraSenha123",
-    );
     await user.click(screen.getByRole("button", { name: "Salvar" }));
 
     await waitFor(() => expect(corpos).toHaveLength(1));
-    expect(corpos[0].password).toBe("outraSenha123");
+    expect(corpos[0]).not.toHaveProperty("password");
+    expect(corpos[0]).not.toHaveProperty("senhaAtual");
   });
 
-  it("trocar o username invalida o token atual e força o logout", async () => {
+  it("trocar o username exige a senha atual e NÃO desloga (o token usa o id, não o username)", async () => {
+    let corpo: Record<string, unknown> = {};
     server.use(
-      http.put(`${API}/usuarios/me`, () =>
-        HttpResponse.json(gerente({ username: "ana.nova" })),
-      ),
+      http.put(`${API}/usuarios/me`, async ({ request }) => {
+        corpo = (await request.json()) as Record<string, unknown>;
+        return HttpResponse.json(gerente({ username: "ana.nova" }));
+      }),
     );
     const { user, onLogout, onUpdateUsuarioLogado } = renderizar();
     await abrirEdicao(user);
@@ -156,10 +208,74 @@ describe("Header", () => {
     );
     await user.clear(username);
     await user.type(username, "ana.nova");
+    await user.type(
+      screen.getByPlaceholderText(/Obrigatória para trocar/),
+      "senhaAtual456",
+    );
     await user.click(screen.getByRole("button", { name: "Salvar" }));
 
-    await waitFor(() => expect(onLogout).toHaveBeenCalledTimes(1));
-    expect(onUpdateUsuarioLogado).not.toHaveBeenCalled();
+    await waitFor(() =>
+      expect(onUpdateUsuarioLogado).toHaveBeenCalledWith(
+        expect.objectContaining({ username: "ana.nova" }),
+      ),
+    );
+    expect(corpo.senhaAtual).toBe("senhaAtual456");
+    expect(onLogout).not.toHaveBeenCalled();
+  });
+
+  it("trocar o username sem a senha atual não é enviado", async () => {
+    let puts = 0;
+    server.use(
+      http.put(`${API}/usuarios/me`, () => {
+        puts++;
+        return HttpResponse.json(gerente());
+      }),
+    );
+    const { user } = renderizar();
+    await abrirEdicao(user);
+
+    const username = screen.getByPlaceholderText(
+      "Digite o username do usuário",
+    );
+    await user.clear(username);
+    await user.type(username, "ana.nova");
+    await user.click(screen.getByRole("button", { name: "Salvar" }));
+
+    expect(
+      await screen.findByText(/Informe a senha atual/),
+    ).toBeInTheDocument();
+    expect(puts).toBe(0);
+  });
+
+  it("senha atual incorreta (400) aparece no formulário, que continua aberto", async () => {
+    server.use(
+      http.put(`${API}/usuarios/me`, () =>
+        HttpResponse.json(
+          { message: "Senha atual incorreta." },
+          { status: 400 },
+        ),
+      ),
+    );
+    const { user, onLogout } = renderizar();
+    await abrirEdicao(user);
+
+    await user.type(
+      screen.getByPlaceholderText(/Mín\. 8 caracteres/),
+      "outraSenha123",
+    );
+    await user.type(
+      screen.getByPlaceholderText(/Obrigatória para trocar/),
+      "errada",
+    );
+    await user.click(screen.getByRole("button", { name: "Salvar" }));
+
+    expect(
+      await screen.findByText(/Senha atual incorreta/),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Editar meus dados" }),
+    ).toBeInTheDocument();
+    expect(onLogout).not.toHaveBeenCalled();
   });
 
   it("username já em uso (409) aparece no formulário, que continua aberto", async () => {

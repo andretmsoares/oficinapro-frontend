@@ -6,6 +6,7 @@ export type EditUsuarioFormData = {
   telefone: string;
   username: string;
   novaSenha: string;
+  senhaAtual: string;
 };
 
 export const editUsuarioFields = defineFields<EditUsuarioFormData>([
@@ -40,7 +41,14 @@ export const editUsuarioFields = defineFields<EditUsuarioFormData>([
   {
     name: "novaSenha",
     label: "Nova senha",
-    placeholder: "Nova senha (deixe em branco para manter a atual)",
+    placeholder:
+      "Mín. 8 caracteres, com letra e número (em branco mantém a atual)",
+    type: "password",
+  },
+  {
+    name: "senhaAtual",
+    label: "Senha atual",
+    placeholder: "Obrigatória para trocar a senha ou o username",
     type: "password",
   },
 ]);

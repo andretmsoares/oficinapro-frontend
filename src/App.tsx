@@ -27,6 +27,7 @@ import type { Role } from "./types/usuario/role";
 import {
   buscarUsuarioLogado,
   login as loginService,
+  logout as logoutService,
 } from "./services/authService";
 import { UNAUTHORIZED_EVENT } from "./services/api";
 
@@ -159,11 +160,24 @@ export default function App() {
      LOGOUT
      ========================================================= */
 
-  function handleLogout() {
+  async function handleLogout() {
+    const token = localStorage.getItem("accessToken");
+
+    /*
+     * Limpa a sessão local primeiro: o usuário sai mesmo se o servidor não responder.
+     */
     localStorage.removeItem("accessToken");
 
     setUsuarioLogado(null);
     setIsAuthenticated(false);
+
+    /*
+     * Revoga os tokens no servidor (melhor esforço). Sem isto, um token copiado antes do
+     * logout continuaria valendo até expirar (8h).
+     */
+    if (token) {
+      await logoutService(token);
+    }
   }
 
   /* =========================================================

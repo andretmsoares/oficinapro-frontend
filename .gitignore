@@ -28,4 +28,6 @@ coverage
 playwright-report
 test-results
 
-.env
+# Secrets: qualquer .env* fica fora do Git, exceto o modelo.
+.env*
+!.env-example

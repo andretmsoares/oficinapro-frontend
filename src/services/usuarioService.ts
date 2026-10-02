@@ -38,6 +38,8 @@ export interface UsuarioMeUpdateRequest {
   telefone: string;
   username: string;
   password?: string;
+  /** Obrigatória para trocar a senha ou o username (validada no backend). */
+  senhaAtual?: string;
 }
 
 export async function buscarUsuariosPaginado(
