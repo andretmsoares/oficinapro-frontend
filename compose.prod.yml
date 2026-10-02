@@ -1,10 +1,19 @@
 services:
   frontend:
-    image: ${DOCKER_USERNAME}/oficinapro-frontend:latest
+    image: ${DOCKER_USERNAME}/oficinapro-frontend:${IMAGE_TAG:-latest}
     container_name: oficinapro-frontend
     restart: unless-stopped
+    # Publicado só em loopback: o acesso externo deve passar pelo proxy/túnel com TLS.
     ports:
-      - "3000:80"
+      - "127.0.0.1:3000:8080"
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
 
 # docker compose -f compose.prod.yml up -d
 # VITE_API_URL e embutido no build da imagem (ver docker-ci.yml), nao em runtime.
+# Prefira IMAGE_TAG=<sha do commit> a :latest para deploys reproduziveis.
