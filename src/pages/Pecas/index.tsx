@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, Link2Off, Package, Pencil, Trash2 } from "lucide-react";
 
 import { ConfirmDeleteEntity } from "../../components/ConfirmDeleteEntity";
 import { EntityForm } from "../../components/EntityForm";
 import { EntityTable } from "../../components/EntityTable";
+import { Pagination } from "../../components/Pagination";
 import { HeaderPageWithButton } from "../../components/HeaderPageWithButton";
 import { SearchBar } from "../../components/SearchBar";
 import { StatCard } from "../../components/StatCard";
@@ -12,13 +13,14 @@ import type { ItemOsPeca } from "../../types/itemOsPeca/itemOsPeca";
 import type { Column, EntityAction } from "../../components/EntityTable/types";
 
 import { formatCurrencyDisplay } from "../../utils/formatters";
+import { useServerSearch } from "../../hooks/useServerSearch";
 
 import {
   atualizarItemOsPeca,
   criarItemOsPeca,
   deletarItemOsPeca,
   desvincularItemOsPecaOs,
-  listarItemOsPecas,
+  listarItemOsPecasPaginado,
   vincularItemOsPecaOs,
 } from "../../services/itemOsPecaService";
 
@@ -29,11 +31,25 @@ import {
   type VincularItemOsPecaFormData,
 } from "./itemOsPecasFields";
 
-export function Pecas() {
-  const [pecas, setPecas] = useState<ItemOsPeca[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
+// Função de módulo (identidade estável): o hook refaz a consulta a cada mudança dela.
+function buscarPecasPaginado(termo: string, pagina: number) {
+  return listarItemOsPecasPaginado(termo, pagina);
+}
 
-  const [loading, setLoading] = useState(false);
+export function Pecas() {
+  // Busca (nome da peça ou nº da OS) e paginação rodam no servidor, sobre todas as peças.
+  const {
+    items: pecas,
+    loading,
+    searchTerm,
+    buscando,
+    page,
+    totalPages,
+    totalElements,
+    setPage,
+    handleSearch,
+    reload: carregarItemOsPecas,
+  } = useServerSearch<ItemOsPeca>(buscarPecasPaginado);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPeca, setEditingPeca] = useState<ItemOsPeca | null>(null);
@@ -100,7 +116,7 @@ export function Pecas() {
 
       setIsModalOpen(false);
 
-      await carregarItemOsPecas();
+      carregarItemOsPecas();
     } catch (error) {
       console.error("Erro ao criar peça:", error);
 
@@ -127,7 +143,7 @@ export function Pecas() {
       setEditingPeca(null);
       setIsModalOpen(false);
 
-      await carregarItemOsPecas();
+      carregarItemOsPecas();
     } catch (error) {
       console.error("Erro ao atualizar peça:", error);
 
@@ -149,7 +165,7 @@ export function Pecas() {
 
       setDeletingPeca(null);
 
-      await carregarItemOsPecas();
+      carregarItemOsPecas();
     } catch (error) {
       console.error("Erro ao excluir peça:", error);
 
@@ -171,7 +187,7 @@ export function Pecas() {
 
       setLinkingPeca(null);
 
-      await carregarItemOsPecas();
+      carregarItemOsPecas();
     } catch (error) {
       console.error("Erro ao vincular peça:", error);
 
@@ -193,7 +209,7 @@ export function Pecas() {
 
       setUnlinkingPeca(null);
 
-      await carregarItemOsPecas();
+      carregarItemOsPecas();
     } catch (error) {
       console.error("Erro ao desvincular peça:", error);
 
@@ -204,51 +220,6 @@ export function Pecas() {
       );
     }
   }
-
-  async function carregarItemOsPecas() {
-    try {
-      setLoading(true);
-      const data = await listarItemOsPecas();
-      setPecas(data);
-    } catch (error) {
-      console.error("Erro ao carregar peças:", error);
-      setPecas([]);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    let ativo = true;
-
-    async function carregarInicialmente() {
-      try {
-        setLoading(true);
-
-        const data = await listarItemOsPecas();
-
-        if (ativo) {
-          setPecas(data);
-        }
-      } catch (error) {
-        console.error("Erro ao carregar peças:", error);
-
-        if (ativo) {
-          setPecas([]);
-        }
-      } finally {
-        if (ativo) {
-          setLoading(false);
-        }
-      }
-    }
-
-    void carregarInicialmente();
-
-    return () => {
-      ativo = false;
-    };
-  }, []);
 
   const columns: Column<ItemOsPeca>[] = [
     {
@@ -334,7 +305,7 @@ export function Pecas() {
 
       <StatCard
         title="Peças Cadastradas"
-        value={pecas.length.toString()}
+        value={totalElements.toString()}
         description="Total de peças da oficina"
         icon={Package}
       />
@@ -342,7 +313,7 @@ export function Pecas() {
       <SearchBar
         placeholder="Pesquisar por nome ou ID da OS"
         searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
+        setSearchTerm={handleSearch}
       />
 
       <EntityTable
@@ -350,14 +321,19 @@ export function Pecas() {
         columns={columns}
         actions={actions}
         getRowKey={(peca) => peca.id}
-        searchTerm={searchTerm}
-        searchFields={["nome"]}
-        searchFn={(peca, term) =>
-          peca.nome.toLowerCase().includes(term) ||
-          String(peca.osId ?? "").includes(term)
-        }
         loading={loading}
-        emptyMessage="Nenhuma peça cadastrada"
+        emptyMessage={
+          buscando
+            ? "Nenhuma peça encontrada para a busca"
+            : "Nenhuma peça cadastrada"
+        }
+      />
+
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        totalElements={totalElements}
+        onPageChange={setPage}
       />
 
       {isModalOpen && (
