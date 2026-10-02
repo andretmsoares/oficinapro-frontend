@@ -2,7 +2,7 @@ name: Docker Images
 
 # Publica a imagem só DEPOIS do merge na main (ou manualmente), nunca a partir de PR.
 on:
-  push:
+  pull_request:
     branches:
       - main
   workflow_dispatch:
