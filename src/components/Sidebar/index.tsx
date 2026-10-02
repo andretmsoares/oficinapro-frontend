@@ -18,19 +18,32 @@ import "./sidebar.style.css";
 interface SidebarProps {
   usuarioLogado: Usuario;
   onLogout?: () => void;
+  /** Controla a abertura do menu em telas pequenas (no desktop é sempre visível). */
+  isOpen?: boolean;
+  /** Chamado ao navegar/sair, para o layout fechar o menu mobile. */
+  onNavigate?: () => void;
 }
 
-export function Sidebar({ usuarioLogado, onLogout }: SidebarProps) {
+export function Sidebar({
+  usuarioLogado,
+  onLogout,
+  isOpen = false,
+  onNavigate,
+}: SidebarProps) {
   const isAdminSaas = usuarioLogado.role === "ADMIN";
   const isGerenteOficina = usuarioLogado.role === "GERENTE";
 
   return (
-    <aside className="sidebar">
+    <aside
+      id="sidebar"
+      className={`sidebar${isOpen ? " sidebar-open" : ""}`}
+      aria-label="Menu principal"
+    >
       <div className="sidebar-logo">
         <img className="sidebar-logo-img" src="/logo.png" alt="Oficina Pro" />
       </div>
 
-      <nav className="sidebar-nav">
+      <nav className="sidebar-nav" onClick={onNavigate}>
         {isAdminSaas ? (
           <>
             <NavLink to="/admin/oficinas" className="nav-item">
@@ -91,7 +104,11 @@ export function Sidebar({ usuarioLogado, onLogout }: SidebarProps) {
       </nav>
 
       <div className="sidebar-bottom">
-        <button onClick={onLogout} className="nav-item nav-button">
+        <button
+          type="button"
+          onClick={onLogout}
+          className="nav-item nav-button"
+        >
           <LogOut size={18} />
           <span>Sair</span>
         </button>

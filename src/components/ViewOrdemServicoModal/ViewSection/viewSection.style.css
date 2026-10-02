@@ -3,3 +3,9 @@
 
   border-bottom: 1px solid #e5e7eb;
 }
+
+@media (max-width: 520px) {
+  .view-os-section {
+    padding: 16px;
+  }
+}

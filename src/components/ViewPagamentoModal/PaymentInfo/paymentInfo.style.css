@@ -1,6 +1,6 @@
 .payment-info {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
 
   margin: 0 24px;
@@ -20,6 +20,13 @@
 }
 
 .payment-info strong {
+  overflow-wrap: anywhere;
   color: #111827;
   font-size: 14px;
+}
+
+@media (max-width: 520px) {
+  .payment-info {
+    margin: 0 16px;
+  }
 }

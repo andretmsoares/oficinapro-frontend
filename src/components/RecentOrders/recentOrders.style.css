@@ -43,6 +43,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
 
   padding: 15px 0;
 
@@ -51,6 +52,11 @@
 
 .order-item:last-child {
   border-bottom: none;
+}
+
+.order-item > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .order-item strong {
@@ -91,4 +97,16 @@
   font-size: 11px;
 
   white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.section-header button {
+  min-height: 36px;
+  padding: 0 4px;
+}
+
+@media (max-width: 480px) {
+  .recent-orders {
+    padding: 16px;
+  }
 }

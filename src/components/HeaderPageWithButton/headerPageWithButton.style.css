@@ -2,5 +2,13 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 12px 16px;
 }
 
+@media (max-width: 480px) {
+    .page-header-with-button {
+        align-items: stretch;
+        flex-direction: column;
+    }
+}

@@ -21,6 +21,8 @@
 
   width: 100%;
   max-width: 420px;
+  max-height: 100%;
+  overflow-y: auto;
 
   padding: 28px;
 
@@ -38,15 +40,15 @@
 
 .delete-modal-close {
   position: absolute;
-  top: 16px;
-  right: 16px;
+  top: 12px;
+  right: 12px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
 
   border: none;
   border-radius: 6px;
@@ -82,6 +84,8 @@
 
 .delete-modal-content h2 {
   margin: 0 0 10px;
+  padding-right: 32px;
+  overflow-wrap: anywhere;
 
   font-size: 20px;
   font-weight: 600;
@@ -91,6 +95,7 @@
 
 .delete-modal-content p {
   margin: 0;
+  overflow-wrap: anywhere;
 
   font-size: 14px;
   line-height: 1.6;
@@ -192,8 +197,12 @@
 }
 
 @media (max-width: 480px) {
+  .delete-modal-overlay {
+    padding: 12px;
+  }
+
   .delete-modal {
-    padding: 24px;
+    padding: 24px 20px;
   }
 
   .delete-modal-actions {

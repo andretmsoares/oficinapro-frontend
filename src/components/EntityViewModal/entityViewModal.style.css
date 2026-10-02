@@ -12,6 +12,7 @@
 .entity-view-modal {
   width: min(100%, 560px);
   max-height: calc(100vh - 48px);
+  max-height: calc(100dvh - 48px);
   overflow-y: auto;
   background-color: #ffffff;
   border-radius: 12px;
@@ -19,6 +20,10 @@
     0 20px 40px rgba(15, 23, 42, 0.15),
     0 8px 16px rgba(15, 23, 42, 0.08);
   padding: 24px;
+}
+
+.entity-view-grid > * {
+  overflow-wrap: anywhere;
 }
 
 .entity-view-header h2 {
@@ -34,7 +39,7 @@
 
 .entity-view-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
   margin-top: 20px;
 }
@@ -48,6 +53,15 @@
 }
 
 @media (max-width: 520px) {
+  .entity-view-overlay {
+    padding: 12px;
+  }
+
+  .entity-view-modal {
+    padding: 18px;
+    max-height: calc(100dvh - 24px);
+  }
+
   .entity-view-grid {
     grid-template-columns: 1fr;
   }

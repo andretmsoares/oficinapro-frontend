@@ -2,12 +2,46 @@
   min-height: 100vh;
 }
 
+.sidebar-backdrop {
+  display: none;
+}
+
 .main-content {
   min-height: 100vh;
+  min-width: 0;
 
   margin-left: 230px;
 }
 
 .page-content {
   padding: 30px 32px;
+}
+
+
+@media (max-width: 1024px) {
+  .page-content {
+    padding: 24px;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+  }
+
+  .sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+
+    display: block;
+
+    background: rgba(15, 23, 42, 0.5);
+  }
+}
+
+@media (max-width: 480px) {
+  .page-content {
+    padding: 16px 12px;
+  }
 }

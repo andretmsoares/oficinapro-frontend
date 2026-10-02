@@ -12,6 +12,12 @@
   background-color: #fff;
 }
 
+@media (max-width: 520px) {
+  .view-os-payment {
+    padding: 16px;
+  }
+}
+
 @media (max-width: 700px) {
   .view-os-payment-values {
     grid-template-columns: 1fr;
