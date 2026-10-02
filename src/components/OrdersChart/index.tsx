@@ -33,8 +33,6 @@ export function OrdersChart() {
 
         const fluxo = await listarFluxoMensalOS(mes, ano);
 
-        console.log("Fluxo mensal recebido:", fluxo);
-
         if (ativo) {
           setData(fluxo);
         }
