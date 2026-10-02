@@ -5,6 +5,15 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    groups:
+      # react e react-dom exigem EXATAMENTE a mesma versão: atualizados em um PR só, juntos com
+      # os tipos. Em PRs separados, o merge de um deles deixa o app quebrado em runtime.
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
 
   - package-ecosystem: github-actions
     directory: "/"
