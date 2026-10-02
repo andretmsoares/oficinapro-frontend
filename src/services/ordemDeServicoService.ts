@@ -9,8 +9,57 @@ import type {
 } from "../types/ordemDeServico/ordemDeServico";
 import type { StatusOrdemDeServico } from "../enums/StatusOrdemDeServico";
 
-export async function listarOrdensServico(): Promise<OrdemDeServico[]> {
-  return api<OrdemDeServico[]>("/ordens-servico");
+export interface OrdemDeServicoPage {
+  content: OrdemDeServico[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  first: boolean;
+  last: boolean;
+}
+
+/**
+ * Uma página das OS da oficina. A busca (placa, cliente, status ou número da OS) e o filtro de
+ * status são feitos no servidor sobre TODAS as OS, e não sobre o que já foi carregado.
+ */
+export async function listarOrdensServicoPaginado(
+  termo: string,
+  status: StatusOrdemDeServico | "",
+  page = 0,
+  size = 20,
+): Promise<OrdemDeServicoPage> {
+  const params = new URLSearchParams({
+    page: String(page),
+    size: String(size),
+  });
+
+  if (termo.trim()) {
+    params.set("q", termo.trim());
+  }
+
+  if (status) {
+    params.set("status", status);
+  }
+
+  return api<OrdemDeServicoPage>(`/ordens-servico?${params.toString()}`);
+}
+
+/** As OS mais recentes (ex.: card do dashboard), sem carregar a lista inteira. */
+export async function listarOrdensRecentes(
+  quantidade = 5,
+): Promise<OrdemDeServico[]> {
+  const params = new URLSearchParams({
+    page: "0",
+    size: String(quantidade),
+    sort: "dataAbertura,desc",
+  });
+
+  const pagina = await api<OrdemDeServicoPage>(
+    `/ordens-servico?${params.toString()}`,
+  );
+
+  return pagina.content;
 }
 
 export async function buscarOrdemServico(id: number): Promise<OrdemDeServico> {
@@ -84,32 +133,52 @@ export async function aplicarDesconto(
 
 export async function listarOrdensPorVeiculo(
   veiculoId: number,
-): Promise<OrdemDeServico[]> {
-  return api<OrdemDeServico[]>(`/ordens-servico/veiculo/${veiculoId}`);
+  page = 0,
+  size = 20,
+): Promise<OrdemDeServicoPage> {
+  return api<OrdemDeServicoPage>(
+    `/ordens-servico/veiculo/${veiculoId}?page=${page}&size=${size}`,
+  );
 }
 
 export async function listarOrdensPorMecanico(
   mecanicoId: number,
-): Promise<OrdemDeServico[]> {
-  return api<OrdemDeServico[]>(`/ordens-servico/mecanico/${mecanicoId}`);
+  page = 0,
+  size = 20,
+): Promise<OrdemDeServicoPage> {
+  return api<OrdemDeServicoPage>(
+    `/ordens-servico/mecanico/${mecanicoId}?page=${page}&size=${size}`,
+  );
 }
 
 export async function listarOrdensPorUnidade(
   unidadeId: number,
-): Promise<OrdemDeServico[]> {
-  return api<OrdemDeServico[]>(`/ordens-servico/unidade/${unidadeId}`);
+  page = 0,
+  size = 20,
+): Promise<OrdemDeServicoPage> {
+  return api<OrdemDeServicoPage>(
+    `/ordens-servico/unidade/${unidadeId}?page=${page}&size=${size}`,
+  );
 }
 
 export async function listarOrdensPorCliente(
   clienteId: number,
-): Promise<OrdemDeServico[]> {
-  return api<OrdemDeServico[]>(`/ordens-servico/cliente/${clienteId}`);
+  page = 0,
+  size = 20,
+): Promise<OrdemDeServicoPage> {
+  return api<OrdemDeServicoPage>(
+    `/ordens-servico/cliente/${clienteId}?page=${page}&size=${size}`,
+  );
 }
 
 export async function listarOrdensPorStatus(
   status: StatusOrdemDeServico,
-): Promise<OrdemDeServico[]> {
-  return api<OrdemDeServico[]>(`/ordens-servico/status/${status}`);
+  page = 0,
+  size = 20,
+): Promise<OrdemDeServicoPage> {
+  return api<OrdemDeServicoPage>(
+    `/ordens-servico/status/${status}?page=${page}&size=${size}`,
+  );
 }
 
 export async function listarFluxoMensalOS(

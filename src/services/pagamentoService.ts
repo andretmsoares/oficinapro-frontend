@@ -13,17 +13,70 @@ export async function buscarPagamentoPorOsId(osId: number): Promise<Pagamento> {
   return api<Pagamento>(`/pagamentos/os/${osId}`);
 }
 
-export async function buscarPagamentosPorOficina(
-  oficinaId: number,
-): Promise<Pagamento[]> {
-  return api<Pagamento[]>(`/pagamentos/oficina/${oficinaId}`);
+export interface PagamentoPage {
+  content: Pagamento[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  first: boolean;
+  last: boolean;
 }
 
-export async function buscarPagamentosPorStatus(
+/** Totais da oficina somados no banco: não dependem da página exibida. */
+export interface PagamentoResumo {
+  totalRecebido: number;
+  valorAReceber: number;
+  pendentes: number;
+}
+
+/**
+ * Uma página dos pagamentos da oficina. A busca (parte do número da OS) e o filtro de status são
+ * feitos no servidor sobre TODOS os pagamentos.
+ */
+export async function buscarPagamentosPaginado(
   oficinaId: number,
-  status: StatusPagamento,
+  termo: string,
+  status: StatusPagamento | "",
+  page = 0,
+  size = 20,
+): Promise<PagamentoPage> {
+  const params = new URLSearchParams({
+    page: String(page),
+    size: String(size),
+  });
+
+  if (termo.trim()) {
+    params.set("q", termo.trim());
+  }
+
+  if (status) {
+    params.set("status", status);
+  }
+
+  return api<PagamentoPage>(
+    `/pagamentos/oficina/${oficinaId}?${params.toString()}`,
+  );
+}
+
+export async function buscarResumoPagamentos(
+  oficinaId: number,
+): Promise<PagamentoResumo> {
+  return api<PagamentoResumo>(`/pagamentos/oficina/${oficinaId}/resumo`);
+}
+
+/** Pagamentos só das OS informadas (as da página que a tela está mostrando; até 100). */
+export async function buscarPagamentosPorOsIds(
+  oficinaId: number,
+  osIds: number[],
 ): Promise<Pagamento[]> {
-  return api<Pagamento[]>(`/pagamentos/oficina/${oficinaId}/status/${status}`);
+  if (osIds.length === 0) {
+    return [];
+  }
+
+  return api<Pagamento[]>(
+    `/pagamentos/oficina/${oficinaId}/por-os?osIds=${osIds.join(",")}`,
+  );
 }
 
 export async function calcularValorParaReceber(

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   CircleDollarSign,
   Clock,
@@ -12,6 +12,7 @@ import { StatCard } from "../../components/StatCard";
 import { SearchBar } from "../../components/SearchBar";
 import { StatusFilter } from "../../components/StatusFilter";
 import { EntityTable } from "../../components/EntityTable";
+import { Pagination } from "../../components/Pagination";
 import type { Column, EntityAction } from "../../components/EntityTable/types";
 
 import { ViewPagamentoModal } from "../../components/ViewPagamentoModal";
@@ -22,9 +23,11 @@ import type { Pagamento } from "../../types/pagamento/pagamento";
 import type { RegistroPagamento } from "../../types/registroPagamento/registroPagamento";
 
 import {
-  buscarPagamentosPorOficina,
-  calcularValorParaReceber,
+  buscarPagamentosPaginado,
+  buscarResumoPagamentos,
+  type PagamentoResumo,
 } from "../../services/pagamentoService";
+import { useServerSearch } from "../../hooks/useServerSearch";
 
 import { imprimirComprovantePagamento } from "../../services/ordemDeServicoService";
 
@@ -55,19 +58,45 @@ interface PagamentosProps {
 }
 
 export function Pagamentos({ oficinaId }: PagamentosProps) {
-  const [pagamentos, setPagamentos] = useState<Pagamento[]>([]);
-  const [valorAReceber, setValorAReceber] = useState(0);
+  // Totais somados no banco sobre TODOS os pagamentos (a lista da tela é só uma página).
+  const [resumo, setResumo] = useState<PagamentoResumo>({
+    totalRecebido: 0,
+    valorAReceber: 0,
+    pendentes: 0,
+  });
 
   const [registros, setRegistros] = useState<RegistroPagamento[]>([]);
 
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   const [submitError, setSubmitError] = useState("");
 
-  const [searchTerm, setSearchTerm] = useState("");
-
   const [statusFilter, setStatusFilter] = useState<StatusPagamento | "">("");
+
+  // Busca (nº da OS), filtro de status e paginação rodam no servidor, sobre todos os pagamentos.
+  const fetchPagamentos = useCallback(
+    (termo: string, pagina: number) =>
+      buscarPagamentosPaginado(oficinaId, termo, statusFilter, pagina),
+    [oficinaId, statusFilter],
+  );
+
+  const {
+    items: pagamentos,
+    loading,
+    searchTerm,
+    buscando,
+    page,
+    totalPages,
+    totalElements,
+    setPage,
+    handleSearch,
+    reload,
+  } = useServerSearch<Pagamento>(fetchPagamentos);
+
+  function handleStatusFilterChange(novo: StatusPagamento | "") {
+    setStatusFilter(novo);
+    setPage(0);
+  }
 
   const [viewingPagamentoId, setViewingPagamentoId] = useState<number | null>(
     null,
@@ -97,29 +126,35 @@ export function Pagamentos({ oficinaId }: PagamentosProps) {
     [StatusPagamento.PAGA]: "payment-status-pago",
   };
 
-  useEffect(() => {
-    async function carregarPagamentos() {
-      try {
-        setLoading(true);
-        setError("");
+  const carregarResumo = useCallback(async () => {
+    try {
+      setError("");
+      setResumo(await buscarResumoPagamentos(oficinaId));
+    } catch (err) {
+      console.error("Erro ao carregar o resumo de pagamentos:", err);
 
-        const [pagamentosResponse, valorAReceberResponse] = await Promise.all([
-          buscarPagamentosPorOficina(oficinaId),
-          calcularValorParaReceber(oficinaId),
-        ]);
-
-        setPagamentos(pagamentosResponse);
-        setValorAReceber(valorAReceberResponse);
-      } catch (err) {
-        console.error("Erro ao carregar pagamentos:", err);
-
-        setError("Não foi possível carregar os pagamentos.");
-      } finally {
-        setLoading(false);
-      }
+      setError("Não foi possível carregar os totais de pagamentos.");
     }
+  }, [oficinaId]);
 
-    carregarPagamentos();
+  useEffect(() => {
+    let ativo = true;
+
+    buscarResumoPagamentos(oficinaId)
+      .then((resposta) => {
+        if (ativo) setResumo(resposta);
+      })
+      .catch((err) => {
+        console.error("Erro ao carregar o resumo de pagamentos:", err);
+
+        if (ativo) {
+          setError("Não foi possível carregar os totais de pagamentos.");
+        }
+      });
+
+    return () => {
+      ativo = false;
+    };
   }, [oficinaId]);
 
   useEffect(() => {
@@ -146,47 +181,9 @@ export function Pagamentos({ oficinaId }: PagamentosProps) {
     carregarRegistros();
   }, [viewingPagamentoId]);
 
-  const totalRecebido = pagamentos.reduce(
-    (total, pagamento) => total + pagamento.valorPago,
-    0,
-  );
-
-  const pagamentosPendentes = pagamentos.filter(
-    (pagamento) => pagamento.valorPendente > 0,
-  ).length;
-
-  const pagamentosFiltrados = useMemo(() => {
-    const termo = searchTerm.trim().toLowerCase();
-
-    return pagamentos.filter((pagamento) => {
-      if (statusFilter && pagamento.status !== statusFilter) {
-        return false;
-      }
-
-      return (
-        !termo ||
-        pagamento.osId.toString().includes(termo) ||
-        pagamento.id.toString().includes(termo)
-      );
-    });
-  }, [pagamentos, searchTerm, statusFilter]);
-
   async function recarregarPagamentos() {
-    try {
-      setError("");
-
-      const [pagamentosResponse, valorAReceberResponse] = await Promise.all([
-        buscarPagamentosPorOficina(oficinaId),
-        calcularValorParaReceber(oficinaId),
-      ]);
-
-      setPagamentos(pagamentosResponse);
-      setValorAReceber(valorAReceberResponse);
-    } catch (err) {
-      console.error("Erro ao recarregar pagamentos:", err);
-
-      setError("Não foi possível atualizar os pagamentos.");
-    }
+    reload();
+    await carregarResumo();
   }
 
   async function handleSaveRegistroPagamento(data: RegistroPagamentoFormData) {
@@ -326,28 +323,28 @@ export function Pagamentos({ oficinaId }: PagamentosProps) {
       <div className="payments-stats">
         <StatCard
           title="Total Recebido"
-          value={formatCurrencyDisplay(totalRecebido)}
+          value={formatCurrencyDisplay(resumo.totalRecebido)}
           description="Total já recebido"
           icon={CircleDollarSign}
         />
 
         <StatCard
           title="A Receber"
-          value={formatCurrencyDisplay(valorAReceber)}
+          value={formatCurrencyDisplay(resumo.valorAReceber)}
           description="Valor pendente"
           icon={Wallet}
         />
 
         <StatCard
           title="Pagamentos"
-          value={pagamentos.length.toString()}
+          value={totalElements.toString()}
           description="Total de pagamentos"
           icon={CircleDollarSign}
         />
 
         <StatCard
           title="Pendentes"
-          value={pagamentosPendentes.toString()}
+          value={resumo.pendentes.toString()}
           description="Sem nenhum pagamento"
           icon={Clock}
         />
@@ -357,30 +354,35 @@ export function Pagamentos({ oficinaId }: PagamentosProps) {
         <SearchBar
           placeholder="Pesquisar pelo código da OS"
           searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
+          setSearchTerm={handleSearch}
         />
 
         <StatusFilter
           label="Filtrar por status"
           value={statusFilter}
           options={STATUS_FILTER_OPTIONS}
-          onChange={setStatusFilter}
+          onChange={handleStatusFilterChange}
         />
       </div>
 
       <EntityTable
-        data={pagamentosFiltrados}
+        data={pagamentos}
         columns={columns}
         actions={actions}
         loading={loading}
         getRowKey={(pagamento) => pagamento.id}
-        searchTerm=""
-        searchFn={() => true}
         emptyMessage={
-          statusFilter || searchTerm.trim()
+          statusFilter || buscando
             ? "Nenhum pagamento encontrado para o filtro selecionado"
             : "Nenhum pagamento cadastrado"
         }
+      />
+
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        totalElements={totalElements}
+        onPageChange={setPage}
       />
 
       {viewingPagamento && (

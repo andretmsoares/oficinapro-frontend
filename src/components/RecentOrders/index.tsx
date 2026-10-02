@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { listarOrdensServico } from "../../services/ordemDeServicoService";
+import { listarOrdensRecentes } from "../../services/ordemDeServicoService";
 import type { OrdemDeServico } from "../../types/ordemDeServico/ordemDeServico";
 import { useNavigate } from "react-router-dom";
 
@@ -20,17 +20,10 @@ export function RecentOrders() {
         setLoading(true);
         setError(false);
 
-        const ordens = await listarOrdensServico();
+        // O servidor já devolve só as 5 mais recentes: nada de carregar a lista inteira.
+        const ordensRecentes = await listarOrdensRecentes(5);
 
         if (ativo) {
-          const ordensRecentes = [...ordens]
-            .sort(
-              (a, b) =>
-                new Date(b.dataAbertura).getTime() -
-                new Date(a.dataAbertura).getTime(),
-            )
-            .slice(0, 5);
-
           setOrders(ordensRecentes);
         }
       } catch {

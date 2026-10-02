@@ -9,7 +9,9 @@ import {
   mecanico,
   ordemDeServico,
   pagamento,
+  pagina,
 } from "../mocks/factories";
+import type { OrdemDeServico } from "../../src/types/ordemDeServico/ordemDeServico";
 import { server } from "../mocks/server";
 import { renderComRota } from "../helpers/render";
 
@@ -22,6 +24,44 @@ const os2 = ordemDeServico({
   valorTotal: 120000,
   valorComDesconto: 120000,
 });
+
+/** Estado das OS no "servidor": GET devolve sempre o que está aqui (como o banco). */
+let ordensNoServidor: OrdemDeServico[] = [];
+
+/** Parâmetros de cada GET /ordens-servico feito pela tela. */
+const consultas: URLSearchParams[] = [];
+
+/**
+ * Servidor falso: aplica busca (q), filtro de status, página e tamanho como o backend e devolve a
+ * resposta paginada. A busca roda sobre TODAS as OS, não só sobre as da página.
+ */
+function responderLista(request: Request) {
+  const params = new URL(request.url).searchParams;
+  consultas.push(params);
+
+  const q = (params.get("q") ?? "").trim().toLowerCase().replace("#", "");
+  const status = params.get("status");
+  const size = Number(params.get("size") ?? 20);
+  const page = Number(params.get("page") ?? 0);
+
+  const filtradas = ordensNoServidor.filter(
+    (os) =>
+      (!status || os.status === status) &&
+      (!q ||
+        os.placaVeiculo.toLowerCase().includes(q) ||
+        os.nomeCliente.toLowerCase().includes(q) ||
+        os.status.toLowerCase().includes(q) ||
+        String(os.id) === q),
+  );
+
+  const content = filtradas.slice(page * size, (page + 1) * size);
+
+  return HttpResponse.json({
+    ...pagina(content, Math.max(1, Math.ceil(filtradas.length / size))),
+    totalElements: filtradas.length,
+    number: page,
+  });
+}
 
 function carregarDados(
   ordens = [os1, os2],
@@ -37,12 +77,21 @@ function carregarDados(
     }),
   ],
 ) {
+  ordensNoServidor = ordens;
+  consultas.length = 0;
+
   server.use(
-    http.get(`${API}/ordens-servico`, () => HttpResponse.json(ordens)),
-    http.get(`${API}/itens-os-peca`, () => HttpResponse.json([])),
-    http.get(`${API}/pagamentos/oficina/7`, () =>
-      HttpResponse.json(pagamentos),
-    ),
+    http.get(`${API}/ordens-servico`, ({ request }) => responderLista(request)),
+    // valor pendente só das OS da página (até 100 ids)
+    http.get(`${API}/pagamentos/oficina/7/por-os`, ({ request }) => {
+      const ids =
+        new URL(request.url).searchParams
+          .get("osIds")
+          ?.split(",")
+          .map(Number) ?? [];
+
+      return HttpResponse.json(pagamentos.filter((p) => ids.includes(p.osId)));
+    }),
   );
 }
 
@@ -90,8 +139,11 @@ describe("Página de Ordens de Serviço", () => {
           .getAllByRole("cell")
           .map((c) => c.textContent?.replace(/\s/g, " "));
       expect(celulas(linhaDe("#0001"))).toContain("R$ 500,00");
-      expect(celulas(linhaDe("#0002"))).toEqual(
-        expect.arrayContaining(["R$ 1.200,00", "R$ 0,00"]),
+      // o valor pendente chega numa segunda consulta (só das OS da página)
+      await waitFor(() =>
+        expect(celulas(linhaDe("#0002"))).toEqual(
+          expect.arrayContaining(["R$ 1.200,00", "R$ 0,00"]),
+        ),
       );
     });
 
@@ -101,10 +153,12 @@ describe("Página de Ordens de Serviço", () => {
       await renderizar();
       await screen.findByText("#0001");
 
-      const celulas = within(linhaDe("#0001"))
-        .getAllByRole("cell")
-        .map((c) => c.textContent?.replace(/\s/g, " "));
-      expect(celulas).toContain("R$ 0,00");
+      await waitFor(() => {
+        const celulas = within(linhaDe("#0001"))
+          .getAllByRole("cell")
+          .map((c) => c.textContent?.replace(/\s/g, " "));
+        expect(celulas).toContain("R$ 0,00");
+      });
     });
 
     it("OS sem pagamento correspondente mostra '—' no valor pendente", async () => {
@@ -143,8 +197,6 @@ describe("Página de Ordens de Serviço", () => {
           `${API}/ordens-servico`,
           () => new HttpResponse(null, { status: 500 }),
         ),
-        http.get(`${API}/itens-os-peca`, () => HttpResponse.json([])),
-        http.get(`${API}/pagamentos/oficina/7`, () => HttpResponse.json([])),
       );
 
       await renderizar();
@@ -157,10 +209,9 @@ describe("Página de Ordens de Serviço", () => {
 
     it("usuário sem oficina (oficinaId nulo) não consulta pagamentos", async () => {
       let consultouPagamentos = false;
+      carregarDados([os1], []);
       server.use(
-        http.get(`${API}/ordens-servico`, () => HttpResponse.json([os1])),
-        http.get(`${API}/itens-os-peca`, () => HttpResponse.json([])),
-        http.get(`${API}/pagamentos/oficina/:id`, () => {
+        http.get(`${API}/pagamentos/oficina/:id/por-os`, () => {
           consultouPagamentos = true;
           return HttpResponse.json([]);
         }),
@@ -171,10 +222,43 @@ describe("Página de Ordens de Serviço", () => {
 
       expect(consultouPagamentos).toBe(false);
     });
+
+    it("MECANICO não consulta pagamentos (o financeiro é só do GERENTE)", async () => {
+      let consultouPagamentos = false;
+      carregarDados([os1], []);
+      server.use(
+        http.get(`${API}/pagamentos/oficina/:id/por-os`, () => {
+          consultouPagamentos = true;
+          return new HttpResponse(null, { status: 403 });
+        }),
+      );
+
+      await renderizar(mecanico());
+      await screen.findByText("#0001");
+
+      expect(consultouPagamentos).toBe(false);
+      expect(within(linhaDe("#0001")).getByText("—")).toBeInTheDocument();
+    });
+
+    it("pede ao servidor só os pagamentos das OS da página, não os da oficina inteira", async () => {
+      let osIdsPedidos = "";
+      carregarDados();
+      server.use(
+        http.get(`${API}/pagamentos/oficina/7/por-os`, ({ request }) => {
+          osIdsPedidos = new URL(request.url).searchParams.get("osIds") ?? "";
+          return HttpResponse.json([]);
+        }),
+      );
+
+      await renderizar();
+      await screen.findByText("#0001");
+
+      await waitFor(() => expect(osIdsPedidos).toBe("1,2"));
+    });
   });
 
-  describe("pesquisa e filtros", () => {
-    it("pesquisa localmente por placa, cliente ou status", async () => {
+  describe("pesquisa e filtros (no servidor)", () => {
+    it("a pesquisa é enviada ao servidor (q) e só as OS encontradas aparecem", async () => {
       carregarDados();
       const user = await renderizar();
       await screen.findByText("#0001");
@@ -183,16 +267,56 @@ describe("Página de Ordens de Serviço", () => {
       );
 
       await user.type(busca, "maria");
-      expect(screen.queryByText("#0001")).not.toBeInTheDocument();
+
+      await waitFor(() =>
+        expect(screen.queryByText("#0001")).not.toBeInTheDocument(),
+      );
       expect(screen.getByText("#0002")).toBeInTheDocument();
+      expect(consultas.at(-1)?.get("q")).toBe("maria");
 
       await user.clear(busca);
       await user.type(busca, "xyz");
+
+      await waitFor(() => expect(consultas.at(-1)?.get("q")).toBe("xyz"));
+      await waitFor(() =>
+        expect(screen.queryByText("#0001")).not.toBeInTheDocument(),
+      );
       expect(screen.getByText("#0002")).toBeInTheDocument();
-      expect(screen.queryByText("#0001")).not.toBeInTheDocument();
     });
 
-    it("pesquisa sem resultado mostra o termo", async () => {
+    it("acha a OS que NÃO estava na página carregada (a busca não filtra só o que já veio)", async () => {
+      // 25 OS: a página 1 mostra as 20 primeiras; a OS #0025 (placa ZZZ9999) está na página 2.
+      const muitas = Array.from({ length: 24 }, (_, i) =>
+        ordemDeServico({
+          id: i + 1,
+          placaVeiculo: `AAA${String(i + 1).padStart(4, "0")}`,
+          nomeCliente: `CLIENTE ${i + 1}`,
+        }),
+      ).concat(
+        ordemDeServico({
+          id: 25,
+          placaVeiculo: "ZZZ9999",
+          nomeCliente: "CLIENTE DISTANTE",
+        }),
+      );
+      carregarDados(muitas, []);
+      const user = await renderizar();
+      await screen.findByText("#0001");
+
+      expect(screen.queryByText("#0025")).not.toBeInTheDocument();
+      expect(screen.getByText(/25 registro\(s\)/)).toBeInTheDocument();
+
+      await user.type(
+        screen.getByPlaceholderText(/Pesquisar por veículo/),
+        "zzz9999",
+      );
+
+      expect(await screen.findByText("#0025")).toBeInTheDocument();
+      expect(screen.queryByText("#0001")).not.toBeInTheDocument();
+      expect(screen.getByText(/1 registro\(s\)/)).toBeInTheDocument();
+    });
+
+    it("pesquisa sem resultado mostra mensagem de nada encontrado", async () => {
       carregarDados();
       const user = await renderizar();
       await screen.findByText("#0001");
@@ -203,11 +327,13 @@ describe("Página de Ordens de Serviço", () => {
       );
 
       expect(
-        screen.getByText('Nenhum resultado encontrado para "zzz"'),
+        await screen.findByText(
+          "Nenhuma ordem de serviço encontrada para o filtro",
+        ),
       ).toBeInTheDocument();
     });
 
-    it("filtra por status e mostra mensagem própria quando nenhuma OS tem o status", async () => {
+    it("o filtro de status é enviado ao servidor e combina com a pesquisa", async () => {
       carregarDados();
       const user = await renderizar();
       await screen.findByText("#0001");
@@ -216,20 +342,63 @@ describe("Página de Ordens de Serviço", () => {
       });
 
       await user.selectOptions(filtro, "FINALIZADA");
-      expect(screen.queryByText("#0001")).not.toBeInTheDocument();
+      await waitFor(() =>
+        expect(screen.queryByText("#0001")).not.toBeInTheDocument(),
+      );
       expect(screen.getByText("#0002")).toBeInTheDocument();
+      expect(consultas.at(-1)?.get("status")).toBe("FINALIZADA");
 
       await user.selectOptions(filtro, "CANCELADA");
       expect(
-        screen.getByText("Nenhuma ordem de serviço com este status"),
+        await screen.findByText(
+          "Nenhuma ordem de serviço encontrada para o filtro",
+        ),
       ).toBeInTheDocument();
 
       await user.selectOptions(filtro, "");
-      expect(screen.getByText("#0001")).toBeInTheDocument();
+      expect(await screen.findByText("#0001")).toBeInTheDocument();
       expect(screen.getByText("#0002")).toBeInTheDocument();
+      expect(consultas.at(-1)?.has("status")).toBe(false);
     });
 
-    it("?cliente=<nome> pré-preenche a pesquisa e filtra a lista", async () => {
+    it("paginação: 'Próxima' pede a página seguinte ao servidor", async () => {
+      const muitas = Array.from({ length: 25 }, (_, i) =>
+        ordemDeServico({ id: i + 1, placaVeiculo: `AAA${i + 1}` }),
+      );
+      carregarDados(muitas, []);
+      const user = await renderizar();
+      await screen.findByText("#0001");
+      expect(screen.getByText(/página 1 de 2/)).toBeInTheDocument();
+
+      await user.click(screen.getByRole("button", { name: /Próxima/ }));
+
+      expect(await screen.findByText("#0021")).toBeInTheDocument();
+      expect(screen.queryByText("#0001")).not.toBeInTheDocument();
+      expect(consultas.at(-1)?.get("page")).toBe("1");
+      expect(screen.getByText(/página 2 de 2/)).toBeInTheDocument();
+    });
+
+    it("mudar o filtro de status volta para a primeira página", async () => {
+      const muitas = Array.from({ length: 45 }, (_, i) =>
+        ordemDeServico({ id: i + 1, placaVeiculo: `AAA${i + 1}` }),
+      );
+      carregarDados(muitas, []);
+      const user = await renderizar();
+      await screen.findByText("#0001");
+
+      await user.click(screen.getByRole("button", { name: /Próxima/ }));
+      await screen.findByText("#0021");
+
+      await user.selectOptions(
+        screen.getByRole("combobox", { name: "Filtrar por status" }),
+        "ABERTA",
+      );
+
+      await waitFor(() => expect(consultas.at(-1)?.get("page")).toBe("0"));
+      expect(await screen.findByText("#0001")).toBeInTheDocument();
+    });
+
+    it("?cliente=<nome> pré-preenche a pesquisa e a envia ao servidor", async () => {
       carregarDados();
 
       await renderizar(gerente(), "/ordens-servico?cliente=MARIA%20SOUZA");
@@ -239,9 +408,10 @@ describe("Página de Ordens de Serviço", () => {
         "MARIA SOUZA",
       );
       expect(screen.queryByText("#0001")).not.toBeInTheDocument();
+      expect(consultas.at(-1)?.get("q")).toBe("MARIA SOUZA");
     });
 
-    it("?veiculo=<placa> pré-preenche a pesquisa e filtra a lista", async () => {
+    it("?veiculo=<placa> pré-preenche a pesquisa e a envia ao servidor", async () => {
       carregarDados();
 
       await renderizar(gerente(), "/ordens-servico?veiculo=ABC1234");
@@ -251,9 +421,10 @@ describe("Página de Ordens de Serviço", () => {
         "ABC1234",
       );
       expect(screen.queryByText("#0002")).not.toBeInTheDocument();
+      expect(consultas.at(-1)?.get("q")).toBe("ABC1234");
     });
 
-    it("sem query params a pesquisa começa vazia", async () => {
+    it("sem query params a pesquisa começa vazia e nenhum q é enviado", async () => {
       carregarDados();
 
       await renderizar();
@@ -262,6 +433,7 @@ describe("Página de Ordens de Serviço", () => {
       expect(screen.getByPlaceholderText(/Pesquisar por veículo/)).toHaveValue(
         "",
       );
+      expect(consultas[0].has("q")).toBe(false);
     });
   });
 
@@ -367,7 +539,9 @@ describe("Página de Ordens de Serviço", () => {
       server.use(
         http.patch(`${API}/ordens-servico/1/status`, async ({ request }) => {
           corpo = await request.json();
-          return HttpResponse.json(ordemDeServico({ status: "DIAGNOSTICO" }));
+          const atualizada = ordemDeServico({ status: "DIAGNOSTICO" });
+          ordensNoServidor = [atualizada];
+          return HttpResponse.json(atualizada);
         }),
       );
       const user = await abrirStatus(gerente());
@@ -410,6 +584,9 @@ describe("Página de Ordens de Serviço", () => {
       server.use(
         http.delete(`${API}/ordens-servico/:id`, ({ params }) => {
           excluidas.push(String(params.id));
+          ordensNoServidor = ordensNoServidor.filter(
+            (os) => String(os.id) !== String(params.id),
+          );
           return new HttpResponse(null, { status: 204 });
         }),
       );
@@ -579,15 +756,14 @@ describe("Página de Ordens de Serviço", () => {
       server.use(
         http.post(`${API}/ordens-servico`, async ({ request }) => {
           corpo = (await request.json()) as Record<string, unknown>;
-          return HttpResponse.json(
-            ordemDeServico({
-              id: 3,
-              placaVeiculo: "ABC1234",
-              nomeCliente: "",
-              status: "ABERTA",
-            }),
-            { status: 201 },
-          );
+          const nova = ordemDeServico({
+            id: 3,
+            placaVeiculo: "ABC1234",
+            nomeCliente: "",
+            status: "ABERTA",
+          });
+          ordensNoServidor = [...ordensNoServidor, nova];
+          return HttpResponse.json(nova, { status: 201 });
         }),
       );
       const user = await renderizar();

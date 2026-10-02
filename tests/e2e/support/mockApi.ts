@@ -166,16 +166,31 @@ export async function mockApi(page: Page): Promise<MockApi> {
     }
 
     if (caminho === "/ordens-servico/fluxo-mensal") return json(route, []);
-    if (caminho === "/ordens-servico") return json(route, [ORDEM]);
-    if (caminho === "/itens-os-peca") return json(route, []);
-    if (caminho === "/pagamentos/oficina/7")
-      return json(route, estado.pagamentos);
+    // Listagens paginadas (o backend devolve uma página, com busca/filtro no servidor)
+    if (caminho === "/ordens-servico") return json(route, pagina([ORDEM]));
 
-    if (caminho === "/pagamentos/oficina/7/a-receber") {
+    if (caminho === "/pagamentos/oficina/7")
+      return json(route, pagina(estado.pagamentos));
+
+    // valor pendente só das OS da página (a tela de OS pede por ids)
+    if (caminho === "/pagamentos/oficina/7/por-os") {
+      const ids = (url.searchParams.get("osIds") ?? "").split(",").map(Number);
       return json(
         route,
-        estado.pagamentos.reduce((s, p) => s + p.valorPendente, 0),
+        estado.pagamentos.filter((p) => ids.includes(p.osId)),
       );
+    }
+
+    // totais somados no servidor sobre todos os pagamentos
+    if (caminho === "/pagamentos/oficina/7/resumo") {
+      return json(route, {
+        totalRecebido: estado.pagamentos.reduce((s, p) => s + p.valorPago, 0),
+        valorAReceber: estado.pagamentos.reduce(
+          (s, p) => s + p.valorPendente,
+          0,
+        ),
+        pendentes: estado.pagamentos.filter((p) => p.valorPendente > 0).length,
+      });
     }
 
     if (caminho === "/registros-pagamento" && metodo === "POST") {
