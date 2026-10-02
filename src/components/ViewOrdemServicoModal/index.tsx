@@ -64,12 +64,8 @@ import { ConfirmDeleteEntity } from "../ConfirmDeleteEntity";
 interface ViewOrdemServicoModalProps {
   usuarioLogado: Usuario;
   ordemServico: OrdemDeServico;
-  todasAsPecas: ItemOsPeca[];
 
   onClose: () => void;
-
-  onAddPeca: (peca: ItemOsPeca) => void;
-  onUpdatePeca: (peca: ItemOsPeca) => void;
 
   onUpdateOrdemServico: (ordemAtualizada: OrdemDeServico) => void;
 }
@@ -79,10 +75,7 @@ type PecaFlow = "action" | "create" | "relate" | null;
 export function ViewOrdemServicoModal({
   usuarioLogado,
   ordemServico,
-  todasAsPecas,
   onClose,
-  onAddPeca,
-  onUpdatePeca,
   onUpdateOrdemServico,
 }: ViewOrdemServicoModalProps) {
   const isGerente = usuarioLogado.role === "GERENTE";
@@ -323,8 +316,6 @@ export function ViewOrdemServicoModal({
 
       setPecasDaOs((prev) => [...prev, novaPeca]);
 
-      onAddPeca(novaPeca);
-
       await atualizarDadosOrdemServico();
 
       setPecaFlow(null);
@@ -360,9 +351,6 @@ export function ViewOrdemServicoModal({
         return [...prev, pecaVinculada];
       });
 
-      onAddPeca(pecaVinculada);
-      onUpdatePeca(pecaVinculada);
-
       await atualizarDadosOrdemServico();
 
       setPecaFlow(null);
@@ -389,12 +377,6 @@ export function ViewOrdemServicoModal({
         prev.filter((peca) => peca.id !== desvinculandoPeca.id),
       );
 
-      const pecaAtualizada: ItemOsPeca = {
-        ...desvinculandoPeca,
-        osId: null,
-      };
-
-      onUpdatePeca(pecaAtualizada);
       setDesvinculandoPeca(null);
 
       await atualizarDadosOrdemServico();
@@ -473,8 +455,6 @@ export function ViewOrdemServicoModal({
       );
     }
   }
-
-  const pecasParaRelacionar = todasAsPecas;
 
   return (
     <div className="view-os-overlay">
@@ -696,8 +676,6 @@ export function ViewOrdemServicoModal({
         {pecaFlow === "relate" && (
           <RelatePecaModal
             osId={ordemServicoAtual.id}
-            todasAsPecas={pecasParaRelacionar}
-            pecasDaOsAtual={pecasDaOs}
             onClose={() => {
               setPecaFlow(null);
               setPecaSubmitError("");

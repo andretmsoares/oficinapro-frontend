@@ -18,7 +18,7 @@ export function handlersVazios() {
         pagamentosPendentes: 0,
       }),
     ),
-    http.get(`${API}/ordens-servico`, () => HttpResponse.json([])),
+    http.get(`${API}/ordens-servico`, () => HttpResponse.json(pagina([]))),
     http.get(`${API}/ordens-servico/fluxo-mensal`, () => HttpResponse.json([])),
     http.get(`${API}/clientes/buscar`, () => HttpResponse.json(pagina([]))),
     http.get(`${API}/oficinas/buscar`, () => HttpResponse.json(pagina([]))),
