@@ -1,43 +1,49 @@
-import { useMemo, useState } from "react";
 import { X } from "lucide-react";
 
 import { SearchBar } from "../../SearchBar";
+import { Pagination } from "../../Pagination";
 import { formatCurrencyDisplay } from "../../../utils/formatters";
+import { useServerSearch } from "../../../hooks/useServerSearch";
+import { listarItemOsPecasPaginado } from "../../../services/itemOsPecaService";
 import type { ItemOsPeca } from "../../../types/itemOsPeca/itemOsPeca";
 
 import "./relatePecaModal.style.css";
 
 interface RelatePecaModalProps {
   osId: number;
-  todasAsPecas: ItemOsPeca[];
-  pecasDaOsAtual: ItemOsPeca[];
   onClose: () => void;
   onSelecionar: (peca: ItemOsPeca) => void | Promise<void>;
 }
 
+const PECAS_POR_PAGINA = 10;
+
+// Função de módulo (identidade estável): o hook refaz a consulta a cada mudança dela.
+function buscarPecasAvulsas(termo: string, pagina: number) {
+  return listarItemOsPecasPaginado(termo, pagina, PECAS_POR_PAGINA, true);
+}
+
+/**
+ * Escolha de uma peça já cadastrada para vincular à OS. A lista são só as peças AVULSAS (sem OS,
+ * as únicas que podem ser vinculadas) e a busca roda no servidor sobre todas elas: uma peça que
+ * não está na página carregada continua sendo encontrada ao digitar o nome.
+ */
 export function RelatePecaModal({
   osId,
-  todasAsPecas,
   onClose,
   onSelecionar,
 }: RelatePecaModalProps) {
-  const [searchTerm, setSearchTerm] = useState("");
-
-  const catalogo = useMemo(() => dedupeByNome(todasAsPecas), [todasAsPecas]);
-
-  const pecasFiltradas = catalogo.filter((peca) =>
-    peca.nome.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
-
-  function isPecaJaRelacionada(peca: ItemOsPeca): boolean {
-    return peca.osId !== null;
-  }
+  const {
+    items: pecas,
+    loading,
+    searchTerm,
+    page,
+    totalPages,
+    totalElements,
+    setPage,
+    handleSearch,
+  } = useServerSearch<ItemOsPeca>(buscarPecasAvulsas);
 
   async function handleSelectPeca(peca: ItemOsPeca) {
-    if (isPecaJaRelacionada(peca)) {
-      return;
-    }
-
     await onSelecionar(peca);
   }
 
@@ -63,53 +69,46 @@ export function RelatePecaModal({
           <SearchBar
             placeholder="Pesquisar peça pelo nome..."
             searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
+            setSearchTerm={handleSearch}
           />
         </div>
 
         <div className="relate-peca-list">
-          {pecasFiltradas.length === 0 ? (
+          {loading ? (
+            <div className="relate-peca-empty">Carregando...</div>
+          ) : pecas.length === 0 ? (
             <div className="relate-peca-empty">Nenhuma peça encontrada.</div>
           ) : (
-            pecasFiltradas.map((peca) => {
-              const jaRelacionada = isPecaJaRelacionada(peca);
+            pecas.map((peca) => (
+              <button
+                key={peca.id}
+                type="button"
+                className="relate-peca-item"
+                onClick={() => handleSelectPeca(peca)}
+              >
+                <div>
+                  <strong>{peca.nome}</strong>
 
-              return (
-                <button
-                  key={peca.id}
-                  type="button"
-                  className="relate-peca-item"
-                  disabled={jaRelacionada}
-                  onClick={() => handleSelectPeca(peca)}
-                >
-                  <div>
-                    <strong>{peca.nome}</strong>
-
-                    <span>
-                      Valor unitário:{" "}
-                      {formatCurrencyDisplay(peca.valorUnitario)}
-                    </span>
-                  </div>
-
-                  <span className="relate-peca-select">
-                    {jaRelacionada ? "Já relacionada" : "Selecionar"}
+                  <span>
+                    Valor unitário: {formatCurrencyDisplay(peca.valorUnitario)}
                   </span>
-                </button>
-              );
-            })
+                </div>
+
+                <span className="relate-peca-select">Selecionar</span>
+              </button>
+            ))
           )}
+        </div>
+
+        <div className="relate-peca-pagination">
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            totalElements={totalElements}
+            onPageChange={setPage}
+          />
         </div>
       </div>
     </div>
   );
-}
-
-function dedupeByNome(pecas: ItemOsPeca[]): ItemOsPeca[] {
-  const map = new Map<string, ItemOsPeca>();
-
-  for (const peca of pecas) {
-    map.set(peca.nome.toLowerCase(), peca);
-  }
-
-  return Array.from(map.values());
 }

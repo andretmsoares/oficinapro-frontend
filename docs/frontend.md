@@ -524,3 +524,26 @@ erro nas páginas.
    `lint-staged` + `npm run build`).
 6. Papel novo ou mudança de permissão: atualizar `types/usuario/role.ts`, o `RequireRole`
    em `App.tsx` e [permissions.md](https://github.com/andretmsoares/oficinapro-backend/blob/develop/docs/permissions.md).
+
+---
+
+## Segurança da sessão (estado atual)
+
+Esta seção reflete o código de hoje; trechos acima sobre login simulado são históricos.
+
+- **Token:** o JWT fica em `localStorage` (`accessToken`) e vai no header `Authorization:
+Bearer`. Não há sinks de XSS no código (`dangerouslySetInnerHTML`, `innerHTML` e `eval` não
+  são usados) e a CSP (`nginx.conf`/`vercel.json`) bloqueia scripts de outras origens, o que
+  limita o roubo do token.
+- **Logout:** `handleLogout` limpa a sessão local e chama `POST /auth/logout`, que **revoga
+  todos os tokens do usuário no servidor** (melhor esforço: sem rede, a sessão local já foi
+  encerrada e o token expira em até 8h).
+- **Editar meus dados** (`EditUsuarioModal`): trocar a **senha** ou o **username** exige
+  informar a **senha atual**. Trocar a senha revoga os tokens, então o app volta ao login;
+  trocar só o username mantém a sessão (o `sub` do token é o id).
+- **Busca por documento:** CPF/CNPJ vai no corpo de um `POST` (`/clientes/documento/buscar`,
+  `/mecanicos/documento/buscar`), nunca na URL.
+- **Headers de segurança:** CSP, `X-Frame-Options`, `nosniff`, `Referrer-Policy`,
+  `Permissions-Policy` e HSTS em `nginx.conf` e `vercel.json` (mantenha os dois iguais). Se o
+  domínio da API mudar, ajuste o `connect-src` da CSP.
+- **Autorização:** `RequireRole` e o menu são só UX. A autorização real é do backend.

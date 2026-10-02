@@ -28,6 +28,7 @@ export function EditUsuarioModal({
         telefone: usuarioLogado.telefone,
         username: usuarioLogado.username,
         novaSenha: "",
+        senhaAtual: "",
       }}
       onSubmit={onSave}
       onClose={onClose}

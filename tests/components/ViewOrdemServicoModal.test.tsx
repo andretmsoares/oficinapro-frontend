@@ -13,6 +13,7 @@ import {
   mecanico,
   ordemDeServico,
   pagamento,
+  pagina,
 } from "../mocks/factories";
 import { server } from "../mocks/server";
 
@@ -63,8 +64,6 @@ function backend(parcial: Partial<Estado> = {}): Estado {
 function abrir(usuario: Usuario = gerente(), os?: OrdemDeServico) {
   const props = {
     onClose: vi.fn(),
-    onAddPeca: vi.fn(),
-    onUpdatePeca: vi.fn(),
     onUpdateOrdemServico: vi.fn(),
   };
   const user = userEvent.setup();
@@ -74,7 +73,6 @@ function abrir(usuario: Usuario = gerente(), os?: OrdemDeServico) {
       ordemServico={
         os ?? ordemDeServico({ valorTotal: 32000, valorComDesconto: 32000 })
       }
-      todasAsPecas={[]}
       {...props}
     />,
   );
@@ -513,7 +511,7 @@ describe("ViewOrdemServicoModal", () => {
           return HttpResponse.json({ ...peca, osId: null });
         }),
       );
-      const { user, onUpdatePeca } = abrir();
+      const { user } = abrir();
       await screen.findByText("PASTILHA DE FREIO");
 
       await user.click(screen.getByTitle("Desvincular peça"));
@@ -523,9 +521,6 @@ describe("ViewOrdemServicoModal", () => {
         expect(screen.queryByText("PASTILHA DE FREIO")).not.toBeInTheDocument(),
       );
       expect(chamadas).toBe(1);
-      expect(onUpdatePeca).toHaveBeenCalledWith(
-        expect.objectContaining({ id: 5, osId: null }),
-      );
       await waitFor(() => expect(valorDe("Valor Total")).toContain("R$ 80,00"));
     });
 
@@ -544,6 +539,140 @@ describe("ViewOrdemServicoModal", () => {
       ).toBeInTheDocument();
       expect(
         screen.getByRole("button", { name: /Relacionar peça existente/ }),
+      ).toBeInTheDocument();
+    });
+  });
+
+  describe("relacionar peça existente (busca no servidor)", () => {
+    /** 25 peças avulsas no "servidor"; a tela só carrega 10 por vez. */
+    function servidorDePecasAvulsas() {
+      const avulsas: ItemOsPeca[] = Array.from({ length: 25 }, (_, i) => ({
+        id: 100 + i,
+        osId: null,
+        nome: `PECA AVULSA ${String(i + 1).padStart(2, "0")}`,
+        quantidade: 1,
+        valorUnitario: 5000,
+        valorTotal: 5000,
+      }));
+      const consultas: URLSearchParams[] = [];
+      const vinculadas: string[] = [];
+
+      server.use(
+        http.get(`${API}/itens-os-peca`, ({ request }) => {
+          const params = new URL(request.url).searchParams;
+          consultas.push(params);
+
+          const q = (params.get("q") ?? "").trim().toLowerCase();
+          const size = Number(params.get("size") ?? 20);
+          const page = Number(params.get("page") ?? 0);
+          const filtradas = avulsas.filter(
+            (p) => !q || p.nome.toLowerCase().includes(q),
+          );
+
+          return HttpResponse.json({
+            ...pagina(
+              filtradas.slice(page * size, (page + 1) * size),
+              Math.max(1, Math.ceil(filtradas.length / size)),
+            ),
+            totalElements: filtradas.length,
+            number: page,
+          });
+        }),
+        http.put(`${API}/itens-os-peca/:id/os/1`, ({ params }) => {
+          vinculadas.push(String(params.id));
+          const escolhida = avulsas.find((p) => String(p.id) === params.id)!;
+          return HttpResponse.json({ ...escolhida, osId: 1 });
+        }),
+      );
+
+      return { consultas, vinculadas };
+    }
+
+    async function abrirRelacionar() {
+      const { user } = abrir();
+      await screen.findByText("PASTILHA DE FREIO");
+      await user.click(screen.getByRole("button", { name: /Adicionar Peça/ }));
+      await user.click(
+        screen.getByRole("button", { name: /Relacionar peça existente/ }),
+      );
+      return user;
+    }
+
+    it("lista só as peças AVULSAS, de 10 em 10, pedidas ao servidor", async () => {
+      backend();
+      const { consultas } = servidorDePecasAvulsas();
+
+      await abrirRelacionar();
+
+      expect(await screen.findByText("PECA AVULSA 01")).toBeInTheDocument();
+      expect(screen.getByText("PECA AVULSA 10")).toBeInTheDocument();
+      expect(screen.queryByText("PECA AVULSA 11")).not.toBeInTheDocument();
+      expect(consultas[0].get("avulsas")).toBe("true");
+      expect(consultas[0].get("size")).toBe("10");
+      expect(screen.getByText(/25 registro\(s\)/)).toBeInTheDocument();
+    });
+
+    it("a busca roda no servidor: acha a peça que NÃO estava na página carregada", async () => {
+      backend();
+      const { consultas } = servidorDePecasAvulsas();
+      const user = await abrirRelacionar();
+      await screen.findByText("PECA AVULSA 01");
+      expect(screen.queryByText("PECA AVULSA 25")).not.toBeInTheDocument();
+
+      await user.type(
+        screen.getByPlaceholderText("Pesquisar peça pelo nome..."),
+        "avulsa 25",
+      );
+
+      expect(await screen.findByText("PECA AVULSA 25")).toBeInTheDocument();
+      expect(screen.queryByText("PECA AVULSA 01")).not.toBeInTheDocument();
+      expect(consultas.at(-1)?.get("q")).toBe("avulsa 25");
+      expect(consultas.at(-1)?.get("avulsas")).toBe("true");
+    });
+
+    it("escolher uma peça (mesmo achada pela busca) vincula essa peça à OS", async () => {
+      backend();
+      const { vinculadas } = servidorDePecasAvulsas();
+      const user = await abrirRelacionar();
+      await screen.findByText("PECA AVULSA 01");
+
+      await user.type(
+        screen.getByPlaceholderText("Pesquisar peça pelo nome..."),
+        "avulsa 25",
+      );
+      await user.click(await screen.findByText("PECA AVULSA 25"));
+
+      await waitFor(() => expect(vinculadas).toEqual(["124"]));
+      await waitFor(() =>
+        expect(
+          screen.queryByRole("heading", { name: "Relacionar peça" }),
+        ).not.toBeInTheDocument(),
+      );
+    });
+
+    it("paginação do modal: 'Próxima' mostra as peças da página seguinte", async () => {
+      backend();
+      const { consultas } = servidorDePecasAvulsas();
+      const user = await abrirRelacionar();
+      await screen.findByText("PECA AVULSA 01");
+
+      await user.click(screen.getByRole("button", { name: /Próxima/ }));
+
+      expect(await screen.findByText("PECA AVULSA 11")).toBeInTheDocument();
+      expect(screen.queryByText("PECA AVULSA 01")).not.toBeInTheDocument();
+      expect(consultas.at(-1)?.get("page")).toBe("1");
+    });
+
+    it("sem nenhuma peça avulsa mostra a mensagem de vazio", async () => {
+      backend();
+      server.use(
+        http.get(`${API}/itens-os-peca`, () => HttpResponse.json(pagina([]))),
+      );
+
+      await abrirRelacionar();
+
+      expect(
+        await screen.findByText("Nenhuma peça encontrada."),
       ).toBeInTheDocument();
     });
   });

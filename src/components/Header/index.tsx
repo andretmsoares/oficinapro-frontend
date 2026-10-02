@@ -44,16 +44,30 @@ export function Header({
       // Limpa erro anterior antes de uma nova tentativa
       setSubmitError("");
 
+      // Senha não leva trim: espaços fazem parte dela. Em branco = manter a atual.
+      const novaSenha = data.novaSenha?.trim() ? data.novaSenha : undefined;
+      const trocaSenha = novaSenha !== undefined;
+      const trocaUsername = data.username !== usuarioLogado.username;
+
+      // Trocar senha ou username exige confirmar a senha atual (o backend também valida).
+      if ((trocaSenha || trocaUsername) && !data.senhaAtual) {
+        setSubmitError(
+          "Informe a senha atual para alterar a senha ou o username.",
+        );
+        return;
+      }
+
       const usuarioAtualizado = await atualizarUsuarioLogado({
         nome: data.nome,
         documento: data.documento,
         telefone: data.telefone,
         username: data.username,
-        password: data.novaSenha?.trim() || undefined,
+        password: novaSenha,
+        senhaAtual: trocaSenha || trocaUsername ? data.senhaAtual : undefined,
       });
 
-      if (usuarioAtualizado.username !== usuarioLogado.username) {
-        // O username é o subject do JWT: o token atual deixa de valer.
+      if (trocaSenha) {
+        // Trocar a senha revoga todos os tokens do usuário: é preciso entrar de novo.
         onLogout();
         return;
       }

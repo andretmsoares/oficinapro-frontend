@@ -90,7 +90,11 @@ export async function buscarClientesPorNome(nome: string): Promise<Cliente[]> {
 export async function buscarClientePorDocumento(
   documento: string,
 ): Promise<Cliente> {
-  return api<Cliente>(`/clientes/documento/${encodeURIComponent(documento)}`);
+  // POST com o documento no corpo: CPF/CNPJ na URL ficaria em logs de acesso e proxies.
+  return api<Cliente>("/clientes/documento/buscar", {
+    method: "POST",
+    body: JSON.stringify({ documento }),
+  });
 }
 
 export async function criarCliente(data: ClienteRequest): Promise<Cliente> {
