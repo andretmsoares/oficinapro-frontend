@@ -5,7 +5,7 @@ import { http, HttpResponse } from "msw";
 import { Pagamentos } from "../../src/pages/Pagamentos";
 import type { Pagamento } from "../../src/types/pagamento/pagamento";
 import type { RegistroPagamento } from "../../src/types/registroPagamento/registroPagamento";
-import { API, pagamento } from "../mocks/factories";
+import { API, pagamento, pagina } from "../mocks/factories";
 import { server } from "../mocks/server";
 
 const pendente = pagamento();
@@ -37,19 +37,53 @@ const registro = (
   ...overrides,
 });
 
-/** Backend em memória: a lista e o "a receber" refletem o estado atual. */
+/** Parâmetros de cada GET /pagamentos/oficina/7 feito pela tela. */
+const consultas: URLSearchParams[] = [];
+
+/**
+ * Backend em memória: a lista (com busca, filtro de status e página aplicados no "servidor") e o
+ * resumo refletem o estado atual.
+ */
 function backend(inicial: Pagamento[] = [pendente, parcial, quitado]) {
   const estado = {
     pagamentos: inicial,
     aReceber: 140000,
     registros: [registro()],
   };
+  consultas.length = 0;
+
   server.use(
-    http.get(`${API}/pagamentos/oficina/7`, () =>
-      HttpResponse.json(estado.pagamentos),
-    ),
-    http.get(`${API}/pagamentos/oficina/7/a-receber`, () =>
-      HttpResponse.json(estado.aReceber),
+    http.get(`${API}/pagamentos/oficina/7`, ({ request }) => {
+      const params = new URL(request.url).searchParams;
+      consultas.push(params);
+
+      const q = (params.get("q") ?? "").trim();
+      const status = params.get("status");
+      const size = Number(params.get("size") ?? 20);
+      const page = Number(params.get("page") ?? 0);
+
+      const filtrados = estado.pagamentos.filter(
+        (p) =>
+          (!status || p.status === status) &&
+          (!q || String(p.osId).includes(q) || String(p.id).includes(q)),
+      );
+
+      return HttpResponse.json({
+        ...pagina(
+          filtrados.slice(page * size, (page + 1) * size),
+          Math.max(1, Math.ceil(filtrados.length / size)),
+        ),
+        totalElements: filtrados.length,
+        number: page,
+      });
+    }),
+    // totais somados sobre TODOS os pagamentos, não sobre a página
+    http.get(`${API}/pagamentos/oficina/7/resumo`, () =>
+      HttpResponse.json({
+        totalRecebido: estado.pagamentos.reduce((t, p) => t + p.valorPago, 0),
+        valorAReceber: estado.aReceber,
+        pendentes: estado.pagamentos.filter((p) => p.valorPendente > 0).length,
+      }),
     ),
     http.get(`${API}/registros-pagamento/pagamento/:id`, () =>
       HttpResponse.json(estado.registros),
@@ -114,7 +148,10 @@ describe("Página de Pagamentos", () => {
       renderizar();
       await screen.findByText("#0001");
 
-      expect(cartao("Total Recebido")).toHaveTextContent("R$ 400,00");
+      // totais vêm do resumo do servidor (soma sobre TODOS os pagamentos)
+      await waitFor(() =>
+        expect(cartao("Total Recebido")).toHaveTextContent("R$ 400,00"),
+      );
       expect(cartao("A Receber")).toHaveTextContent("R$ 1.400,00");
       expect(cartao("Pagamentos")).toHaveTextContent("3");
       // pendentes = pagamentos com valor pendente > 0 (a OS quitada não conta)
@@ -138,17 +175,21 @@ describe("Página de Pagamentos", () => {
           `${API}/pagamentos/oficina/7`,
           () => new HttpResponse(null, { status: 500 }),
         ),
-        http.get(`${API}/pagamentos/oficina/7/a-receber`, () =>
-          HttpResponse.json(0),
+        http.get(
+          `${API}/pagamentos/oficina/7/resumo`,
+          () => new HttpResponse(null, { status: 500 }),
         ),
       );
 
       renderizar();
 
       expect(
-        await screen.findByText("Não foi possível carregar os pagamentos."),
+        await screen.findByText(
+          "Não foi possível carregar os totais de pagamentos.",
+        ),
       ).toBeInTheDocument();
       expect(screen.queryByText("Carregando...")).not.toBeInTheDocument();
+      expect(screen.queryByText("#0001")).not.toBeInTheDocument();
     });
 
     it("erro 403 (perfil sem acesso) também é sinalizado", async () => {
@@ -158,7 +199,7 @@ describe("Página de Pagamentos", () => {
           () => new HttpResponse(null, { status: 403 }),
         ),
         http.get(
-          `${API}/pagamentos/oficina/7/a-receber`,
+          `${API}/pagamentos/oficina/7/resumo`,
           () => new HttpResponse(null, { status: 403 }),
         ),
       );
@@ -166,13 +207,15 @@ describe("Página de Pagamentos", () => {
       renderizar();
 
       expect(
-        await screen.findByText("Não foi possível carregar os pagamentos."),
+        await screen.findByText(
+          "Não foi possível carregar os totais de pagamentos.",
+        ),
       ).toBeInTheDocument();
     });
   });
 
-  describe("pesquisa e filtro", () => {
-    it("pesquisa pelo código da OS", async () => {
+  describe("pesquisa e filtro (no servidor)", () => {
+    it("pesquisa pelo código da OS: o termo vai ao servidor e só o resultado aparece", async () => {
       backend();
       const user = renderizar();
       await screen.findByText("#0001");
@@ -182,12 +225,48 @@ describe("Página de Pagamentos", () => {
         "3",
       );
 
+      await waitFor(() =>
+        expect(screen.queryByText("#0001")).not.toBeInTheDocument(),
+      );
       expect(screen.getByText("#0003")).toBeInTheDocument();
-      expect(screen.queryByText("#0001")).not.toBeInTheDocument();
       expect(screen.queryByText("#0002")).not.toBeInTheDocument();
+      expect(consultas.at(-1)?.get("q")).toBe("3");
     });
 
-    it("filtra por status e mostra mensagem quando nada corresponde", async () => {
+    it("acha o pagamento que não estava na página carregada", async () => {
+      // 25 pagamentos: a OS #0025 só aparece na página 2
+      const muitos = Array.from({ length: 25 }, (_, i) =>
+        pagamento({ id: i + 1, osId: i + 1 }),
+      );
+      backend(muitos);
+      const user = renderizar();
+      await screen.findByText("#0001");
+      expect(screen.queryByText("#0025")).not.toBeInTheDocument();
+
+      await user.type(
+        screen.getByPlaceholderText("Pesquisar pelo código da OS"),
+        "25",
+      );
+
+      expect(await screen.findByText("#0025")).toBeInTheDocument();
+      expect(screen.queryByText("#0001")).not.toBeInTheDocument();
+    });
+
+    it("paginação: 'Próxima' pede a página seguinte ao servidor", async () => {
+      const muitos = Array.from({ length: 25 }, (_, i) =>
+        pagamento({ id: i + 1, osId: i + 1 }),
+      );
+      backend(muitos);
+      const user = renderizar();
+      await screen.findByText("#0001");
+
+      await user.click(screen.getByRole("button", { name: /Próxima/ }));
+
+      expect(await screen.findByText("#0021")).toBeInTheDocument();
+      expect(consultas.at(-1)?.get("page")).toBe("1");
+    });
+
+    it("filtra por status (no servidor) e mostra mensagem quando nada corresponde", async () => {
       backend([pendente, quitado]);
       const user = renderizar();
       await screen.findByText("#0001");
@@ -196,12 +275,15 @@ describe("Página de Pagamentos", () => {
       });
 
       await user.selectOptions(filtro, "PAGA");
+      await waitFor(() =>
+        expect(screen.queryByText("#0001")).not.toBeInTheDocument(),
+      );
       expect(screen.getByText("#0003")).toBeInTheDocument();
-      expect(screen.queryByText("#0001")).not.toBeInTheDocument();
+      expect(consultas.at(-1)?.get("status")).toBe("PAGA");
 
       await user.selectOptions(filtro, "PAGO_PARCIALMENTE");
       expect(
-        screen.getByText(
+        await screen.findByText(
           "Nenhum pagamento encontrado para o filtro selecionado",
         ),
       ).toBeInTheDocument();
