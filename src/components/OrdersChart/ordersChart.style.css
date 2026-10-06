@@ -1,4 +1,5 @@
 .chart-card {
+  min-width: 0;
   padding: 22px;
 
   background: #ffffff;
@@ -26,7 +27,8 @@
 .chart-legend {
   display: flex;
 
-  gap: 20px;
+  flex-wrap: wrap;
+  gap: 8px 20px;
 
   margin: 18px 0;
 
@@ -61,4 +63,10 @@
 
 .chart-container {
   width: 100%;
+}
+
+@media (max-width: 480px) {
+  .chart-card {
+    padding: 16px;
+  }
 }

@@ -14,6 +14,7 @@
 
 .pagination-buttons {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
 }
 
@@ -37,4 +38,22 @@
 .pagination-buttons button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+@media (max-width: 480px) {
+  .pagination {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .pagination-buttons {
+    justify-content: center;
+  }
+
+  .pagination-buttons button {
+    flex: 1;
+    justify-content: center;
+    min-height: 44px;
+  }
 }

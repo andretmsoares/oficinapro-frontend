@@ -2,6 +2,7 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+  gap: 12px;
 
   padding: 24px;
 
@@ -32,8 +33,9 @@
   align-items: center;
   justify-content: center;
 
-  width: 34px;
-  height: 34px;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
 
   border: none;
   border-radius: 8px;
@@ -47,4 +49,18 @@
 .payment-modal-close:hover {
   background: #f3f4f6;
   color: #111827;
+}
+
+.payment-modal-header h2 {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 480px) {
+  .payment-modal-header {
+    padding: 16px;
+  }
+
+  .payment-modal-header h2 {
+    font-size: 18px;
+  }
 }

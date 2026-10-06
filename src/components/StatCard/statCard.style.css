@@ -1,4 +1,5 @@
 .stat-card {
+  min-width: 0;
   padding: 20px;
   background: #ffffff;
   border: 1px solid #e5e7eb;
@@ -23,6 +24,7 @@
 
 .stat-value {
   display: block;
+  overflow-wrap: anywhere;
 
   color: #111827;
 
@@ -53,4 +55,27 @@
   color: #9ca3af;
 
   font-size: 12px;
+}
+
+/* Grade compartilhada de cards (Dashboard e Pagamentos):
+   4 colunas no desktop, 2 no tablet, 1 no celular. */
+.stats-grid,
+.payments-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 1024px) {
+  .stats-grid,
+  .payments-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-grid,
+  .payments-stats {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

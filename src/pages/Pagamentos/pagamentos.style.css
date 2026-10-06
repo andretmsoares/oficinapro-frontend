@@ -1,8 +1,4 @@
 .payments-stats {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-
   margin-bottom: 20px;
 }
 
@@ -36,16 +32,4 @@
 .payment-status-pendente {
   background: #fee2e2;
   color: #991b1b;
-}
-
-@media (max-width: 1000px) {
-  .payments-stats {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 600px) {
-  .payments-stats {
-    grid-template-columns: 1fr;
-  }
 }

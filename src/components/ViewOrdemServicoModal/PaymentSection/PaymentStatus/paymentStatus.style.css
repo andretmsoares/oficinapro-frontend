@@ -1,5 +1,7 @@
 .view-os-payment-status {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
   justify-content: space-between;
 }

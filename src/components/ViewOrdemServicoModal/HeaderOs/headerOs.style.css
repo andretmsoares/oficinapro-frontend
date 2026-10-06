@@ -2,6 +2,7 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+  gap: 12px;
 
   padding: 24px;
 
@@ -26,4 +27,18 @@
 
   font-size: 22px;
   font-weight: 600;
+}
+
+.view-os-header h2 {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 520px) {
+  .view-os-header {
+    padding: 18px;
+  }
+
+  .view-os-header h2 {
+    font-size: 18px;
+  }
 }

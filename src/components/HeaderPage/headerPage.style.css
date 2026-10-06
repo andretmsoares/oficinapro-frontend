@@ -5,3 +5,9 @@
 .header-page p {
     margin: 0;
 }
+
+@media (max-width: 480px) {
+    .header-page h1 {
+        font-size: 1.6rem;
+    }
+}
