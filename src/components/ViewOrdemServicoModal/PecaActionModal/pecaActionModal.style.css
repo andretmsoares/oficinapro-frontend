@@ -11,6 +11,8 @@
 
 .peca-action-modal {
   width: min(100%, 480px);
+  max-height: calc(100dvh - 48px);
+  overflow-y: auto;
   background-color: #ffffff;
   border-radius: 12px;
   box-shadow:
@@ -109,4 +111,26 @@
 .peca-action-option span {
   color: #64748b;
   font-size: 12.5px;
+}
+
+.peca-action-option > div {
+  min-width: 0;
+}
+
+@media (max-width: 480px) {
+  .peca-action-overlay {
+    padding: 12px;
+  }
+
+  .peca-action-modal {
+    padding: 18px;
+    max-height: calc(100dvh - 24px);
+  }
+}
+
+@media (pointer: coarse) {
+  .peca-action-close {
+    width: 40px;
+    height: 40px;
+  }
 }

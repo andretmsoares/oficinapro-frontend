@@ -5,6 +5,7 @@
   gap: 7px;
 
   width: fit-content;
+  min-height: 40px;
   padding: 9px 14px;
 
   border: none;
@@ -21,4 +22,10 @@
 
 .view-os-payment-button:hover {
   opacity: 0.9;
+}
+
+@media (max-width: 520px) {
+  .view-os-payment-button {
+    width: 100%;
+  }
 }

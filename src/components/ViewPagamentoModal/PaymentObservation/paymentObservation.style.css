@@ -14,7 +14,14 @@
 
 .payment-observation p {
   margin: 5px 0 0;
+  overflow-wrap: anywhere;
 
   color: #6b7280;
   font-size: 13px;
+}
+
+@media (max-width: 520px) {
+  .payment-observation {
+    margin: 0 16px 16px;
+  }
 }

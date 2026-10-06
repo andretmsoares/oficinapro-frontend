@@ -1,5 +1,7 @@
 .payment-table-wrapper {
   overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
 
   border: 1px solid #e5e7eb;
   border-radius: 8px;
@@ -7,6 +9,8 @@
 
 .payment-table {
   width: 100%;
+
+  min-width: 520px;
 
   border-collapse: collapse;
 
@@ -40,13 +44,14 @@
   border-bottom: none;
 }
 
-.payment-table-value {
-  color: #111827 !important;
+.payment-table td.payment-table-value {
+  color: #111827;
   font-weight: 600;
 }
 
 .payment-table-actions {
   width: 60px;
+  white-space: nowrap;
   text-align: center;
 }
 
@@ -70,4 +75,11 @@
 .payment-delete-button:hover {
   background: #fee2e2;
   color: #b91c1c;
+}
+
+@media (pointer: coarse) {
+  .payment-delete-button {
+    width: 40px;
+    height: 40px;
+  }
 }

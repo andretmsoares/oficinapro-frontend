@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Pencil, LogOut } from "lucide-react";
+import { Pencil, LogOut, Menu } from "lucide-react";
 
 import "./header.style.css";
 import type { Usuario } from "../../types/usuario/usuario";
@@ -12,12 +12,17 @@ interface HeaderProps {
   usuarioLogado: Usuario;
   onLogout: () => void;
   onUpdateUsuarioLogado: (data: Usuario) => void;
+  /** Abre o menu lateral em telas pequenas. */
+  onOpenMenu?: () => void;
+  isMenuExpanded?: boolean;
 }
 
 export function Header({
   usuarioLogado,
   onLogout,
   onUpdateUsuarioLogado,
+  onOpenMenu,
+  isMenuExpanded = false,
 }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -26,16 +31,17 @@ export function Header({
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
+    function handleClickOutside(event: PointerEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setIsMenuOpen(false);
       }
     }
 
-    document.addEventListener("mousedown", handleClickOutside);
+    // pointerdown cobre mouse e toque.
+    document.addEventListener("pointerdown", handleClickOutside);
 
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("pointerdown", handleClickOutside);
     };
   }, []);
 
@@ -98,7 +104,18 @@ export function Header({
 
   return (
     <header className="header">
-      <div>
+      <button
+        type="button"
+        className="menu-toggle"
+        onClick={onOpenMenu}
+        aria-label="Abrir menu"
+        aria-controls="sidebar"
+        aria-expanded={isMenuExpanded}
+      >
+        <Menu size={22} />
+      </button>
+
+      <div className="header-greeting">
         <h2>Olá, {usuarioLogado.nome} 👋</h2>
 
         <p>
@@ -113,13 +130,15 @@ export function Header({
           <button
             type="button"
             className="avatar-button"
+            aria-haspopup="menu"
+            aria-expanded={isMenuOpen}
             onClick={() => setIsMenuOpen((prev) => !prev)}
           >
             <div className="avatar">
               {usuarioLogado.nome[0] ?? "Nome não encontrado"}
             </div>
 
-            <div>
+            <div className="user-info-text">
               <strong>{usuarioLogado.nome}</strong>
               <span>{ROLE_LABELS[usuarioLogado.role]}</span>
             </div>

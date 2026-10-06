@@ -1,6 +1,7 @@
 .btn {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   padding: 0.65rem 1.1rem;
   border: none;
@@ -9,4 +10,10 @@
   font-size: 0.9rem;
   cursor: pointer;
   transition: background-color 0.2s;
+}
+
+@media (pointer: coarse) {
+  .btn {
+    min-height: 44px;
+  }
 }

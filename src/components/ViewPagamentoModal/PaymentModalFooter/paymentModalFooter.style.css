@@ -2,6 +2,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
 
   padding: 18px 24px;
 
@@ -23,6 +25,7 @@
 }
 
 .payment-close-button {
+  min-height: 40px;
   padding: 9px 18px;
 
   border: 1px solid #d1d5db;
@@ -39,4 +42,14 @@
 
 .payment-close-button:hover {
   background: #f9fafb;
+}
+
+@media (max-width: 480px) {
+  .payment-modal-footer {
+    padding: 16px;
+  }
+
+  .payment-close-button {
+    width: 100%;
+  }
 }

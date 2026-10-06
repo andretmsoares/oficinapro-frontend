@@ -37,3 +37,12 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+@media (max-width: 520px) {
+  .view-os-info-item strong {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}

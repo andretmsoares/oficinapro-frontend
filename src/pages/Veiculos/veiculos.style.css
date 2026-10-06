@@ -7,15 +7,3 @@
 .vehicle-client svg {
   flex-shrink: 0;
 }
-
-@media (max-width: 1000px) {
-  .vehicles-stats {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 600px) {
-  .vehicles-stats {
-    grid-template-columns: 1fr;
-  }
-}
