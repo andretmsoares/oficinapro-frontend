@@ -2,6 +2,40 @@ export const API_URL = import.meta.env.VITE_API_URL;
 
 export const UNAUTHORIZED_EVENT = "auth:unauthorized";
 
+let pendingRequests = 0;
+const loadingListeners = new Set<() => void>();
+
+export function subscribeLoading(listener: () => void) {
+  loadingListeners.add(listener);
+  return () => {
+    loadingListeners.delete(listener);
+  };
+}
+
+export function getPendingRequests() {
+  return pendingRequests;
+}
+
+function notifyLoading() {
+  loadingListeners.forEach((listener) => listener());
+}
+
+/** fetch que contabiliza a requisição para o indicador global de carregamento. */
+export async function trackedFetch(
+  input: RequestInfo | URL,
+  init?: RequestInit,
+): Promise<Response> {
+  pendingRequests += 1;
+  notifyLoading();
+
+  try {
+    return await fetch(input, init);
+  } finally {
+    pendingRequests -= 1;
+    notifyLoading();
+  }
+}
+
 export class ApiError extends Error {
   status: number;
   fields: Record<string, string>;
@@ -43,7 +77,7 @@ export async function api<T>(
     headers.set("Authorization", `Bearer ${token}`);
   }
 
-  const response = await fetch(`${API_URL}${endpoint}`, {
+  const response = await trackedFetch(`${API_URL}${endpoint}`, {
     ...options,
     headers,
   });
