@@ -8,6 +8,7 @@ import {
 } from "react-router-dom";
 
 import { MainLayout } from "./components/MainLayout";
+import { GlobalLoading } from "./components/GlobalLoading";
 
 import { Dashboard } from "./pages/Dashboard";
 import { Clientes } from "./pages/Clientes";
@@ -53,6 +54,15 @@ function RequireRole({ allowed, usuarioLogado }: RequireRoleProps) {
 }
 
 export default function App() {
+  return (
+    <>
+      <AppRoutes />
+      <GlobalLoading />
+    </>
+  );
+}
+
+function AppRoutes() {
   const OPERATIONAL_ROLES: Role[] = ["MECANICO", "GERENTE"];
 
   const GERENTE_ROLES: Role[] = ["GERENTE"];

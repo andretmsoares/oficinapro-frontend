@@ -1,10 +1,10 @@
 import type { Usuario } from "../types/usuario/usuario";
 import type { LoginRequest, LoginResponse } from "../types/auth/auth";
 
-const API_URL = import.meta.env.VITE_API_URL;
+import { API_URL, trackedFetch } from "./api";
 
 export async function login(credentials: LoginRequest): Promise<LoginResponse> {
-  const response = await fetch(`${API_URL}/auth/login`, {
+  const response = await trackedFetch(`${API_URL}/auth/login`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -37,7 +37,7 @@ export async function login(credentials: LoginRequest): Promise<LoginResponse> {
  */
 export async function logout(token: string): Promise<void> {
   try {
-    await fetch(`${API_URL}/auth/logout`, {
+    await trackedFetch(`${API_URL}/auth/logout`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -49,7 +49,7 @@ export async function logout(token: string): Promise<void> {
 }
 
 export async function buscarUsuarioLogado(token: string): Promise<Usuario> {
-  const response = await fetch(`${API_URL}/auth/me`, {
+  const response = await trackedFetch(`${API_URL}/auth/me`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
